@@ -1,10 +1,22 @@
 'use client'
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Suspense, useRef } from "react";
+import { Suspense, useRef, useState, useEffect } from "react";
 import Loader from '../components/loader'
 import Logo from '../model/logo'
 import { Environment, Center, Stars } from '@react-three/drei';
 import * as THREE from 'three';
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return width;
+}
 
 function MouseFollower() {
   const ref = useRef<THREE.Group>(null);
@@ -39,12 +51,15 @@ function MouseFollower() {
 }
 
 export default function Home() {
+  const width = useWindowWidth();
+  const planeSize = width < 768 ? 5 : 8; // smaller plane only on mobile
+
   return (
     <section 
-      className="w-full h-screen relative bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#000000] overflow-hidden"
+      className="w-full h-screen sm:h-[70vh] md:h-screen relative bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#000000] overflow-hidden"
     >
       <Canvas
-        className="w-full h-screen"
+        className="w-full h-full"
         camera={{ position: [0, 0, 5], near: 0.1, far: 1000 }}
       >
         <Suspense fallback={<Loader />}>
@@ -56,7 +71,6 @@ export default function Home() {
             factor={4} 
             saturation={0.0} 
             fade 
-             
           />
 
           {/* Lighting */}
@@ -67,7 +81,7 @@ export default function Home() {
 
           {/* Subtle glow behind logo */}
           <mesh position={[0, 0, -2]}>
-            <planeGeometry args={[8, 8]} /> {/* smaller plane for more stars */}
+            <planeGeometry args={[planeSize, planeSize]} />
             <meshBasicMaterial color="#222222" transparent opacity={0.15} />
           </mesh>
 
