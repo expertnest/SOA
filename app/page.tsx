@@ -5,6 +5,7 @@ import Loader from '../components/loader'
 import Logo from '../model/logo'
 import { Environment, Center, Stars } from '@react-three/drei';
 import * as THREE from 'three';
+import Link from "next/link";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
@@ -41,9 +42,9 @@ function MouseFollower() {
       <Center>
         <Logo />
         <meshStandardMaterial
-          metalness={0.9}   // smooth, slightly glossy
+          metalness={0.9}
           roughness={0.2}
-          color="#111111"    // fashionable black
+          color="#111111"
         />
       </Center>
     </group>
@@ -52,7 +53,21 @@ function MouseFollower() {
 
 export default function Home() {
   const width = useWindowWidth();
-  const planeSize = width < 768 ? 5 : 8; // smaller plane only on mobile
+  const planeSize = width < 768 ? 5 : 8;
+
+  const navItems = [
+    { name: "Merch", href: "/merch" },
+    { name: "Tour", href: "/tour" },
+    { name: "Videos", href: "/videos" },
+    { name: "News", href: "/news" },
+  ];
+
+  const positions = [
+    "top-6 left-6",
+    "top-6 right-6",
+    "bottom-6 left-6",
+    "bottom-6 right-6"
+  ];
 
   return (
     <section 
@@ -63,23 +78,13 @@ export default function Home() {
         camera={{ position: [0, 0, 5], near: 0.1, far: 1000 }}
       >
         <Suspense fallback={<Loader />}>
-          {/* Stars background */}
-          <Stars 
-            radius={80} 
-            depth={50} 
-            count={1500} 
-            factor={4} 
-            saturation={0.0} 
-            fade 
-          />
+          <Stars radius={80} depth={50} count={1500} factor={4} saturation={0.0} fade />
 
-          {/* Lighting */}
           <ambientLight intensity={0.3} />
           <directionalLight position={[5, 5, 5]} intensity={1.5} />
           <directionalLight position={[-5, -5, 5]} intensity={1.0} />
           <pointLight position={[0, 5, 10]} intensity={1.5} />
 
-          {/* Subtle glow behind logo */}
           <mesh position={[0, 0, -2]}>
             <planeGeometry args={[planeSize, planeSize]} />
             <meshBasicMaterial color="#222222" transparent opacity={0.15} />
@@ -90,23 +95,16 @@ export default function Home() {
         </Suspense>
       </Canvas>
 
-      {/* Corner Navigation */}
-      {["Merch", "Tour", "Videos", "News"].map((item, idx) => {
-        const positions = [
-          "top-6 left-6",
-          "top-6 right-6",
-          "bottom-6 left-6",
-          "bottom-6 right-6"
-        ];
-        return (
-          <div
-            key={item}
-            className={`absolute ${positions[idx]} text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400`}
-          >
-            {item}
-          </div>
-        );
-      })}
+      {/* Corner Navigation with Next.js Link */}
+      {navItems.map((item, idx) => (
+        <Link 
+          key={item.name}
+          href={item.href}
+          className={`absolute ${positions[idx]} text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400`}
+        >
+          {item.name}
+        </Link>
+      ))}
     </section>
   );
 }
