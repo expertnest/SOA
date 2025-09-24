@@ -44,7 +44,7 @@ export default function MerchPage() {
       {/* Back to Menu Link */}
       <Link
         href="/"
-        className="absolute top-6 left-6 text-white font-semibold hover:text-gray-300 transition"
+        className="absolute top-6 left-6 text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400"
       >
         &larr; Back to Menu
       </Link>
