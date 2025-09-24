@@ -40,51 +40,65 @@ export default function MerchPage() {
   const [selected, setSelected] = useState(products[0])
 
   return (
-    <div className="flex flex-col md:flex-row w-full h-screen p-6 gap-6 bg-black text-white relative">
-      {/* Back to Menu Link */}
-      <Link
-        href="/"
-        className="absolute top-6 left-6 text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400"
-      >
-        &larr; Back to Menu
-      </Link>
+    <div className="w-full min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="w-full bg-zinc-900 py-6 px-6 flex flex-col items-start shadow-lg">
+        <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.1em]">
+          Merch Store
+        </h1>
+        <Link
+          href="/"
+          className="mt-2 text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400"
+        >
+          &larr; Back to Menu
+        </Link>
+      </header>
 
-      {/* Main Display Section */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-zinc-900 rounded-2xl p-6 shadow-lg">
-        <Image
-          src={selected.image}
-          alt={selected.name}
-          width={400}
-          height={400}
-          className="rounded-xl object-cover mb-6"
-        />
-        <h2 className="text-2xl font-bold">{selected.name}</h2>
-        <p className="text-gray-300 mt-2">{selected.description}</p>
-        <p className="text-xl mt-4">{selected.price}</p>
-        <Button className="mt-6 px-6 py-3 rounded-xl bg-white text-black hover:bg-gray-200">
-          Add to Cart
-        </Button>
-      </div>
+      {/* Main Container */}
+      <div className="flex flex-col md:flex-row w-full h-[calc(100vh-100px)] p-6 gap-6">
+        {/* Main Display Section */}
+        <div className="flex-1 flex flex-col items-center justify-center bg-zinc-900 rounded-2xl p-6 shadow-lg">
+          <Image
+            src={selected.image}
+            alt={selected.name}
+            width={400}
+            height={400}
+            className="rounded-xl object-cover mb-6"
+          />
+          <h2 className="text-2xl font-bold">{selected.name}</h2>
+          <p className="text-gray-300 mt-2">{selected.description}</p>
+          <p className="text-xl mt-4">{selected.price}</p>
+          <Button className="mt-6 px-6 py-3 rounded-xl bg-white text-black hover:bg-gray-200">
+            Add to Cart
+          </Button>
+        </div>
 
-      {/* Gallery Sidebar */}
-      <div className="w-full md:w-1/3 flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            onClick={() => setSelected(product)}
-            className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-xl p-2 ${
-              selected.id === product.id ? "border-white" : "border-transparent"
-            }`}
-          >
-            <Image
-              src={product.image}
-              alt={product.name}
-              width={120}
-              height={120}
-              className="rounded-lg object-cover"
-            />
-          </div>
-        ))}
+        {/* Gallery Sidebar with Details */}
+        <div className="w-full md:w-1/3 flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              onClick={() => setSelected(product)}
+              className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-xl p-2 flex gap-3 items-center ${
+                selected.id === product.id ? "border-white" : "border-transparent"
+              }`}
+            >
+              <Image
+                src={product.image}
+                alt={product.name}
+                width={80}
+                height={80}
+                className="rounded-lg object-cover"
+              />
+              {/* Details */}
+              <div className="flex flex-col">
+                <span className="font-bold text-sm md:text-base">{product.name}</span>
+                <span className="text-gray-300 text-xs md:text-sm">{product.price}</span>
+                <span className="text-gray-400 text-xs md:text-sm line-clamp-2">{product.description}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
