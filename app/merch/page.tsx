@@ -11,28 +11,28 @@ const products = [
     name: "Signature Hoodie",
     price: "$65.00",
     description: "Premium heavyweight hoodie with embroidered logo.",
-    image: "/products/hoodie.jpg",
+    image: "/clothes1.png",
   },
   {
     id: 2,
     name: "Tour T-Shirt",
     price: "$35.00",
     description: "100% cotton graphic tee from the 2025 tour.",
-    image: "/products/tshirt.jpg",
+    image: "/clothes3.png",
   },
   {
     id: 3,
-    name: "Dad Hat",
+    name: "SOA Hat",
     price: "$25.00",
     description: "Classic low-profile hat with stitched logo.",
-    image: "/products/hat.jpg",
+    image: "/clothes2.png",
   },
   {
     id: 4,
-    name: "Poster",
+    name: "SOA Vynl",
     price: "$20.00",
     description: "Limited edition tour poster (18x24).",
-    image: "/products/poster.jpg",
+    image: "/clothes4.png",
   },
 ]
 
@@ -75,30 +75,30 @@ export default function MerchPage() {
 
         {/* Gallery Sidebar with Details */}
         <div className="w-full md:w-1/3 flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => setSelected(product)}
-              className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-xl p-2 flex gap-3 items-center ${
-                selected.id === product.id ? "border-white" : "border-transparent"
-              }`}
-            >
-              <Image
-                src={product.image}
-                alt={product.name}
-                width={80}
-                height={80}
-                className="rounded-lg object-cover"
-              />
-              {/* Details */}
-              <div className="flex flex-col">
-                <span className="font-bold text-sm md:text-base">{product.name}</span>
-                <span className="text-gray-300 text-xs md:text-sm">{product.price}</span>
-                <span className="text-gray-400 text-xs md:text-sm line-clamp-2">{product.description}</span>
-              </div>
+        {products.map((product) => (
+          <div
+            key={product.id}
+            onClick={() => setSelected(product)}
+            className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-xl p-2 flex gap-3 items-center ${
+              selected.id === product.id ? "border-white" : "border-transparent"
+            }`}
+          >
+            <Image
+              src={product.image}
+              alt={product.name}
+              width={80}
+              height={80}
+              className="rounded-lg object-cover"
+            />
+            {/* Details */}
+            <div className="flex flex-col">
+              <span className="font-bold text-sm md:text-base">{product.name}</span>
+              <span className="text-gray-300 text-xs md:text-sm">{product.price}</span>
+              <span className="text-gray-400 text-xs md:text-sm line-clamp-2">{product.description}</span>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
+      </div>
       </div>
     </div>
   )

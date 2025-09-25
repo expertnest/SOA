@@ -57,7 +57,6 @@ const newsPosts = [
     color: "from-teal-500 to-cyan-500",
     span: "md:col-span-1 md:row-span-1",
   },
-  
 ]
 
 export default function NewsPage() {
@@ -84,12 +83,12 @@ export default function NewsPage() {
         </header>
 
         {/* News Grid */}
-        <div className="flex flex-col items-center flex-1 w-full relative z-10 px-6 pt-10 pb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 auto-rows-[250px] gap-6 w-full max-w-6xl">
+        <div className="flex flex-col items-center flex-1 w-full relative z-10 px-4 pt-8 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 auto-rows-[180px] sm:auto-rows-[200px] md:auto-rows-[250px] gap-4 sm:gap-6 w-full max-w-5xl">
             {newsPosts.map((post) => (
               <div
                 key={post.id}
-                className={`relative rounded-xl overflow-hidden shadow-xl border border-gray-700 hover:scale-[1.03] transition-transform duration-300 flex flex-col ${post.span}`}
+                className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform duration-300 flex flex-col ${post.span}`}
               >
                 {/* Image Section */}
                 <div
@@ -98,22 +97,22 @@ export default function NewsPage() {
                 ></div>
 
                 {/* Gradient Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-75`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-70`}></div>
 
                 {/* Text Content */}
-                <div className="relative z-10 p-4 flex flex-col justify-end h-full">
-                  <span className="text-xs text-white/70 uppercase tracking-wide mb-1">
+                <div className="relative z-10 p-3 sm:p-4 flex flex-col justify-end h-full">
+                  <span className="text-[10px] sm:text-xs text-white/70 uppercase tracking-wide mb-1">
                     {post.date}
                   </span>
-                  <h2 className="text-lg md:text-xl font-semibold mb-2">
+                  <h2 className="text-sm sm:text-lg font-semibold mb-1">
                     {post.title}
                   </h2>
-                  <p className="text-sm md:text-base text-white/90 mb-2">
+                  <p className="text-xs sm:text-sm text-white/90 mb-1 line-clamp-3">
                     {post.excerpt}
                   </p>
                   <Link
                     href={`/news/${post.id}`}
-                    className="mt-2 text-xs md:text-sm font-bold uppercase tracking-wide text-white hover:text-gray-200 transition"
+                    className="mt-1 text-[9px] sm:text-xs font-bold uppercase tracking-wide text-white hover:text-gray-200 transition"
                   >
                     Read More →
                   </Link>

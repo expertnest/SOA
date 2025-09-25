@@ -23,7 +23,7 @@ const tourDates = [
 
 export default function TourPage() {
   return (
-    <div className="relative w-full min-h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="relative w-full max-h-screen bg-black text-white flex flex-col overflow-hidden">
       {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
