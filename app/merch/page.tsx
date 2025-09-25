@@ -66,7 +66,8 @@ export default function MerchPage() {
             className="rounded-xl object-cover mb-6"
           />
           <h2 className="text-2xl font-bold">{selected.name}</h2>
-          <p className="text-gray-300 mt-2">{selected.description}</p>
+          {/* Description hidden on small, shown on md+ */}
+          <p className="text-gray-300 mt-2 hidden md:block">{selected.description}</p>
           <p className="text-xl mt-4">{selected.price}</p>
           <Button className="mt-6 px-6 py-3 rounded-xl bg-white text-black hover:bg-gray-200">
             Add to Cart
@@ -74,31 +75,34 @@ export default function MerchPage() {
         </div>
 
         {/* Gallery Sidebar with Details */}
-        <div className="w-full md:w-1/3 flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            onClick={() => setSelected(product)}
-            className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-xl p-2 flex gap-3 items-center ${
-              selected.id === product.id ? "border-white" : "border-transparent"
-            }`}
-          >
-            <Image
-              src={product.image}
-              alt={product.name}
-              width={80}
-              height={80}
-              className="rounded-lg object-cover"
-            />
-            {/* Details */}
-            <div className="flex flex-col">
-              <span className="font-bold text-sm md:text-base">{product.name}</span>
-              <span className="text-gray-300 text-xs md:text-sm">{product.price}</span>
-              <span className="text-gray-400 text-xs md:text-sm line-clamp-2">{product.description}</span>
+        <div className="w-full w-1/2 md:w-1/3 flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              onClick={() => setSelected(product)}
+              className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-l md:p-2 p-4 flex gap-3 items-center ${
+                selected.id === product.id ? "border-white" : "border-transparent"
+              }`}
+            >
+              <Image
+                src={product.image}
+                alt={product.name}
+                width={80}
+                height={80}
+                className="rounded-lg object-cover"
+              />
+              {/* Details */}
+              <div className="flex flex-col p-2">
+                <span className="font-bold text-sm md:text-base">{product.name}</span>
+                <span className="text-gray-300 text-xs md:text-sm">{product.price}</span>
+                {/* Description hidden on small, shown on md+ */}
+                <span className="text-gray-400 text-xs md:text-sm line-clamp-2 hidden md:block">
+                  {product.description}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       </div>
     </div>
   )
