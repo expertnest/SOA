@@ -1,7 +1,16 @@
 import path from 'path'
 import type { NextConfig } from 'next'
 
-const nextConfig: NextConfig = {
+const nextConfig: NextConfig = { 
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+    ],
+  },
+
   webpack: (config, { isServer }) => {
     // Add GLB/GLTF loader
     config.module.rules.push({
@@ -14,7 +23,7 @@ const nextConfig: NextConfig = {
         },
       },
     })
-
+     
     // Add audio loader (ogg, mp3, wav, mpeg)
     config.module.rules.push({
       test: /\.(ogg|mp3|wav|mpe?g)$/i,

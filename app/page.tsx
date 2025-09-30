@@ -56,10 +56,9 @@ export default function Home() {
   const planeSize = width < 768 ? 5 : 8;
 
   const navItems = [
-    { name: "Merch", href: "/merch" },
-    { name: "Tour", href: "/tour" },
-    { name: "Videos", href: "/videos" },
-    { name: "News", href: "/news" },
+    { name: "Home", href: "/news" },
+  
+ 
   ];
 
   const positions = [

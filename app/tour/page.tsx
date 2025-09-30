@@ -23,7 +23,7 @@ const tourDates = [
 
 export default function TourPage() {
   return (
-    <div className="relative w-full max-h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="relative w-full max-h-screen bg-black text-white flex flex-col overflow-hidden mt-6">
       {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
@@ -67,7 +67,7 @@ export default function TourPage() {
                 <span className="text-gray-300 text-sm">{tour.time}</span>
                 <span className="text-sm">{tour.city}</span>
                 <span className="text-gray-300 text-sm">{tour.venue}</span>
-                <Link href={tour.ticket} passHref legacyBehavior>
+                <Link href={tour.ticket} passHref  >
   <Button className="mt-2 md:mt-0 px-4 py-1.5 rounded-lg bg-white text-black hover:bg-gray-200 transition text-xs">
     Tickets
   </Button>
