@@ -40,7 +40,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
           {/* Mobile Navbar */}
           {hideSidebars && (
-            <div className="sticky top-0 z-50">
+            <div className="sticky top-0 z-100">
               <Navbar />
             </div>
           )}

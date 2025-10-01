@@ -51,7 +51,7 @@ export default function NewsGrid() {
           key={post.id}
           className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
             index === 0 ? "mt-10 md:mt-0" : ""
-          } ${index === others.length - 1 ? "mb-14" : ""}`} // <-- pb-8 only for last
+          } ${index === others.length - 1 ? " 4" : ""}`} // <-- pb-8 only for last
         >
           <div
             className="absolute inset-0 bg-cover bg-center"
