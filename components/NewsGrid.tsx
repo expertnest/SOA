@@ -79,6 +79,9 @@ export default function NewsGrid() {
           </div>
         </div>
       ))}
+      <div className="w-full bg-black">
+
+      </div>
     </>
   )
 }
