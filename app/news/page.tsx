@@ -14,7 +14,7 @@ import NewsGrid from "@/components/NewsGrid"
 export default function NewsPage() {
   
   return (
-    <div className="relative w-full h-screen bg-black text-white flex flex-col overflow-hidden">
+    <div className="relative w-full  bg-black text-white flex flex-col overflow-hidden">
       {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <BackgroundStars/>
