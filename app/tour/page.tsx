@@ -23,7 +23,7 @@ const tourDates = [
 
 export default function TourPage() {
   return (
-    <div className="relative w-full max-h-screen bg-black text-white flex flex-col overflow-hidden mt-6">
+    <div className="relative w-full   bg-black text-white flex flex-col overflow-hidden">
       {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
@@ -32,22 +32,17 @@ export default function TourPage() {
       {/* Content */}
       <div className="relative z-10 flex flex-col flex-1">
         {/* Header */}
-        <header className="w-full bg-zinc-900/80 py-6 px-6 flex flex-col items-start shadow-lg">
+        <header className="w-full bg-zinc-900/80 py-6 px-6 flex flex-col items-start shadow-lg mt-10 md:mt-0">
           <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.1em]">
             Tour Dates
           </h1>
-          <Link
-            href="/"
-            className="mt-2 text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400"
-          >
-            &larr; Back to Menu
-          </Link>
+          
         </header>
 
         {/* Table + List container */}
-        <div className="flex flex-col items-center flex-1 w-full relative z-10">
+        <div className="flex flex-col items-center flex-1 w-full relative z-10 md:mt-10">
           {/* Table Headers */}
-          <div className="hidden md:grid grid-cols-6 w-full max-w-5xl text-gray-300 uppercase tracking-wide mb-3 px-4 text-sm mt-6">
+          <div className="hidden md:grid grid-cols-6 w-full max-w-5xl text-gray-300 uppercase tracking-wide mb-3 px-4 text-sm  ">
             <span>Date</span>
             <span>Time</span>
             <span>City</span>
@@ -67,7 +62,7 @@ export default function TourPage() {
                 <span className="text-gray-300 text-sm">{tour.time}</span>
                 <span className="text-sm">{tour.city}</span>
                 <span className="text-gray-300 text-sm">{tour.venue}</span>
-                <Link href={tour.ticket} passHref  >
+                <Link href={tour.ticket} passHref legacyBehavior>
   <Button className="mt-2 md:mt-0 px-4 py-1.5 rounded-lg bg-white text-black hover:bg-gray-200 transition text-xs">
     Tickets
   </Button>

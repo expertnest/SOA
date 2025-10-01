@@ -16,7 +16,7 @@ export default function NewsGrid() {
       {featured && (
         <div
           key={featured.id}
-          className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col md:col-span-2 md:row-span-2`}
+          className="relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col md:col-span-2 md:row-span-2"
         >
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -42,47 +42,43 @@ export default function NewsGrid() {
           </div>
         </div>
       )}
-      
-            <Newsletter />
-   
-  
+
+      <Newsletter />
 
       {/* --- Grid for the rest --- */}
       {others.map((post, index) => (
-  <Fragment key={post.id}>
-    <div
-      className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
-        index === 0 ? "mt-10 md:mt-0" : ""
-      }`}
-    >
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${post.image})` }}
-      ></div>
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-70`}
-      ></div>
-      <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
-        <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
-          {post.date}
-        </span>
-        <h2 className="text-sm sm:text-lg font-semibold mb-1">
-          {post.title}
-        </h2>
-        <p className="text-xs sm:text-sm text-white/90 mb-1 line-clamp-3">
-          {post.excerpt}
-        </p>
-        <Link
-          href={`/news/${post.id}`}
-          className="mt-1 text-[8px] sm:text-xs font-bold uppercase text-white hover:text-gray-200"
+        <div
+          key={post.id}
+          className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
+            index === 0 ? "mt-10 md:mt-0" : ""
+          } ${index === others.length - 1 ? "mb-14" : ""}`} // <-- pb-8 only for last
         >
-          Read More →
-        </Link>
-      </div>
-    </div>
-  </Fragment>
-))}
-
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${post.image})` }}
+          ></div>
+          <div
+            className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-70`}
+          ></div>
+          <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
+            <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
+              {post.date}
+            </span>
+            <h2 className="text-sm sm:text-lg font-semibold mb-1">
+              {post.title}
+            </h2>
+            <p className="text-xs sm:text-sm text-white/90 mb-1 line-clamp-3">
+              {post.excerpt}
+            </p>
+            <Link
+              href={`/news/${post.id}`}
+              className="mt-1 text-[8px] sm:text-xs font-bold uppercase text-white hover:text-gray-200"
+            >
+              Read More →
+            </Link>
+          </div>
+        </div>
+      ))}
     </>
   )
 }

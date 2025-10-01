@@ -42,20 +42,14 @@ export default function MerchPage() {
   return (
     <div className="w-full min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="w-full bg-zinc-900 py-6 px-6 flex flex-col items-start shadow-lg">
+      <header className="sticky top-0 z-20 w-full bg-zinc-900/80 py-6 px-6 flex flex-col items-start shadow-lg   md:mt-0 backdrop-blur-md">
         <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.1em]">
-          Merch Store
+          Merchandise
         </h1>
-        <Link
-          href="/"
-          className="mt-2 text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400"
-        >
-          &larr; Back to Menu
-        </Link>
       </header>
 
       {/* Main Container */}
-      <div className="flex flex-col md:flex-row w-full h-[calc(100vh-100px)] p-6 gap-6">
+      <div className="flex flex-col md:flex-row w-full h-[calc(100vh-100px)] p-6 gap-6 mt-0 md:mt-10">
         {/* Main Display Section */}
         <div className="flex-1 flex flex-col items-center justify-center bg-zinc-900 rounded-2xl p-6 shadow-lg">
           <Image
@@ -75,14 +69,14 @@ export default function MerchPage() {
         </div>
 
         {/* Gallery Sidebar with Details */}
-        <div className="w-full w-1/2 md:w-1/3 flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto">
-          {products.map((product) => (
+        <div className="w-full w-1/2 md:w-1/3 flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto mb-6 md:mb-0">
+          {products.map((product, index) => (
             <div
               key={product.id}
               onClick={() => setSelected(product)}
               className={`cursor-pointer flex-shrink-0 md:flex-shrink hover:opacity-80 transition border-2 rounded-l md:p-2 p-4 flex gap-3 items-center ${
                 selected.id === product.id ? "border-white" : "border-transparent"
-              }`}
+              } ${index === products.length - 1 ? "sm:mb-6 md:mb-0" : ""}`}
             >
               <Image
                 src={product.image}
