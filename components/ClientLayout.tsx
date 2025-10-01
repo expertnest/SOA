@@ -40,15 +40,16 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
           {/* Mobile Navbar */}
           {hideSidebars && (
-            <div className="sticky top-0 z-100">
-              <Navbar />
-            </div>
+           <div className="fixed top-0 left-0 right-0 z-50">
+           <Navbar />
+         </div>
           )}
 
           {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
+            
             {!hideSidebars && <LeftSidebar />}
-            <main className="flex-1 overflow-y-auto">{children}</main>
+            <main className="flex-1 overflow-y-auto pt-[70px]">{children}</main>
             {!hideSidebars && <RightSidebar />}
           </div>
         </div>
