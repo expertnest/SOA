@@ -5,14 +5,15 @@ export const songs = [
     artist: "ShottiGotSwag",
     src: "/assets/music/beat1.mp3",
     category: "ShottiGotSwag",
+    image: "/assets/images/music/beat1.jpg",   // 👈 new field
   },
- 
   {
     id: 3,
     title: "Track One",
     artist: "Beats",
     src: "/assets/music/track1.mp3",
     category: "Beats",
+    image: "/assets/images/music/track1.jpg",
   },
   {
     id: 4,
@@ -20,6 +21,7 @@ export const songs = [
     artist: "Beats",
     src: "/assets/music/track2.mp3",
     category: "Beats",
+    image: "/assets/images/music/track2.jpg",
   },
   {
     id: 5,
@@ -27,13 +29,14 @@ export const songs = [
     artist: "SOA",
     src: "/assets/music/beat_alpha.mp3",
     category: "SOA",
+    image: "/assets/images/music/beat_alpha.jpg",
   },
- 
   {
     id: 7,
     title: "New Release One",
     artist: "Various",
     src: "/assets/music/new_release1.mp3",
     category: "New Releases",
+    image: "/assets/images/music/new_release1.jpg",
   },
 ]

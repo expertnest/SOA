@@ -1,78 +1,98 @@
 "use client"
 
-import { createContext, useContext, useState, useRef, useEffect, ReactNode } from "react"
+import { createContext, useContext, useState, useRef, useEffect } from "react"
 import { songs } from "@/data/songs"
 
 type MusicContextType = {
   isPlaying: boolean
-  currentSongIndex: number
-  setCurrentSongIndex: (i: number) => void
   togglePlay: () => void
   handleNext: () => void
   handlePrev: () => void
+  currentSong: typeof songs[0] | null
+  progress: number
+  seek: (value: number) => void
   volume: number
   setVolume: (v: number) => void
-  progress: number
-  seek: (percent: number) => void
-  currentSong: typeof songs[number] | undefined
+  playSong: (song: typeof songs[0]) => void
+  setCurrentSongIndex: React.Dispatch<React.SetStateAction<number>>
 }
 
-const MusicContext = createContext<MusicContextType | null>(null)
+const MusicContext = createContext<MusicContextType | undefined>(undefined)
 
-export function MusicProvider({ children }: { children: ReactNode }) {
+export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentSongIndex, setCurrentSongIndex] = useState(0)
   const [progress, setProgress] = useState(0)
   const [volume, setVolume] = useState(1)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const currentSong = songs[currentSongIndex]
 
-  // set volume
   useEffect(() => {
-    if (audioRef.current) {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(songs[currentSongIndex].src)
       audioRef.current.volume = volume
     }
-  }, [volume])
 
-  // play/pause
-  useEffect(() => {
-    if (!audioRef.current) return
-    if (isPlaying) {
-      audioRef.current.play()
-    } else {
-      audioRef.current.pause()
-    }
-  }, [isPlaying, currentSong])
-
-  // update progress
-  useEffect(() => {
     const audio = audioRef.current
-    if (!audio) return
+
     const updateProgress = () => {
-      if (audio.duration) {
-        setProgress((audio.currentTime / audio.duration) * 100)
+      if (audio) {
+        setProgress((audio.currentTime / audio.duration) * 100 || 0)
       }
     }
-    audio.addEventListener("timeupdate", updateProgress)
-    return () => audio.removeEventListener("timeupdate", updateProgress)
-  }, [currentSong])
 
-  const togglePlay = () => setIsPlaying((p) => !p)
+    audio.addEventListener("timeupdate", updateProgress)
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateProgress)
+    }
+  }, [currentSongIndex])
+
+  const togglePlay = () => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (isPlaying) {
+      audio.pause()
+    } else {
+      audio.play()
+    }
+    setIsPlaying(!isPlaying)
+  }
 
   const handleNext = () => {
-    setCurrentSongIndex((i) => (i + 1) % songs.length)
-    setIsPlaying(true)
+    const nextIndex = (currentSongIndex + 1) % songs.length
+    setCurrentSongIndex(nextIndex)
+    if (audioRef.current) {
+      audioRef.current.src = songs[nextIndex].src
+      if (isPlaying) audioRef.current.play()
+    }
   }
 
   const handlePrev = () => {
-    setCurrentSongIndex((i) => (i - 1 + songs.length) % songs.length)
-    setIsPlaying(true)
+    const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length
+    setCurrentSongIndex(prevIndex)
+    if (audioRef.current) {
+      audioRef.current.src = songs[prevIndex].src
+      if (isPlaying) audioRef.current.play()
+    }
   }
 
-  const seek = (percent: number) => {
-    if (audioRef.current && audioRef.current.duration) {
-      audioRef.current.currentTime = (percent / 100) * audioRef.current.duration
+  const seek = (value: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = (value / 100) * audioRef.current.duration
+    }
+  }
+
+  const playSong = (song: typeof songs[0]) => {
+    const index = songs.findIndex((s) => s.id === song.id)
+    if (index !== -1) {
+      setCurrentSongIndex(index)
+      if (audioRef.current) {
+        audioRef.current.src = song.src
+        audioRef.current.play()
+        setIsPlaying(true)
+      }
     }
   }
 
@@ -80,26 +100,25 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     <MusicContext.Provider
       value={{
         isPlaying,
-        currentSongIndex,
-        setCurrentSongIndex,
         togglePlay,
         handleNext,
         handlePrev,
-        volume,
-        setVolume,
+        currentSong: songs[currentSongIndex],
         progress,
         seek,
-        currentSong,
+        volume,
+        setVolume,
+        playSong,
+        setCurrentSongIndex,
       }}
     >
       {children}
-      <audio ref={audioRef} src={currentSong?.src} onEnded={handleNext} />
     </MusicContext.Provider>
   )
 }
 
 export function useMusic() {
   const ctx = useContext(MusicContext)
-  if (!ctx) throw new Error("useMusic must be used inside MusicProvider")
+  if (!ctx) throw new Error("useMusic must be used within a MusicProvider")
   return ctx
 }

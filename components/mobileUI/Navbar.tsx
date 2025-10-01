@@ -1,39 +1,55 @@
 "use client";
 
+import Link from "next/link";
 import { Home, ShoppingBag, MapPin, PlayCircle, Phone } from "lucide-react";
 
 const Navbar = () => {
   return (
     <nav className="flex items-center justify-around bg-black border-t border-gray-800 p-2 text-gray-400">
       {/* Home */}
-      <button className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors">
+      <Link
+        href="/news"
+        className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors"
+      >
         <Home size={22} />
         <span className="text-xs">Home</span>
-      </button>
+      </Link>
 
       {/* Merch */}
-      <button className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors">
+      <Link
+        href="/merch"
+        className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors"
+      >
         <ShoppingBag size={22} />
         <span className="text-xs">Merch</span>
-      </button>
+      </Link>
 
       {/* Tour */}
-      <button className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors">
+      <Link
+        href="/tour"
+        className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors"
+      >
         <MapPin size={22} />
         <span className="text-xs">Tour</span>
-      </button>
+      </Link>
 
-      {/* Videos */}
-      <button className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors">
+      {/* Library / Videos */}
+      <Link
+        href="/library"
+        className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors"
+      >
         <PlayCircle size={22} />
-        <span className="text-xs">Videos</span>
-      </button>
+        <span className="text-xs">Library</span>
+      </Link>
 
       {/* Contact */}
-      <button className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors">
+      <Link
+        href="/contact"
+        className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors"
+      >
         <Phone size={22} />
         <span className="text-xs">Contact</span>
-      </button>
+      </Link>
     </nav>
   );
 };

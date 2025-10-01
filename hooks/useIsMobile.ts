@@ -25,7 +25,7 @@ export default function useIsMobile() {
       if (isTablet) {
         const isLandscape = window.matchMedia("(orientation: landscape)").matches;
         const isLarge = window.innerWidth >= 1024; // treat iPad Pro as "large"
-        
+
         if (isLarge && isLandscape) {
           // iPad Pro in landscape → show sidebars
           setHideSidebars(false);
