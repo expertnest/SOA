@@ -35,7 +35,7 @@ export default function LibraryPage() {
       className="
         space-y-1 divide-y divide-zinc-800 rounded-xl bg-zinc-900/30 
         overflow-auto
-        max-h-[calc(7*3rem)] pb-4 md:max-h-full
+        max-h-[calc(7*3rem)] pb-6 md:max-h-full
         "
     >
       {children}
