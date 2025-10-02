@@ -20,20 +20,17 @@ export default function LibraryPage() {
     return matchesCategory && matchesSearch;
   });
 
-  // Row click: play if not current
-  const handleRowClick = (song: typeof songs[0]) => {
+  const handlePlayClick = (song: typeof songs[0]) => {
+    // Only play if this song isn't currently playing
     if (currentSong?.id !== song.id) {
       playSong(song);
     }
   };
 
-  // Button click: toggle if current, otherwise play
-  const handleButtonClick = (e: React.MouseEvent, song: typeof songs[0]) => {
-    e.stopPropagation();
-    if (currentSong?.id === song.id) {
+  const handlePauseClick = (song: typeof songs[0]) => {
+    // Only pause if this is the current song
+    if (currentSong?.id === song.id && isPlaying) {
       togglePlay();
-    } else {
-      playSong(song);
     }
   };
 
@@ -46,7 +43,7 @@ export default function LibraryPage() {
 
   return (
     <div className="flex flex-col p-6 h-full bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white gap-6">
-      {/* Categories */}
+      {/* Categories - subtle pill style, top margin only on mobile */}
       <div className="flex flex-wrap gap-2 justify-center mb-4 md:mb-0">
         {categories.map((cat) => (
           <button
@@ -90,32 +87,34 @@ export default function LibraryPage() {
 
       {/* Song List */}
       <SongListWrapper>
-        {filteredSongs.map((song) => {
-          const isCurrent = currentSong?.id === song.id;
-          return (
-            <div
-              key={song.id}
-              onClick={() => handleRowClick(song)}
-              className={`flex items-center justify-between p-3 cursor-pointer transition ${
-                isCurrent ? "bg-gradient-to-r from-teal-500/10 to-purple-500/10" : "hover:bg-zinc-800/50"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="text-sm font-medium">{song.title}</p>
-                  <p className="text-xs text-gray-400">{song.artist}</p>
-                </div>
+        {filteredSongs.map((song) => (
+          <div
+            key={song.id}
+            onClick={() => handlePlayClick(song)}
+            className={`flex items-center justify-between p-3 cursor-pointer transition ${
+              currentSong?.id === song.id ? "bg-gradient-to-r from-teal-500/10 to-purple-500/10" : "hover:bg-zinc-800/50"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div>
+                <p className="text-sm font-medium">{song.title}</p>
+                <p className="text-xs text-gray-400">{song.artist}</p>
               </div>
-              <button onClick={(e) => handleButtonClick(e, song)}>
-                {isCurrent && isPlaying ? (
-                  <Pause className="text-teal-400" size={18} />
-                ) : (
-                  <Play className="text-gray-400" size={18} />
-                )}
-              </button>
             </div>
-          );
-        })}
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent the row click
+                handlePauseClick(song);
+              }}
+            >
+              {currentSong?.id === song.id && isPlaying ? (
+                <Pause className="text-teal-400" size={18} />
+              ) : (
+                <Play className="text-gray-400" size={18} />
+              )}
+            </button>
+          </div>
+        ))}
       </SongListWrapper>
     </div>
   );
