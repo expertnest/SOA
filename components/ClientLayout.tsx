@@ -52,9 +52,13 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
           )}
-          <div className="flex flex-1 flex-row overflow-hidden">
+
+          <div className="flex flex-1 flex-row overflow-hidden min-h-0">
             {!hideSidebars && <LeftSidebar />}
-            <main ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-[70px]">
+            <main
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto pt-[70px] touch-scroll"
+            >
               {children}
             </main>
             {!hideSidebars && <RightSidebar />}
