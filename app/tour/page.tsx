@@ -23,7 +23,7 @@ const tourDates = [
 
 export default function TourPage() {
   return (
-    <div className="relative w-full   bg-black text-white flex flex-col overflow-hidden">
+    <div className="relative w-full p-2  bg-black text-white flex flex-col overflow-hidden">
       {/* Stars background */}
       <div className="absolute inset-0 z-0">
         <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
@@ -32,12 +32,9 @@ export default function TourPage() {
       {/* Content */}
       <div className="relative z-10 flex flex-col flex-1">
         {/* Header */}
-        <header className="w-full bg-zinc-900/80 py-6 px-6 flex flex-col items-start shadow-lg mt-10 md:mt-0">
-          <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.1em]">
-            Tour Dates
-          </h1>
+        
           
-        </header>
+       
 
         {/* Table + List container */}
         <div className="flex flex-col items-center flex-1 w-full relative z-10 md:mt-10">
@@ -52,7 +49,7 @@ export default function TourPage() {
           </div>
 
           {/* Solid background list container */}
-          <div className="flex flex-col w-full max-w-5xl overflow-y-auto h-[75vh] bg-zinc-900/90 rounded-xl p-4 shadow-lg">
+          <div className="flex flex-col w-full max-w-5xl overflow-y-auto   bg-zinc-900/90 rounded-xl p-4 shadow-lg">
             {tourDates.map((tour) => (
               <div
                 key={tour.id}
@@ -74,6 +71,9 @@ export default function TourPage() {
             ))}
           </div>
         </div>
+      </div>
+      <div className="bg-black min-h-[75px]">
+
       </div>
     </div>
   )

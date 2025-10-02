@@ -42,11 +42,7 @@ export default function MerchPage() {
   return (
     <div className="w-full min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="sticky top-0 z-20 w-full bg-zinc-900/80 py-6 px-6 flex flex-col items-start shadow-lg   md:mt-0 backdrop-blur-md">
-        <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-[0.1em]">
-          Merchandise
-        </h1>
-      </header>
+    
 
       {/* Main Container */}
       <div className="flex flex-col md:flex-row w-full h-[calc(100vh-100px)] p-6 gap-6 mt-0 md:mt-10">
