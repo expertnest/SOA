@@ -1,44 +1,40 @@
-"use client"
+"use client";
 
-import { ReactNode, useState, useEffect, useRef } from "react"
-import LeftSidebar from "@/components/LeftSidebar"
-import RightSidebar from "@/components/RightSidebar"
-import useIsMobile from "@/hooks/useIsMobile"
-import MusicPlayer from "@/components/mobileUI/MusicPlayer"
-import Navbar from "./mobileUI/Navbar"
-import { MusicProvider } from "@/hooks/MusicContext"
+import { ReactNode, useState, useEffect, useRef } from "react";
+import LeftSidebar from "@/components/LeftSidebar";
+import RightSidebar from "@/components/RightSidebar";
+import useIsMobile from "@/hooks/useIsMobile";
+import MusicPlayer from "@/components/mobileUI/MusicPlayer";
+import Navbar from "./mobileUI/Navbar";
+import { MusicProvider } from "@/hooks/MusicContext";
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
-  const hideSidebars = useIsMobile()
-  const [showUI, setShowUI] = useState(true)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const lastScrollRef = useRef(0) // track last scroll in a ref
+  const hideSidebars = useIsMobile();
+  const [showUI, setShowUI] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastScrollRef = useRef(0);
 
   useEffect(() => {
-    if (!hideSidebars) return // Only run scroll logic on mobile
+    if (!hideSidebars) return;
 
-    const container = scrollContainerRef.current
-    if (!container) return
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
     const handleScroll = () => {
-      const currentScroll = container.scrollTop
-      if (currentScroll > lastScrollRef.current + 10) {
-        setShowUI(false) // scrolling down
-      } else if (currentScroll < lastScrollRef.current - 10) {
-        setShowUI(true) // scrolling up
-      }
-      lastScrollRef.current = currentScroll
-    }
+      const currentScroll = container.scrollTop;
+      if (currentScroll > lastScrollRef.current + 10) setShowUI(false);
+      else if (currentScroll < lastScrollRef.current - 10) setShowUI(true);
+      lastScrollRef.current = currentScroll;
+    };
 
-    container.addEventListener("scroll", handleScroll)
-    return () => container.removeEventListener("scroll", handleScroll)
-  }, [hideSidebars]) // only depends on hideSidebars now
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [hideSidebars]);
 
   return (
     <MusicProvider>
       <div className="relative w-full h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden">
-          {/* Desktop Navbar */}
           {!hideSidebars && (
             <div className="sticky top-0 z-50 flex justify-center bg-gradient-to-r from-black via-[#0a0a0a] to-black shadow-lg border-b border-gray-800">
               <div className="flex-1 max-w-[calc(100%-500px)] px-4 py-3 flex items-center justify-between">
@@ -47,11 +43,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 </div>
                 <nav className="hidden md:flex gap-8 text-sm md:text-base font-medium uppercase tracking-wide">
                   {["Home", "Merch", "Videos", "Tour", "Contact"].map((item) => (
-                    <a
-                      key={item}
-                      href="#"
-                      className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200 group"
-                    >
+                    <a key={item} href="#" className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200 group">
                       {item}
                       <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00ffff] transition-all duration-300 group-hover:w-full"></span>
                     </a>
@@ -60,32 +52,21 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
           )}
-
-          {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
-            <main
-              ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto pt-[70px]"
-            >
+            <main ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-[70px]">
               {children}
             </main>
             {!hideSidebars && <RightSidebar />}
           </div>
         </div>
 
-        {/* Mobile Navbar */}
         {hideSidebars && (
-          <div
-            className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
-              showUI ? "translate-y-0" : "-translate-y-full"
-            }`}
-          >
+          <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${showUI ? "translate-y-0" : "-translate-y-full"}`}>
             <Navbar />
           </div>
         )}
 
-        {/* Mobile Player (always visible) */}
         {hideSidebars && (
           <div className="fixed bottom-0 left-0 right-0 z-50">
             <MusicPlayer />
@@ -93,5 +74,5 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         )}
       </div>
     </MusicProvider>
-  )
+  );
 }

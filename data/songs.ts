@@ -5,7 +5,7 @@ export const songs = [
     artist: "ShottiGotSwag",
     src: "/assets/music/beat1.mp3",
     category: "ShottiGotSwag",
-    image: "/assets/images/music/beat1.jpg",   // 👈 new field
+    image: "/assets/images/music/beat1.jpg",
   },
   {
     id: 3,
@@ -36,7 +36,31 @@ export const songs = [
     title: "New Release One",
     artist: "Various",
     src: "/assets/music/new_release1.mp3",
+    category: "Qmilly",
+    image: "/assets/images/music/new_release1.jpg",
+  },
+  {
+    id: 8,
+    title: "New Release One",
+    artist: "Various",
+    src: "/assets/music/new_release1.mp3",
     category: "New Releases",
     image: "/assets/images/music/new_release1.jpg",
   },
-]
+  {
+    id: 9,
+    title: "New Release One",
+    artist: "Various",
+    src: "/assets/music/new_release1.mp3",
+    category: "Qmilly",
+    image: "/assets/images/music/new_release1.jpg",
+  },
+  {
+    id: 10,
+    title: "New Release One",
+    artist: "Various",
+    src: "/assets/music/new_release1.mp3",
+    category: "Qmilly",
+    image: "/assets/images/music/new_release1.jpg",
+  },
+];
