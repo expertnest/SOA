@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import { ReactNode, useState, useEffect, useRef } from "react"
 import LeftSidebar from "@/components/LeftSidebar"
 import RightSidebar from "@/components/RightSidebar"
 import useIsMobile from "@/hooks/useIsMobile"
@@ -10,6 +10,29 @@ import { MusicProvider } from "@/hooks/MusicContext"
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile()
+  const [showUI, setShowUI] = useState(true)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const lastScrollRef = useRef(0) // track last scroll in a ref
+
+  useEffect(() => {
+    if (!hideSidebars) return // Only run scroll logic on mobile
+
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const currentScroll = container.scrollTop
+      if (currentScroll > lastScrollRef.current + 10) {
+        setShowUI(false) // scrolling down
+      } else if (currentScroll < lastScrollRef.current - 10) {
+        setShowUI(true) // scrolling up
+      }
+      lastScrollRef.current = currentScroll
+    }
+
+    container.addEventListener("scroll", handleScroll)
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [hideSidebars]) // only depends on hideSidebars now
 
   return (
     <MusicProvider>
@@ -38,25 +61,33 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          {/* Mobile Navbar */}
-          {hideSidebars && (
-           <div className="fixed top-0 left-0 right-0 z-50">
-           <Navbar />
-         </div>
-          )}
-
           {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
-            
             {!hideSidebars && <LeftSidebar />}
-            <main className="flex-1 overflow-y-auto pt-[70px]">{children}</main>
+            <main
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto pt-[70px]"
+            >
+              {children}
+            </main>
             {!hideSidebars && <RightSidebar />}
           </div>
         </div>
 
-        {/* Mobile Player */}
+        {/* Mobile Navbar */}
         {hideSidebars && (
-          <div className="sticky bottom-0 left-0 right-0 z-50">
+          <div
+            className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+              showUI ? "translate-y-0" : "-translate-y-full"
+            }`}
+          >
+            <Navbar />
+          </div>
+        )}
+
+        {/* Mobile Player (always visible) */}
+        {hideSidebars && (
+          <div className="fixed bottom-0 left-0 right-0 z-50">
             <MusicPlayer />
           </div>
         )}
