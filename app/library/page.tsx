@@ -31,13 +31,13 @@ export default function LibraryPage() {
   };
 
   const SongListWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="space-y-1 divide-y divide-zinc-800   rounded-xl border-zinc-800 bg-zinc-900/30 flex-1 overflow-auto">
+    <div className="space-y-1 divide-y divide-zinc-800 rounded-xl border-zinc-800 bg-zinc-900/30">
       {children}
     </div>
   );
 
   return (
-    <div className="flex flex-col h-screen   bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
       {/* Categories */}
       <div className="flex flex-wrap gap-2 justify-center p-4">
         {categories.map((cat) => (
@@ -56,9 +56,9 @@ export default function LibraryPage() {
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex flex-col flex-1 px-6 pb-[120px] gap-6">
+      <div className="flex-1 overflow-auto px-6 pb-[120px] flex flex-col gap-6">
         {/* Album Art + Info */}
-        <div className="flex flex-col items-center flex-shrink-0">
+        <div className="flex flex-col items-center">
           <div className="w-48 h-48 bg-zinc-800 rounded-xl overflow-hidden shadow-md border border-zinc-700">
             {currentSong?.image ? (
               <img src={currentSong.image} alt={currentSong.title} className="w-full h-full object-cover" />
@@ -71,7 +71,7 @@ export default function LibraryPage() {
         </div>
 
         {/* Search */}
-        <div className="relative flex-shrink-0">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
