@@ -30,30 +30,18 @@ export default function LibraryPage() {
     else playSong(song);
   };
 
-  const SongListWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div
-      className="
-        space-y-1 divide-y divide-zinc-800 rounded-xl bg-zinc-900/30 
-        overflow-auto
-        max-h-[calc(5*3rem)] pb-4 md:max-h-full
-        "
-    >
-      {children}
-    </div>
-  );
-
   return (
-    <div className="flex flex-col  bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
       {/* Categories */}
-      <div className="flex flex-wrap gap-2 md:mt-6 justify-center p-4 md:p-0">
+      <div className="p-3 sm:p-4 flex flex-wrap gap-2 justify-center border-b border-zinc-800">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+            className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all ${
               selectedCategory === cat
-                ? "bg-teal-500 text-black border-teal-500"
-                : "text-gray-400 border-gray-700 hover:text-white hover:border-gray-500"
+                ? "bg-teal-500 text-black shadow-md"
+                : "bg-zinc-800 text-gray-300 hover:bg-zinc-700"
             }`}
           >
             {cat}
@@ -61,62 +49,47 @@ export default function LibraryPage() {
         ))}
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex flex-col flex-1 px-6   gap-6">
-        {/* Album Art + Info */}
-        <div className="flex flex-col items-center flex-shrink-0">
-          <div className="w-48 h-48 bg-zinc-800 rounded-xl md:mt-6 overflow-hidden shadow-md border border-zinc-700">
-            {currentSong?.image ? (
-              <img src={currentSong.image} alt={currentSong.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">No Art</div>
-            )}
-          </div>
-          <h2 className="text-lg font-semibold mt-3">{currentSong?.title || "No song selected"}</h2>
-          <p className="text-xs text-gray-400">{currentSong?.artist || ""}</p>
-        </div>
+      {/* Search */}
+      <div className="relative p-3 sm:p-4 border-b border-zinc-800">
+        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        <input
+          type="text"
+          placeholder="Search songs..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
+        />
+      </div>
 
-        {/* Search */}
-        <div className="relative flex-shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input
-            type="text"
-            placeholder="Search songs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
-          />
-        </div>
-
-        {/* Song List */}
-        <SongListWrapper>
-          {filteredSongs.map((song) => {
-            const isCurrent = currentSong?.id === song.id;
-            return (
-              <div
-                key={song.id}
-                onClick={() => handleRowClick(song)}
-                className={`flex items-center justify-between p-3 cursor-pointer transition ${
-                  isCurrent ? "bg-gradient-to-r from-teal-500/10 to-purple-500/10" : "hover:bg-zinc-800/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="text-sm font-medium">{song.title}</p>
-                    <p className="text-xs text-gray-400">{song.artist}</p>
-                  </div>
-                </div>
-                <button onClick={(e) => handleButtonClick(e, song)}>
-                  {isCurrent && isPlaying ? (
-                    <Pause className="text-teal-400" size={18} />
-                  ) : (
-                    <Play className="text-gray-400" size={18} />
-                  )}
-                </button>
+      {/* Scrollable Song List */}
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28">
+        {filteredSongs.map((song) => {
+          const isCurrent = currentSong?.id === song.id;
+          return (
+            <div
+              key={song.id}
+              onClick={() => handleRowClick(song)}
+              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition ${
+                isCurrent ? "bg-gradient-to-r from-teal-500/10 to-purple-500/10" : "hover:bg-zinc-800/50"
+              }`}
+            >
+              <div className="flex flex-col">
+                <p className="text-sm sm:text-base font-medium line-clamp-1">{song.title}</p>
+                <p className="text-xs sm:text-sm text-gray-400 line-clamp-1">{song.artist}</p>
               </div>
-            );
-          })}
-        </SongListWrapper>
+              <button
+                onClick={(e) => handleButtonClick(e, song)}
+                className="ml-3 rounded-full p-2 hover:bg-zinc-800"
+              >
+                {isCurrent && isPlaying ? (
+                  <Pause className="text-teal-400" size={20} />
+                ) : (
+                  <Play className="text-gray-400" size={20} />
+                )}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
