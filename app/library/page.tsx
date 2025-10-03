@@ -30,54 +30,28 @@ export default function LibraryPage() {
     else playSong(song);
   };
 
-  const SongListWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div
-      className="
-        space-y-1 divide-y divide-zinc-800 rounded-xl bg-zinc-900/30 
-        overflow-auto
-        max-h-[calc(5*3rem)] pb-4 md:max-h-full
-        "
-    >
-      {children}
-    </div>
-  );
-
   return (
-    <div className="flex flex-col  bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
-      {/* Categories */}
-      <div className="flex flex-wrap gap-2 justify-center p-4 md:p-0">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
-              selectedCategory === cat
-                ? "bg-teal-500 text-black border-teal-500"
-                : "text-gray-400 border-gray-700 hover:text-white hover:border-gray-500"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Scrollable Content */}
-      <div className="flex flex-col flex-1 px-6 pb-[120px] gap-6">
-        {/* Album Art + Info */}
-        <div className="flex flex-col items-center flex-shrink-0">
-          <div className="w-48 h-48 bg-zinc-800 rounded-xl overflow-hidden shadow-md border border-zinc-700">
-            {currentSong?.image ? (
-              <img src={currentSong.image} alt={currentSong.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">No Art</div>
-            )}
-          </div>
-          <h2 className="text-lg font-semibold mt-3">{currentSong?.title || "No song selected"}</h2>
-          <p className="text-xs text-gray-400">{currentSong?.artist || ""}</p>
+    <div className="flex flex-col h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
+      {/* Sticky Filters */}
+      <div className="sticky top-0 z-20 bg-zinc-950/80 backdrop-blur-md p-3 border-b border-zinc-800">
+        <div className="flex flex-wrap gap-2 justify-center mb-3">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition ${
+                selectedCategory === cat
+                  ? "bg-teal-500 text-black border-teal-500"
+                  : "text-gray-400 border-gray-700 hover:text-white hover:border-gray-500"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
         {/* Search */}
-        <div className="relative flex-shrink-0">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
@@ -87,36 +61,57 @@ export default function LibraryPage() {
             className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
           />
         </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto px-4 pb-[140px]">
+        {/* Album Art + Info */}
+        <div className="flex flex-col items-center my-6">
+          <div className="w-40 h-40 sm:w-48 sm:h-48 bg-zinc-800 rounded-xl overflow-hidden shadow-md border border-zinc-700">
+            {currentSong?.image ? (
+              <img src={currentSong.image} alt={currentSong.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">No Art</div>
+            )}
+          </div>
+          <h2 className="text-base sm:text-lg font-semibold mt-3 text-center">
+            {currentSong?.title || "No song selected"}
+          </h2>
+          <p className="text-xs text-gray-400">{currentSong?.artist || ""}</p>
+        </div>
 
         {/* Song List */}
-        <SongListWrapper>
+        <div className="space-y-1 divide-y divide-zinc-800 rounded-xl bg-zinc-900/30">
           {filteredSongs.map((song) => {
             const isCurrent = currentSong?.id === song.id;
             return (
               <div
                 key={song.id}
                 onClick={() => handleRowClick(song)}
-                className={`flex items-center justify-between p-3 cursor-pointer transition ${
-                  isCurrent ? "bg-gradient-to-r from-teal-500/10 to-purple-500/10" : "hover:bg-zinc-800/50"
+                className={`flex items-center justify-between p-4 cursor-pointer transition active:scale-[0.99] ${
+                  isCurrent
+                    ? "bg-gradient-to-r from-teal-500/10 to-purple-500/10"
+                    : "hover:bg-zinc-800/50"
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="text-sm font-medium">{song.title}</p>
-                    <p className="text-xs text-gray-400">{song.artist}</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium">{song.title}</p>
+                  <p className="text-xs text-gray-400">{song.artist}</p>
                 </div>
-                <button onClick={(e) => handleButtonClick(e, song)}>
+                <button
+                  onClick={(e) => handleButtonClick(e, song)}
+                  className="p-2 rounded-full hover:bg-zinc-800"
+                >
                   {isCurrent && isPlaying ? (
-                    <Pause className="text-teal-400" size={18} />
+                    <Pause className="text-teal-400" size={20} />
                   ) : (
-                    <Play className="text-gray-400" size={18} />
+                    <Play className="text-gray-400" size={20} />
                   )}
                 </button>
               </div>
             );
           })}
-        </SongListWrapper>
+        </div>
       </div>
     </div>
   );
