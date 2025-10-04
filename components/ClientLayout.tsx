@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import LeftSidebar from "@/components/LeftSidebar";
 import RightSidebar from "@/components/RightSidebar";
 import useIsMobile from "@/hooks/useIsMobile";
@@ -10,12 +11,15 @@ import { MusicProvider } from "@/hooks/MusicContext";
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile();
+  const pathname = usePathname();
   const [showUI, setShowUI] = useState(true);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollRef = useRef(0);
 
+  const isScrollNav = pathname === "/" || pathname === "/news"; // Only scroll-hide on these routes
+
   useEffect(() => {
-    if (!hideSidebars) return;
+    if (!hideSidebars || !isScrollNav) return;
 
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -29,7 +33,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [hideSidebars]);
+  }, [hideSidebars, isScrollNav]);
 
   return (
     <MusicProvider>
@@ -43,7 +47,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 </div>
                 <nav className="hidden md:flex gap-8 text-sm md:text-base font-medium uppercase tracking-wide">
                   {["Home", "Merch", "Videos", "Tour", "Contact"].map((item) => (
-                    <a key={item} href="#" className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200 group">
+                    <a
+                      key={item}
+                      href="#"
+                      className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200 group"
+                    >
                       {item}
                       <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00ffff] transition-all duration-300 group-hover:w-full"></span>
                     </a>
@@ -52,13 +60,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
           )}
-
-          <div className="flex flex-1 flex-row overflow-hidden min-h-0">
+          <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
-            <main
-              ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto pt-[70px] touch-scroll"
-            >
+            <main ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-[70px]">
               {children}
             </main>
             {!hideSidebars && <RightSidebar />}
@@ -66,7 +70,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         </div>
 
         {hideSidebars && (
-          <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${showUI ? "translate-y-0" : "-translate-y-full"}`}>
+          <div
+            className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+              isScrollNav ? (showUI ? "translate-y-0" : "-translate-y-full") : ""
+            }`}
+          >
             <Navbar />
           </div>
         )}

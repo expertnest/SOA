@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMusic } from "@/hooks/MusicContext";
 import { songs } from "@/data/songs";
 import { Play, Pause, Search } from "lucide-react";
@@ -9,6 +9,9 @@ export default function LibraryPage() {
   const { currentSong, playSong, isPlaying, togglePlay } = useMusic();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [scrollY, setScrollY] = useState(0);
+
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const categories = [...new Set(songs.map((s) => s.category))];
 
@@ -30,39 +33,83 @@ export default function LibraryPage() {
     else playSong(song);
   };
 
+  // Scroll listener for fade effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        setScrollY(scrollRef.current.scrollTop);
+      }
+    };
+    const refCurrent = scrollRef.current;
+    refCurrent?.addEventListener("scroll", handleScroll);
+    return () => refCurrent?.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const headerHeight = 200; // Height of the image section
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-black text-white">
-      {/* Categories */}
-      <div className="p-3 sm:p-4 flex flex-wrap gap-2 justify-center border-b border-zinc-800">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-            className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all ${
-              selectedCategory === cat
-                ? "bg-teal-500 text-black shadow-md"
-                : "bg-zinc-800 text-gray-300 hover:bg-zinc-700"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      {/* Sticky Header: Image + Categories + Search */}
+      <div className="sticky top-0 z-50 bg-zinc-950">
+        {/* Image Section */}
+        <div
+          className="relative w-full sm:h-56 h-48 flex items-center justify-center overflow-hidden"
+          style={{
+            backgroundColor: scrollY < headerHeight ? "#1f2937" : "transparent",
+            opacity: scrollY < headerHeight ? 1 - scrollY / headerHeight : 0,
+            transition: "opacity 0.3s ease, background-color 0.3s ease",
+          }}
+        >
+          <img
+            src="/album-placeholder.png"
+            alt="Album Art"
+            className="w-40 h-40 sm:w-48 sm:h-48 object-cover rounded-lg shadow-lg"
+          />
+        </div>
 
-      {/* Search */}
-      <div className="relative p-3 sm:p-4 border-b border-zinc-800">
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-        <input
-          type="text"
-          placeholder="Search songs..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
-        />
+        {/* Categories with explanatory text */}
+        <div className="p-3 sm:p-4 border-b border-zinc-800 bg-zinc-950">
+          {/* Explanatory text */}
+          <p className="text-xs sm:text-sm text-gray-400 mb-2 text-center">
+            Filter by category:
+          </p>
+
+          {/* Category buttons */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+                className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all ${
+                  selectedCategory === cat
+                    ? "bg-teal-500 text-black shadow-md"
+                    : "bg-zinc-800 text-gray-300 hover:bg-zinc-700"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative p-3 sm:p-4 border-b border-zinc-800 bg-zinc-950">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            placeholder="Search songs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-zinc-800 border border-zinc-700 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400"
+          />
+        </div>
       </div>
 
       {/* Scrollable Song List */}
-      <div className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28"
+      >
         {filteredSongs.map((song) => {
           const isCurrent = currentSong?.id === song.id;
           return (
