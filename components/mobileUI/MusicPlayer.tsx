@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Play, Pause, SkipBack, SkipForward, MoreHorizontal, Library } from "lucide-react";
@@ -68,12 +67,12 @@ const MusicPlayer = () => {
       {/* MAIN PLAYER BAR */}
       <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white shadow-lg z-20">
         <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 relative">
-          {/* Song Info */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md cursor-pointer"
-              onClick={() => setShowFullScreen(true)}
-            ></div>
+          {/* Song Info (FULL CLICKABLE AREA) */}
+          <div
+            className="flex items-center gap-2 sm:gap-3 flex-1 cursor-pointer"
+            onClick={() => setShowFullScreen(true)}
+          >
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md"></div>
             <div className="leading-tight">
               <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[200px]">
                 {currentSong?.title ?? "No Song"}
@@ -101,22 +100,6 @@ const MusicPlayer = () => {
             <Link href="/library">
               <Library size={22} className="cursor-pointer hover:text-purple-400 transition" />
             </Link>
-          </div>
-        </div>
-
-        {/* Progress Bar UNDER Player Controls */}
-        <div className="w-full px-3 pb-2">
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={progress}
-            onChange={handleSeek}
-            className="w-full h-1 appearance-none bg-zinc-700/50 accent-teal-400 cursor-pointer"
-          />
-          <div className="flex justify-between text-xs text-white mt-1">
-            <span>{formatTime(progress)}</span>
-            <span>{duration ? formatTime(100) : "0:00"}</span>
           </div>
         </div>
       </div>
@@ -264,4 +247,3 @@ const MusicPlayer = () => {
 };
 
 export default MusicPlayer;
-
