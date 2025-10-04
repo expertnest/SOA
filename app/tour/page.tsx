@@ -1,20 +1,26 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const tourDates = [
-  { id: 1, date: "Oct 12, 2025", time: "8:00 PM", city: "New York, NY", venue: "Madison Square Garden", ticket: "https://example.com/nyc" },
-  { id: 2, date: "Oct 13, 2025", time: "7:30 PM", city: "Boston, MA", venue: "TD Garden", ticket: "https://example.com/boston" },
-  { id: 3, date: "Oct 15, 2025", time: "8:00 PM", city: "Philadelphia, PA", venue: "Wells Fargo Center", ticket: "https://example.com/philadelphia" },
-  { id: 4, date: "Oct 19, 2025", time: "7:30 PM", city: "Los Angeles, CA", venue: "Hollywood Bowl", ticket: "https://example.com/la" },
-  { id: 5, date: "Oct 21, 2025", time: "8:00 PM", city: "San Francisco, CA", venue: "Chase Center", ticket: "https://example.com/sf" },
-  { id: 6, date: "Oct 26, 2025", time: "8:00 PM", city: "Chicago, IL", venue: "United Center", ticket: "https://example.com/chicago" },
-  { id: 7, date: "Oct 28, 2025", time: "8:30 PM", city: "Detroit, MI", venue: "Little Caesars Arena", ticket: "https://example.com/detroit" },
-  { id: 8, date: "Nov 2, 2025", time: "9:00 PM", city: "Miami, FL", venue: "American Airlines Arena", ticket: "https://example.com/miami" },
-  { id: 9, date: "Nov 5, 2025", time: "8:00 PM", city: "Atlanta, GA", venue: "State Farm Arena", ticket: "https://example.com/atlanta" },
-  { id: 10, date: "Nov 8, 2025", time: "8:00 PM", city: "Houston, TX", venue: "Toyota Center", ticket: "https://example.com/houston" },
-]
+  { id: 1, date: "TBD", time: "TBD", city: "New York, NY", venue: "Madison Square Garden", ticket: "#" },
+  { id: 2, date: "TBD", time: "TBD", city: "Boston, MA", venue: "TD Garden", ticket: "#" },
+  { id: 3, date: "TBD", time: "TBD", city: "Philadelphia, PA", venue: "Wells Fargo Center", ticket: "#" },
+  { id: 4, date: "TBD", time: "TBD", city: "Los Angeles, CA", venue: "Hollywood Bowl", ticket: "#" },
+  { id: 5, date: "TBD", time: "TBD", city: "San Francisco, CA", venue: "Chase Center", ticket: "#" },
+  { id: 6, date: "TBD", time: "TBD", city: "Chicago, IL", venue: "United Center", ticket: "#" },
+  { id: 7, date: "TBD", time: "TBD", city: "Detroit, MI", venue: "Little Caesars Arena", ticket: "#" },
+  { id: 8, date: "TBD", time: "TBD", city: "Miami, FL", venue: "American Airlines Arena", ticket: "#" },
+  { id: 9, date: "TBD", time: "TBD", city: "Atlanta, GA", venue: "State Farm Arena", ticket: "#" },
+  { id: 10, date: "TBD", time: "TBD", city: "Houston, TX", venue: "Toyota Center", ticket: "#" },
+  // Extra creative stops
+  { id: 11, date: "TBD", time: "TBD", city: "Nashville, TN", venue: "Bridgestone Arena", ticket: "#" },
+  { id: 12, date: "TBD", time: "TBD", city: "Dallas, TX", venue: "American Airlines Center", ticket: "#" },
+  { id: 13, date: "TBD", time: "TBD", city: "Seattle, WA", venue: "Climate Pledge Arena", ticket: "#" },
+  { id: 14, date: "TBD", time: "TBD", city: "Denver, CO", venue: "Ball Arena", ticket: "#" },
+  { id: 15, date: "TBD", time: "TBD", city: "Las Vegas, NV", venue: "T-Mobile Arena", ticket: "#" },
+];
 
 export default function TourPage() {
   return (
@@ -60,5 +66,5 @@ export default function TourPage() {
 
       <div className="bg-black min-h-[75px]"></div>
     </div>
-  )
+  );
 }

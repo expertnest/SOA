@@ -1,6 +1,6 @@
 "use client";
 
-import { Play, Pause, SkipBack, SkipForward, MoreHorizontal, Library, ChevronDown } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, MoreHorizontal, Library, ChevronDown, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useMusic } from "@/hooks/MusicContext";
@@ -18,6 +18,7 @@ const MusicPlayer = () => {
   } = useMusic();
 
   const [showQueue, setShowQueue] = useState(false);
+  const [showArt, setShowArt] = useState(false); // NEW state for expanded art
   const [isIPad, setIsIPad] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -28,10 +29,8 @@ const MusicPlayer = () => {
     setIsIPad(iPad || modernIPad);
   }, []);
 
-  // Get unique categories
   const categories = Array.from(new Set(songs.map((s) => s.category)));
 
-  // Filter songs by selected category
   const filteredSongs = selectedCategory
     ? songs.filter((s) => s.category === selectedCategory)
     : songs;
@@ -39,14 +38,20 @@ const MusicPlayer = () => {
   return (
     <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white shadow-lg">
       <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 relative">
+        
         {/* Song Info */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md"></div>
+          <div
+            className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md cursor-pointer"
+            onClick={() => setShowArt(true)} // click opens art
+          ></div>
           <div className="leading-tight">
             <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[200px]">
               {currentSong?.title ?? "No Song"}
             </h2>
-            <p className="hidden sm:block text-xs sm:text-sm text-gray-400">{currentSong?.artist}</p>
+            <p className="hidden sm:block text-xs sm:text-sm text-gray-400">
+              {currentSong?.artist}
+            </p>
           </div>
         </div>
 
@@ -68,6 +73,31 @@ const MusicPlayer = () => {
             <Library size={22} className="cursor-pointer hover:text-purple-400 transition" />
           </Link>
         </div>
+
+        {/* Expanded Album Art */}
+        <AnimatePresence>
+          {showArt && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="absolute bottom-full left-0 w-full bg-black/95 backdrop-blur-lg rounded-t-2xl p-6 shadow-xl flex flex-col items-center justify-center"
+              style={{ minHeight: "400px" }}
+            >
+              <div className="relative">
+                <div className="w-60 h-60 sm:w-72 sm:h-72 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
+                <X
+                  size={28}
+                  className="absolute top-2 right-2 text-white cursor-pointer hover:text-gray-400"
+                  onClick={() => setShowArt(false)}
+                />
+              </div>
+              <h3 className="text-xl font-bold mt-4">{currentSong?.title ?? "No Song"}</h3>
+              <p className="text-gray-400">{currentSong?.artist}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Queue */}
         <AnimatePresence>
@@ -124,7 +154,7 @@ const MusicPlayer = () => {
                     <li
                       key={song.id}
                       className="p-3 bg-neutral-800 rounded-lg flex justify-between items-center hover:bg-neutral-700 transition cursor-pointer"
-                      onClick={() => playSong(song)} // play on row click
+                      onClick={() => playSong(song)}
                     >
                       <div>
                         <p className="font-semibold">{song.title}</p>
@@ -132,7 +162,7 @@ const MusicPlayer = () => {
                       </div>
                       <div
                         onClick={(e) => {
-                          e.stopPropagation(); // prevent row click
+                          e.stopPropagation();
                           if (isCurrent && isPlaying) togglePlay();
                           else playSong(song);
                         }}
