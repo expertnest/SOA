@@ -33,13 +33,28 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
 
     const audio = audioRef.current;
+
     const updateProgress = () => {
       if (audio) setProgress((audio.currentTime / audio.duration) * 100 || 0);
     };
 
+    const handleEnded = () => {
+      // Play next song automatically if there is a next song
+      if (currentSongIndex < songs.length - 1) {
+        handleNext();
+      } else {
+        setIsPlaying(false);
+      }
+    };
+
     audio.addEventListener("timeupdate", updateProgress);
-    return () => audio.removeEventListener("timeupdate", updateProgress);
-  }, [currentSongIndex]);
+    audio.addEventListener("ended", handleEnded);
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [currentSongIndex, isPlaying]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -50,7 +65,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleNext = () => {
-    const nextIndex = (currentSongIndex + 1) % songs.length;
+    if (currentSongIndex >= songs.length - 1) return; // No next song
+    const nextIndex = currentSongIndex + 1;
     setCurrentSongIndex(nextIndex);
     if (audioRef.current) {
       audioRef.current.src = songs[nextIndex].src;
@@ -59,7 +75,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handlePrev = () => {
-    const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    if (currentSongIndex <= 0) return; // No previous song
+    const prevIndex = currentSongIndex - 1;
     setCurrentSongIndex(prevIndex);
     if (audioRef.current) {
       audioRef.current.src = songs[prevIndex].src;

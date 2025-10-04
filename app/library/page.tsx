@@ -108,7 +108,7 @@ export default function LibraryPage() {
       {/* Scrollable Song List */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-3 sm:px-4 pb-28"
+        className="flex-1 overflow-y-auto px-3 sm:px-4"
       >
         {filteredSongs.map((song) => {
           const isCurrent = currentSong?.id === song.id;
@@ -137,6 +137,9 @@ export default function LibraryPage() {
             </div>
           );
         })}
+
+        {/* Extra invisible spacer at the bottom so last track isn't blocked by sticky music player */}
+        <div className="h-[90px] w-full pointer-events-none"></div>
       </div>
     </div>
   );

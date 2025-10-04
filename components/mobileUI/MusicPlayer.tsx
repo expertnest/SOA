@@ -15,10 +15,12 @@ const MusicPlayer = () => {
     handlePrev,
     currentSong,
     playSong,
+    progress,
+    seek,
   } = useMusic();
 
   const [showQueue, setShowQueue] = useState(false);
-  const [showArt, setShowArt] = useState(false); // NEW state for expanded art
+  const [showArt, setShowArt] = useState(false);
   const [isIPad, setIsIPad] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -30,20 +32,45 @@ const MusicPlayer = () => {
   }, []);
 
   const categories = Array.from(new Set(songs.map((s) => s.category)));
-
   const filteredSongs = selectedCategory
     ? songs.filter((s) => s.category === selectedCategory)
     : songs;
 
+  const formatTime = (percent: number, duration: number = 180) => {
+    const current = Math.floor((percent / 100) * duration);
+    const mins = Math.floor(current / 60);
+    const secs = current % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    seek(Number(e.target.value));
+  };
+
   return (
     <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white shadow-lg">
+      {/* Progress Bar */}
+      <div className="w-full">
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={progress}
+          onChange={handleSeek}
+          className="w-full h-1 appearance-none bg-zinc-700/50 accent-teal-400 cursor-pointer"
+        />
+        <div className="flex justify-between text-xs text-gray-400 px-2 -mt-1">
+          <span>{formatTime(progress)}</span>
+          <span>{currentSong?.duration ? formatTime(100) : "0:00"}</span>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 relative">
-        
         {/* Song Info */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div
             className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md cursor-pointer"
-            onClick={() => setShowArt(true)} // click opens art
+            onClick={() => setShowArt(true)}
           ></div>
           <div className="leading-tight">
             <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[200px]">
@@ -76,35 +103,28 @@ const MusicPlayer = () => {
 
         {/* Expanded Album Art */}
         <AnimatePresence>
-  {showArt && (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 50 }}
-      transition={{
-        type: "tween", // smoother tween animation
-        duration: 0.4, // slightly longer for smoothness
-        ease: "easeInOut",
-      }}
-      className="absolute bottom-full left-0 w-full bg-black/95 backdrop-blur-lg rounded-t-2xl p-6 shadow-xl flex flex-col items-center justify-center"
-      style={{ minHeight: "400px" }}
-    >
-      {/* X button on top-right of the whole modal */}
-      <X
-        size={28}
-        className="absolute top-4 right-4 text-white cursor-pointer hover:text-gray-400"
-        onClick={() => setShowArt(false)}
-      />
-
-      <div className="relative">
-        <div className="w-60 h-60 sm:w-72 sm:h-72 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
-      </div>
-
-      <h3 className="text-xl font-bold mt-4">{currentSong?.title ?? "No Song"}</h3>
-      <p className="text-gray-400">{currentSong?.artist}</p>
-    </motion.div>
-  )}
-</AnimatePresence>
+          {showArt && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ type: "tween", duration: 0.4, ease: "easeInOut" }}
+              className="absolute bottom-full left-0 w-full bg-black/95 backdrop-blur-lg rounded-t-2xl p-6 shadow-xl flex flex-col items-center justify-center"
+              style={{ minHeight: "400px" }}
+            >
+              <X
+                size={28}
+                className="absolute top-4 right-4 text-white cursor-pointer hover:text-gray-400"
+                onClick={() => setShowArt(false)}
+              />
+              <div className="relative">
+                <div className="w-60 h-60 sm:w-72 sm:h-72 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
+              </div>
+              <h3 className="text-xl font-bold mt-4">{currentSong?.title ?? "No Song"}</h3>
+              <p className="text-gray-400">{currentSong?.artist}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Queue */}
         <AnimatePresence>
