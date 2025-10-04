@@ -14,34 +14,14 @@ type Product = {
 };
 
 const products: Product[] = [
-  {
-    id: 1,
-    name: "Signature Hoodie",
-    price: "$65.00",
-    description: "Premium heavyweight hoodie with embroidered logo.",
-    image: "/clothes1.png",
-  },
-  {
-    id: 2,
-    name: "Tour T-Shirt",
-    price: "$40.00",
-    description: "Lightweight cotton tee with front and back print.",
-    image: "/clothes2.png",
-  },
-  {
-    id: 3,
-    name: "Logo Cap",
-    price: "$30.00",
-    description: "Adjustable cap with embroidered logo.",
-    image: "/clothes3.png",
-  },
-  {
-    id: 4,
-    name: "Performance Jacket",
-    price: "$90.00",
-    description: "Water-resistant jacket built for performance.",
-    image: "/clothes4.png",
-  },
+  { id: 1, name: "Signature Hoodie", price: "$65.00", description: "Premium heavyweight hoodie with embroidered logo.", image: "/clothes1.png" },
+  { id: 2, name: "Tour T-Shirt", price: "$40.00", description: "Lightweight cotton tee with front and back print.", image: "/clothes2.png" },
+  { id: 3, name: "Logo Cap", price: "$30.00", description: "Adjustable cap with embroidered logo.", image: "/clothes3.png" },
+  { id: 4, name: "Performance Jacket", price: "$90.00", description: "Water-resistant jacket built for performance.", image: "/clothes4.png" },
+  { id: 5, name: "Signature Hoodie", price: "$65.00", description: "Premium heavyweight hoodie with embroidered logo.", image: "/clothes1.png" },
+  { id: 6, name: "Tour T-Shirt", price: "$40.00", description: "Lightweight cotton tee with front and back print.", image: "/clothes2.png" },
+  { id: 7, name: "Logo Cap", price: "$30.00", description: "Adjustable cap with embroidered logo.", image: "/clothes3.png" },
+  { id: 8, name: "Performance Jacket", price: "$90.00", description: "Water-resistant jacket built for performance.", image: "/clothes4.png" },
 ];
 
 export default function MerchPage() {
@@ -51,15 +31,15 @@ export default function MerchPage() {
   return (
     <main className="px-6 py-8 min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
       {/* Header */}
-      <header className="mb-4">
+      <header className="mb-2">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
           Official Merch
         </h1>
       </header>
 
       {/* Grid */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl">
+      <div className="flex-1 flex items-start justify-center mt-0">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 gap-6 w-full max-w-4xl">
           {products.map((product) => (
             <button
               key={product.id}
@@ -77,8 +57,8 @@ export default function MerchPage() {
                   className="object-cover group-hover:scale-105 transition-transform"
                 />
               </div>
-              <h2 className="mt-3 text-sm font-medium">{product.name}</h2>
-              <p className="text-xs text-gray-400">{product.price}</p>
+              <h2 className="mt-2 text-sm md:text-base font-medium">{product.name}</h2>
+              <p className="text-[11px] md:text-xs text-gray-400">{product.price}</p>
             </button>
           ))}
         </div>
@@ -107,12 +87,17 @@ export default function MerchPage() {
               <div className="flex items-center justify-between mb-4 pt-10 sm:pt-0">
                 <button
                   onClick={() => setSelected(null)}
-                  className="text-sm text-gray-400 hover:underline mt-4 md:mt-0"
+                  className="text-sm text-gray-400 hover:underline"
                 >
                   ← Go Back
                 </button>
 
-                
+                <button
+                  onClick={() => setSelected(null)}
+                  className="p-1 rounded-md hover:bg-gray-800 sm:hidden"
+                >
+                  <X className="w-5 h-5 text-gray-300" />
+                </button>
               </div>
 
               <div>
