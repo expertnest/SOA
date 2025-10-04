@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Play, Pause, SkipBack, SkipForward, MoreHorizontal, Library } from "lucide-react";
@@ -48,11 +49,17 @@ const MusicPlayer = () => {
     seek(Number(e.target.value));
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     if (info.offset.y > 150) setShowFullScreen(false);
   };
 
-  const handleQueueDragEnd = (_: any, info: PanInfo) => {
+  const handleQueueDragEnd = (
+    _: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     if (info.offset.y > 120) setShowQueue(false);
   };
 
@@ -257,3 +264,4 @@ const MusicPlayer = () => {
 };
 
 export default MusicPlayer;
+
