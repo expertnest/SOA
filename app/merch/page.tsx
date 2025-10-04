@@ -49,38 +49,39 @@ export default function MerchPage() {
   const [size, setSize] = useState<string>("");
 
   return (
-    <main className="px-4 py-8 min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white">
+    <main className="px-6 py-8 min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
       {/* Header */}
-      <header className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight">Official Merch</h1>
-        <p className="text-sm text-gray-400 hidden sm:block">
-          Minimal • Modern • Sleek
-        </p>
+      <header className="mb-4">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+          Official Merch
+        </h1>
       </header>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <button
-            key={product.id}
-            onClick={() => {
-              setSelected(product);
-              setSize("");
-            }}
-            className="group block text-left"
-          >
-            <div className="aspect-square relative overflow-hidden rounded-2xl bg-gray-700">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform"
-              />
-            </div>
-            <h2 className="mt-3 text-sm font-medium">{product.name}</h2>
-            <p className="text-xs text-gray-400">{product.price}</p>
-          </button>
-        ))}
+      {/* Grid */}
+      <div className="flex-1 flex items-center justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl">
+          {products.map((product) => (
+            <button
+              key={product.id}
+              onClick={() => {
+                setSelected(product);
+                setSize("");
+              }}
+              className="group block text-left"
+            >
+              <div className="aspect-square relative overflow-hidden rounded-2xl bg-gray-700">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform"
+                />
+              </div>
+              <h2 className="mt-3 text-sm font-medium">{product.name}</h2>
+              <p className="text-xs text-gray-400">{product.price}</p>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Overlay / Detail View */}
@@ -96,31 +97,27 @@ export default function MerchPage() {
             />
 
             <motion.div
-              className="fixed inset-y-0 right-0 w-full sm:w-[450px] bg-gray-900 z-50 shadow-xl p-6 overflow-y-auto"
+              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {/* Top bar with back/close */}
-              <div className="flex items-center justify-between mb-6 pt-12 sm:pt-0">
+              <div className="flex items-center justify-between mb-4 pt-10 sm:pt-0">
                 <button
                   onClick={() => setSelected(null)}
-                  className="text-sm text-gray-400 hover:underline"
+                  className="text-sm text-gray-400 hover:underline mt-4 md:mt-0"
                 >
                   ← Go Back
                 </button>
 
-                <button
-                  onClick={() => setSelected(null)}
-                  className="p-2 rounded-md hover:bg-gray-800 sm:hidden"
-                >
-                  <X className="w-5 h-5 text-gray-300" />
-                </button>
+                
               </div>
 
               <div>
-                <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-800">
+                {/* Product Image */}
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-gray-800">
                   <Image
                     src={selected.image}
                     alt={selected.name}
@@ -129,19 +126,19 @@ export default function MerchPage() {
                   />
                 </div>
 
-                <h1 className="text-2xl font-bold mt-6">{selected.name}</h1>
-                <p className="text-lg mt-2 text-gray-200">{selected.price}</p>
-                <p className="text-sm text-gray-400 mt-4">{selected.description}</p>
+                <h1 className="text-xl font-bold mt-4">{selected.name}</h1>
+                <p className="text-base mt-1 text-gray-200">{selected.price}</p>
+                <p className="text-sm text-gray-400 mt-2">{selected.description}</p>
 
                 {/* Size Selector */}
-                <div className="mt-6">
-                  <p className="text-sm mb-2">Choose Size:</p>
-                  <div className="flex gap-3">
+                <div className="mt-4">
+                  <p className="text-xs mb-1">Choose Size:</p>
+                  <div className="flex gap-2">
                     {["S", "M", "L"].map((s) => (
                       <button
                         key={s}
                         onClick={() => setSize(s)}
-                        className={`px-4 py-2 rounded-md border transition ${
+                        className={`px-3 py-1 text-sm rounded-md border transition ${
                           size === s
                             ? "bg-white text-black border-white"
                             : "border-gray-500 text-gray-300 hover:border-white"
@@ -155,7 +152,7 @@ export default function MerchPage() {
 
                 <button
                   disabled={!size}
-                  className={`mt-6 w-full px-6 py-3 rounded-xl font-medium transition ${
+                  className={`mt-5 w-full px-4 py-2 rounded-lg font-medium text-sm transition ${
                     size
                       ? "bg-white text-black hover:bg-gray-200"
                       : "bg-gray-600 text-gray-400 cursor-not-allowed"
