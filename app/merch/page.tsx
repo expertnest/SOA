@@ -103,7 +103,7 @@ export default function MerchPage() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {/* Top bar with back/close */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 pt-12 sm:pt-0">
                 <button
                   onClick={() => setSelected(null)}
                   className="text-sm text-gray-400 hover:underline"
