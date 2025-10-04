@@ -76,28 +76,35 @@ const MusicPlayer = () => {
 
         {/* Expanded Album Art */}
         <AnimatePresence>
-          {showArt && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute bottom-full left-0 w-full bg-black/95 backdrop-blur-lg rounded-t-2xl p-6 shadow-xl flex flex-col items-center justify-center"
-              style={{ minHeight: "400px" }}
-            >
-              <div className="relative">
-                <div className="w-60 h-60 sm:w-72 sm:h-72 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
-                <X
-                  size={28}
-                  className="absolute top-2 right-2 text-white cursor-pointer hover:text-gray-400"
-                  onClick={() => setShowArt(false)}
-                />
-              </div>
-              <h3 className="text-xl font-bold mt-4">{currentSong?.title ?? "No Song"}</h3>
-              <p className="text-gray-400">{currentSong?.artist}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+  {showArt && (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 50 }}
+      transition={{
+        type: "tween", // smoother tween animation
+        duration: 0.4, // slightly longer for smoothness
+        ease: "easeInOut",
+      }}
+      className="absolute bottom-full left-0 w-full bg-black/95 backdrop-blur-lg rounded-t-2xl p-6 shadow-xl flex flex-col items-center justify-center"
+      style={{ minHeight: "400px" }}
+    >
+      {/* X button on top-right of the whole modal */}
+      <X
+        size={28}
+        className="absolute top-4 right-4 text-white cursor-pointer hover:text-gray-400"
+        onClick={() => setShowArt(false)}
+      />
+
+      <div className="relative">
+        <div className="w-60 h-60 sm:w-72 sm:h-72 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
+      </div>
+
+      <h3 className="text-xl font-bold mt-4">{currentSong?.title ?? "No Song"}</h3>
+      <p className="text-gray-400">{currentSong?.artist}</p>
+    </motion.div>
+  )}
+</AnimatePresence>
 
         {/* Queue */}
         <AnimatePresence>
