@@ -1,4 +1,3 @@
- 
 "use client";
 
 import { Play, Pause, SkipBack, SkipForward, Library } from "lucide-react";
@@ -24,6 +23,7 @@ const MusicPlayer = () => {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [isIPad, setIsIPad] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent.toLowerCase();
@@ -48,14 +48,13 @@ const MusicPlayer = () => {
     seek(Number(e.target.value));
   };
 
-  const handleDragEnd = (
-    _: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
-    if (info.offset.y > 150) setShowFullScreen(false);
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setIsDragging(false);
+    if (info.offset.y > 150) {
+      if (showQueue) setShowQueue(false);
+      if (showFullScreen) setShowFullScreen(false);
+    }
   };
-
-  const handleQueueClose = () => setShowQueue(false);
 
   return (
     <>
@@ -88,7 +87,6 @@ const MusicPlayer = () => {
             )}
             <SkipForward size={20} className="cursor-pointer" onClick={handleNext} />
 
-            {/* Library button (replaces 3-dots and opens queue) */}
             <Library
               size={22}
               className="cursor-pointer hover:text-purple-400 transition"
@@ -108,12 +106,13 @@ const MusicPlayer = () => {
             exit={{ y: "100%" }}
             transition={{ type: "tween", duration: 0.3 }}
             className="fixed inset-0 bg-black text-white z-30 flex flex-col"
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={handleDragEnd}
           >
-            {/* Drag Handle */}
-            <div
-              className="w-12 h-1 bg-gray-500/50 rounded-full mx-auto my-3 cursor-pointer"
-              onClick={handleQueueClose}
-            ></div>
+            {/* Drag handle */}
+            <div className="w-12 h-1 bg-gray-500/50 rounded-full mx-auto my-3 cursor-grab"></div>
 
             {/* Top Image Section */}
             <div className="flex justify-center items-center p-6">
@@ -151,7 +150,9 @@ const MusicPlayer = () => {
             </div>
 
             {/* Song List */}
-            <div className="flex-1 overflow-y-auto px-4 pb-4">
+            <div
+              className={`flex-1 overflow-y-auto px-4 pb-4 ${isDragging ? "pointer-events-none" : ""}`}
+            >
               <h3 className="text-lg font-semibold text-white mb-3">Up Next</h3>
               <ul className="space-y-2">
                 {filteredSongs.map((song) => {
@@ -247,4 +248,3 @@ const MusicPlayer = () => {
 };
 
 export default MusicPlayer;
- 
