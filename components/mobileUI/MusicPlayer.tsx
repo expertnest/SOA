@@ -17,6 +17,7 @@ const MusicPlayer = () => {
     playSong,
     progress,
     seek,
+    duration,
   } = useMusic();
 
   const [showQueue, setShowQueue] = useState(false);
@@ -36,7 +37,7 @@ const MusicPlayer = () => {
     ? songs.filter((s) => s.category === selectedCategory)
     : songs;
 
-  const formatTime = (percent: number, duration: number = 180) => {
+  const formatTime = (percent: number) => {
     const current = Math.floor((percent / 100) * duration);
     const mins = Math.floor(current / 60);
     const secs = current % 60;
@@ -49,22 +50,6 @@ const MusicPlayer = () => {
 
   return (
     <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white shadow-lg">
-      {/* Progress Bar */}
-      <div className="w-full">
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={progress}
-          onChange={handleSeek}
-          className="w-full h-1 appearance-none bg-zinc-700/50 accent-teal-400 cursor-pointer"
-        />
-        <div className="flex justify-between text-xs text-gray-400 px-2 -mt-1">
-          <span>{formatTime(progress)}</span>
-          <span>{currentSong?.duration ? formatTime(100) : "0:00"}</span>
-        </div>
-      </div>
-
       <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 relative">
         {/* Song Info */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -207,6 +192,22 @@ const MusicPlayer = () => {
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      {/* Progress Bar UNDER Player Controls */}
+      <div className="w-full px-3 pb-2">
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={progress}
+          onChange={handleSeek}
+          className="w-full h-1 appearance-none bg-zinc-700/50 accent-teal-400 cursor-pointer"
+        />
+        <div className="flex justify-between text-xs text-gray-400 mt-1">
+          <span>{formatTime(progress)}</span>
+          <span>{duration ? formatTime(100) : "0:00"}</span>
+        </div>
       </div>
     </div>
   );
