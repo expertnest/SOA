@@ -5,7 +5,15 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-const products = [
+type Product = {
+  id: number;
+  name: string;
+  price: string;
+  description: string;
+  image: string;
+};
+
+const products: Product[] = [
   {
     id: 1,
     name: "Signature Hoodie",
@@ -37,7 +45,7 @@ const products = [
 ];
 
 export default function MerchPage() {
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<Product | null>(null);
   const [size, setSize] = useState<string>("");
 
   return (
@@ -111,16 +119,6 @@ export default function MerchPage() {
                 </button>
               </div>
 
-              {/* MOBILE Go Back above image modal */}
-              <div className="sm:hidden mb-4">
-                <button
-                  onClick={() => setSelected(null)}
-                  className="text-sm text-gray-300 hover:text-white font-medium"
-                >
-                  ← Go Back
-                </button>
-              </div>
-
               <div>
                 <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-800">
                   <Image
@@ -133,9 +131,7 @@ export default function MerchPage() {
 
                 <h1 className="text-2xl font-bold mt-6">{selected.name}</h1>
                 <p className="text-lg mt-2 text-gray-200">{selected.price}</p>
-                <p className="text-sm text-gray-400 mt-4">
-                  {selected.description}
-                </p>
+                <p className="text-sm text-gray-400 mt-4">{selected.description}</p>
 
                 {/* Size Selector */}
                 <div className="mt-6">
