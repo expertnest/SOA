@@ -40,7 +40,7 @@ export default function MerchPage() {
   }, [selected]);
 
   return (
-    <main className="px-6 py-8 pb-32 md:pb-8 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
+    <main className="px-6 py-8    md:pb-8 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
       {/* Header */}
       <header className="mb-2">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">

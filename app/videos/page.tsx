@@ -61,7 +61,7 @@ export default function VideoContents() {
         <div
           key={category}
           className={`mb-10 ${
-            idx === categories.length - 1 ? "pb-32 sm:pb-40" : ""
+            idx === categories.length - 1 ? " " : ""
           }`} 
         >
           <h2 className="text-xl font-semibold mb-3">{category}</h2>
