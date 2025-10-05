@@ -29,7 +29,7 @@ export default function MerchPage() {
   const [size, setSize] = useState<string>("");
 
   return (
-    <main className="px-6 py-8 min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
+    <main className="px-6 py-8 pb-32 md:pb-8 min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
       {/* Header */}
       <header className="mb-2">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -37,9 +37,9 @@ export default function MerchPage() {
         </h1>
       </header>
 
-      {/* Grid */}
+      {/* Products Grid */}
       <div className="flex-1 flex items-start justify-center mt-0">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-2 gap-6 w-full max-w-4xl">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 gap-4 w-full max-w-3xl">
           {products.map((product) => (
             <button
               key={product.id}
@@ -49,7 +49,7 @@ export default function MerchPage() {
               }}
               className="group block text-left"
             >
-              <div className="aspect-square relative overflow-hidden rounded-2xl bg-gray-700">
+              <div className="relative overflow-hidden rounded-xl bg-gray-700 h-40 md:h-96">
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -75,7 +75,6 @@ export default function MerchPage() {
               exit={{ opacity: 0 }}
               onClick={() => setSelected(null)}
             />
-
             <motion.div
               className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto"
               initial={{ x: "100%" }}
@@ -83,69 +82,56 @@ export default function MerchPage() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              {/* Top bar with back/close */}
+              {/* Top bar */}
               <div className="flex items-center justify-between mb-4 pt-10 sm:pt-0">
                 <button
                   onClick={() => setSelected(null)}
-                  className="text-sm text-gray-400 hover:underline"
+                  className="text-sm text-gray-400 mt-6 hover:underline"
                 >
                   ← Go Back
                 </button>
-
-                <button
-                  onClick={() => setSelected(null)}
-                  className="p-1 rounded-md hover:bg-gray-800 sm:hidden"
-                >
-                  <X className="w-5 h-5 text-gray-300" />
-                </button>
+               
               </div>
 
-              <div>
-                {/* Product Image */}
-                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-gray-800">
-                  <Image
-                    src={selected.image}
-                    alt={selected.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-
-                <h1 className="text-xl font-bold mt-4">{selected.name}</h1>
-                <p className="text-base mt-1 text-gray-200">{selected.price}</p>
-                <p className="text-sm text-gray-400 mt-2">{selected.description}</p>
-
-                {/* Size Selector */}
-                <div className="mt-4">
-                  <p className="text-xs mb-1">Choose Size:</p>
-                  <div className="flex gap-2">
-                    {["S", "M", "L"].map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setSize(s)}
-                        className={`px-3 py-1 text-sm rounded-md border transition ${
-                          size === s
-                            ? "bg-white text-black border-white"
-                            : "border-gray-500 text-gray-300 hover:border-white"
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  disabled={!size}
-                  className={`mt-5 w-full px-4 py-2 rounded-lg font-medium text-sm transition ${
-                    size
-                      ? "bg-white text-black hover:bg-gray-200"
-                      : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  Add to Cart
-                </button>
+              {/* Product Image */}
+              <div className="relative overflow-hidden rounded-2xl bg-gray-800 h-72 sm:h-80 md:h-[400px] lg:h-[450px]">
+                <Image src={selected.image} alt={selected.name} fill className="object-cover" />
               </div>
+
+              <h1 className="text-xl font-bold mt-4">{selected.name}</h1>
+              <p className="text-base mt-1 text-gray-200">{selected.price}</p>
+              <p className="text-sm text-gray-400 mt-2">{selected.description}</p>
+
+              {/* Size Selector */}
+              <div className="mt-4">
+                <p className="text-xs mb-1">Choose Size:</p>
+                <div className="flex gap-2">
+                  {["S", "M", "L"].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSize(s)}
+                      className={`px-3 py-1 text-sm rounded-md border transition ${
+                        size === s
+                          ? "bg-white text-black border-white"
+                          : "border-gray-500 text-gray-300 hover:border-white"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                disabled={!size}
+                className={`mt-5 w-full px-4 py-2 rounded-lg font-medium text-sm transition ${
+                  size
+                    ? "bg-white text-black hover:bg-gray-200"
+                    : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                Add to Cart
+              </button>
             </motion.div>
           </>
         )}

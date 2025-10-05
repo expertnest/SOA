@@ -51,12 +51,19 @@ const colors = [
 ];
 
 export default function VideoContents() {
+  const categories = Object.entries(videoData);
+
   return (
     <div className="bg-black min-h-screen text-white px-4 py-6 sm:px-6">
       <h1 className="text-3xl font-bold mb-6">Video Library</h1>
 
-      {Object.entries(videoData).map(([category, videos]) => (
-        <div key={category} className="mb-10">
+      {categories.map(([category, videos], idx) => (
+        <div
+          key={category}
+          className={`mb-10 ${
+            idx === categories.length - 1 ? "pb-32 sm:pb-40" : ""
+          }`} 
+        >
           <h2 className="text-xl font-semibold mb-3">{category}</h2>
           <VideoRow videos={videos} />
         </div>
