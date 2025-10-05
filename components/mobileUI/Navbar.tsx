@@ -35,11 +35,11 @@ const Navbar = () => {
 
       {/* Library / Videos */}
       <Link
-        href="/library"
+        href="/videos"
         className="flex flex-col items-center text-sm hover:text-[#00ffff] transition-colors"
       >
         <PlayCircle size={22} />
-        <span className="text-xs">Library</span>
+        <span className="text-xs">Videos</span>
       </Link>
 
       {/* Contact */}
