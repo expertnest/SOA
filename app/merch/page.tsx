@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
 
 type Product = {
   id: number;
@@ -28,8 +27,20 @@ export default function MerchPage() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [size, setSize] = useState<string>("");
 
+  // Lock body scroll when overlay is open
+  useEffect(() => {
+    if (selected) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selected]);
+
   return (
-    <main className="px-6 py-8 pb-32 md:pb-8   bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
+    <main className="px-6 py-8 pb-32 md:pb-8 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
       {/* Header */}
       <header className="mb-2">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -68,6 +79,7 @@ export default function MerchPage() {
       <AnimatePresence>
         {selected && (
           <>
+            {/* Background overlay */}
             <motion.div
               className="fixed inset-0 bg-black/60 z-40"
               initial={{ opacity: 0 }}
@@ -75,12 +87,19 @@ export default function MerchPage() {
               exit={{ opacity: 0 }}
               onClick={() => setSelected(null)}
             />
+
+            {/* Sliding panel */}
             <motion.div
-              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto"
+              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto pb-32 touch-scroll-1"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+                touchAction: "pan-y",
+              }}
             >
               {/* Top bar */}
               <div className="flex items-center justify-between mb-4 pt-10 sm:pt-0">
@@ -90,7 +109,6 @@ export default function MerchPage() {
                 >
                   ← Go Back
                 </button>
-               
               </div>
 
               {/* Product Image */}

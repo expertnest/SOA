@@ -69,12 +69,10 @@ export default function LibraryPage() {
 
         {/* Categories with explanatory text */}
         <div className="p-3 sm:p-4 border-b border-zinc-800 bg-zinc-950">
-          {/* Explanatory text */}
           <p className="text-xs sm:text-sm text-gray-400 mb-2 text-center">
             Filter by category:
           </p>
 
-          {/* Category buttons */}
           <div className="flex flex-wrap gap-2 justify-center">
             {categories.map((cat) => (
               <button
@@ -109,6 +107,11 @@ export default function LibraryPage() {
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-3 sm:px-4"
+        style={{
+          WebkitOverflowScrolling: "touch", // momentum scroll on iOS
+          overscrollBehavior: "contain",    // stops sticky nav/player from hijacking
+          touchAction: "pan-y",             // ensures vertical swipes always scroll
+        }}
       >
         {filteredSongs.map((song) => {
           const isCurrent = currentSong?.id === song.id;
@@ -138,7 +141,7 @@ export default function LibraryPage() {
           );
         })}
 
-        {/* Extra invisible spacer at the bottom so last track isn't blocked by sticky music player */}
+        {/* Spacer so last track isn't hidden by sticky music player */}
         <div className="h-[90px] w-full pointer-events-none"></div>
       </div>
     </div>
