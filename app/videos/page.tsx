@@ -54,7 +54,7 @@ export default function VideoContents() {
   const categories = Object.entries(videoData);
 
   return (
-    <div className="bg-black min-h-screen text-white px-4 py-6 sm:px-6">
+    <div className="bg-black  text-white px-4 py-6 sm:px-6">
       <h1 className="text-3xl font-bold mb-6">Video Library</h1>
 
       {categories.map(([category, videos], idx) => (
