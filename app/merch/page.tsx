@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -40,7 +41,7 @@ export default function MerchPage() {
   }, [selected]);
 
   return (
-    <main className="px-6 py-8 pt-[80px] bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col overflow-hidden">
+    <main className="px-6 py-8 pt-[80px] bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
       {/* Header */}
       <header className="mb-2">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -60,7 +61,7 @@ export default function MerchPage() {
               }}
               className="group block text-left"
             >
-              <div className="relative overflow-hidden rounded-xl bg-gray-700 h-40 md:h-96">
+              <div className="relative overflow-hidden rounded-xl bg-gray-700 h-32 sm:h-48 md:h-72 lg:h-80">
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -90,7 +91,7 @@ export default function MerchPage() {
 
             {/* Sliding panel */}
             <motion.div
-              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto pb-32 touch-scroll-1"
+              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto pb-32"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -112,7 +113,7 @@ export default function MerchPage() {
               </div>
 
               {/* Product Image */}
-              <div className="relative overflow-hidden rounded-2xl bg-gray-800 h-72 sm:h-80 md:h-[400px] lg:h-[450px]">
+              <div className="relative overflow-hidden rounded-2xl bg-gray-800 h-56 sm:h-64 md:h-[280px] lg:h-[300px]">
                 <Image src={selected.image} alt={selected.name} fill className="object-cover" />
               </div>
 
@@ -157,3 +158,4 @@ export default function MerchPage() {
     </main>
   );
 }
+

@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import { FaPlay } from "react-icons/fa";
@@ -54,15 +55,15 @@ export default function VideoContents() {
   const categories = Object.entries(videoData);
 
   return (
-    <div className="bg-black  text-white px-4 py-6 sm:px-6 overflow-hidden">
+    <div className="bg-black text-white px-4 py-6 sm:px-6">
       <h1 className="text-3xl font-bold mb-6">Video Library</h1>
 
       {categories.map(([category, videos], idx) => (
         <div
           key={category}
           className={`mb-10 ${
-            idx === categories.length - 1 ? "pb-32 sm:pb-40" : ""
-          }`} 
+            idx === categories.length - 1 ? "pb-24 sm:pb-32" : ""
+          }`}
         >
           <h2 className="text-xl font-semibold mb-3">{category}</h2>
           <VideoRow videos={videos} />
@@ -74,7 +75,7 @@ export default function VideoContents() {
 
 function VideoRow({ videos }: { videos: { id: number; title: string }[] }) {
   return (
-    <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide snap-x">
+    <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
       {videos.map((video, idx) => {
         const colorClass = colors[idx % colors.length];
         return (
@@ -100,3 +101,4 @@ function VideoRow({ videos }: { videos: { id: number; title: string }[] }) {
     </div>
   );
 }
+
