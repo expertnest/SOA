@@ -26,7 +26,7 @@ export default function RightSidebar() {
       {!rightCollapsed && (
         <>
           {/* Social Feed */}
-          <div className="sticky top-0 bg-[#111827]/80 z-10 mb-2 rounded-md p-2">
+          <div className="sticky top-0 bg-[#111827]/80   mb-2 rounded-md p-2">
             <h2 className="text-lg font-bold uppercase text-[#00ffff]">
               Social Feed
             </h2>
@@ -59,7 +59,7 @@ export default function RightSidebar() {
           </div>
 
           {/* Tour Dates */}
-          <div className="sticky top-0 bg-[#111827]/80 z-10 mb-2 rounded-md p-2">
+          <div className="sticky top-0 bg-[#111827]/80   mb-2 rounded-md p-2">
             <h2 className="text-lg font-bold uppercase text-[#00ffff]">
               Upcoming Tour Dates
             </h2>

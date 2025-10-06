@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,14 +29,8 @@ export default function MerchPage() {
 
   // Lock body scroll when overlay is open
   useEffect(() => {
-    if (selected) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = selected ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [selected]);
 
   return (
@@ -55,11 +48,8 @@ export default function MerchPage() {
           {products.map((product) => (
             <button
               key={product.id}
-              onClick={() => {
-                setSelected(product);
-                setSize("");
-              }}
-              className="group block text-left"
+              onClick={() => { setSelected(product); setSize(""); }}
+              className="group block text-left relative"
             >
               <div className="relative overflow-hidden rounded-xl bg-gray-700 h-32 sm:h-48 md:h-72 lg:h-80">
                 <Image
@@ -68,6 +58,10 @@ export default function MerchPage() {
                   fill
                   className="object-cover group-hover:scale-105 transition-transform"
                 />
+                {/* Coming Soon overlay */}
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                  <span className="text-white font-bold text-lg md:text-2xl">Coming Soon</span>
+                </div>
               </div>
               <h2 className="mt-2 text-sm md:text-base font-medium">{product.name}</h2>
               <p className="text-[11px] md:text-xs text-gray-400">{product.price}</p>
@@ -96,11 +90,7 @@ export default function MerchPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{
-                WebkitOverflowScrolling: "touch",
-                overscrollBehavior: "contain",
-                touchAction: "pan-y",
-              }}
+              style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
             >
               {/* Top bar */}
               <div className="flex items-center justify-between mb-4 pt-10 sm:pt-0">
@@ -112,9 +102,12 @@ export default function MerchPage() {
                 </button>
               </div>
 
-              {/* Product Image */}
+              {/* Product Image with Coming Soon overlay */}
               <div className="relative overflow-hidden rounded-2xl bg-gray-800 h-56 sm:h-64 md:h-[280px] lg:h-[300px]">
                 <Image src={selected.image} alt={selected.name} fill className="object-cover" />
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                  <span className="text-white font-bold text-lg md:text-2xl">Coming Soon</span>
+                </div>
               </div>
 
               <h1 className="text-xl font-bold mt-4">{selected.name}</h1>
@@ -158,4 +151,3 @@ export default function MerchPage() {
     </main>
   );
 }
-
