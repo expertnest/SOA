@@ -20,6 +20,10 @@ function useWindowWidth() {
 
 function MouseFollower() {
   const ref = useRef<THREE.Group>(null);
+  const width = useWindowWidth();
+
+  // Slightly bigger logo on mobile
+  const scale = width < 768 ? 1.2 : 1.7;
 
   useFrame(({ mouse }) => {
     if (ref.current) {
@@ -29,7 +33,7 @@ function MouseFollower() {
   });
 
   return (
-    <group ref={ref} scale={[1.7, 1.7, 1.7]}> {/* slightly smaller logo */}
+    <group ref={ref} scale={[scale, scale, scale]}>
       <Center>
         <Logo />
       </Center>
@@ -51,11 +55,14 @@ export default function Home() {
     "bottom-6 right-6"
   ];
 
+  // Adjust 3D stars container height
+  const starsHeight = width < 768 ? '55vh' : '60vh';
+
   return (
     <section className="w-full min-h-screen flex flex-col items-center justify-start bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#000000] relative overflow-hidden">
 
       {/* 3D Logo Section */}
-      <div className="w-full h-[60vh] relative">
+      <div className={`w-full relative`} style={{ height: starsHeight }}>
         <Canvas
           className="w-full h-full"
           camera={{ position: [0, 0, 5], near: 0.1, far: 1000 }}
@@ -72,7 +79,7 @@ export default function Home() {
       </div>
 
       {/* Form Section */}
-      <div className="w-full max-w-xl mt-6 p-4 bg-[#111111]/80 rounded-xl shadow-lg text-white flex flex-wrap gap-3 justify-between">
+      <div className="w-full max-w-md sm:max-w-[90%] mt-6 p-4 sm:p-2 bg-[#111111]/80 rounded-xl shadow-lg text-white flex flex-wrap gap-3 justify-between">
         <h2 className="w-full text-lg font-bold mb-3 text-center">Get in Touch</h2>
         <input
           type="text"
