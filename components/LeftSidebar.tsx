@@ -38,7 +38,7 @@ export default function LeftSidebar() {
     <aside
       className={`bg-gradient-to-b from-[#0f0f0f] via-[#111827] to-[#1f1f1f] text-white border-t md:border-t-0 md:border-r border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
         leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-64"
-      } flex-shrink-0`}
+      } flex-shrink-0 shadow-lg`}
     >
       {/* Collapse Button */}
       <button
@@ -51,15 +51,15 @@ export default function LeftSidebar() {
       {!leftCollapsed && (
         <>
           {/* Playlist Categories */}
-          <h2 className="text-lg font-bold uppercase mb-2 md:mb-4 tracking-wide text-[#00ffff]">
+          <h2 className="text-lg font-semibold uppercase mb-2 md:mb-4 tracking-wide text-[#00ffff]">
             Playlist
           </h2>
           <ul className="flex md:flex-col space-x-3 md:space-x-0 md:space-y-3 text-sm overflow-x-auto md:overflow-visible mb-2 md:mb-6">
             {playlists.map((pl) => (
               <li
                 key={pl}
-                className={`cursor-pointer hover:text-[#00ffff] transition-colors duration-200 ${
-                  selectedCategory === pl ? "text-[#00ffff] font-semibold" : ""
+                className={`cursor-pointer hover:text-[#00ffff] transition-colors duration-200 rounded-lg px-3 py-2 transform hover:scale-105 hover:bg-gray-800 ${
+                  selectedCategory === pl ? "bg-gray-800 text-[#00ffff] font-semibold" : ""
                 }`}
                 onClick={() => {
                   setSelectedCategory(pl);
@@ -81,36 +81,36 @@ export default function LeftSidebar() {
 
           {/* Song List */}
           <div className="overflow-y-auto flex-1 pr-1 space-y-2 text-sm max-h-[calc(100vh-300px)]">
-  {filteredSongs.map((song, index) => {
-    const isCurrent = currentSong?.id === song.id;
-    return (
-      <li
-        key={song.id}
-        className={`p-2 rounded cursor-pointer hover:bg-gray-800 flex justify-between items-center transition-colors duration-200 ${
-          isCurrent ? "bg-gray-800" : ""
-        }`}
-        onClick={() => playSong(song)}
-      >
-        <div>
-          <p className="font-semibold">{song.title}</p>
-          <p className="text-xs text-white/60">{song.artist}</p>
-        </div>
+            {filteredSongs.map((song, index) => {
+              const isCurrent = currentSong?.id === song.id;
+              return (
+                <li
+                  key={song.id}
+                  className={`p-2 rounded-lg cursor-pointer flex justify-between items-center transition-colors duration-200 ${
+                    isCurrent ? "bg-gray-800" : "hover:bg-gray-800"
+                  }`}
+                  onClick={() => playSong(song)}
+                >
+                  <div>
+                    <p className="font-semibold">{song.title}</p>
+                    <p className="text-xs text-white/60">{song.artist}</p>
+                  </div>
 
-        {/* Play/Pause button for each track */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // prevent triggering playSong again
-            if (isCurrent) togglePlay(); // toggle if it's the current song
-            else playSong(song); // play if it's a different song
-          }}
-          className="ml-2"
-        >
-          {isCurrent && isPlaying ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-      </li>
-    );
-  })}
-</div>
+                  {/* Play/Pause button for each track */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // prevent triggering playSong again
+                      if (isCurrent) togglePlay(); // toggle if it's the current song
+                      else playSong(song); // play if it's a different song
+                    }}
+                    className="ml-2 p-1 rounded-full hover:bg-gray-700"
+                  >
+                    {isCurrent && isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                  </button>
+                </li>
+              );
+            })}
+          </div>
 
           {/* Now Playing & Controls */}
           <div className="mt-auto pt-2 border-t border-gray-700">
@@ -121,7 +121,9 @@ export default function LeftSidebar() {
                 <p className="text-sm font-semibold">{currentSong?.title || "Nothing"}</p>
                 <p className="text-xs text-white/60">{currentSong?.artist || ""}</p>
               </div>
-              <button onClick={togglePlay}>{isPlaying ? <Pause size={20} /> : <Play size={20} />}</button>
+              <button onClick={togglePlay} className="p-2 rounded-full hover:bg-gray-700">
+                {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+              </button>
             </div>
 
             <div className="flex items-center justify-between mt-2 text-white/70">

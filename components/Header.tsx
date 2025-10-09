@@ -1,6 +1,16 @@
 'use client'
 
+import Link from "next/link"
+
 export default function Header() {
+  const navItems = [
+    { name: 'Homssse', href: '/' },
+    { name: 'Merch', href: '/merch' },
+    { name: 'Videos', href: '/videos' },
+    { name: 'Tour', href: '/tour' },
+    { name: 'Contact', href: '/contact' },
+  ]
+
   return (
     <header className="relative z-10 w-full bg-gradient-to-r from-black via-[#0a0a0a] to-black py-4 px-4 md:py-6 md:px-6 shadow-lg border-b border-gray-800">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -12,15 +22,15 @@ export default function Header() {
         {/* Navbar */}
         <nav className="hidden md:flex">
           <ul className="flex space-x-8 text-sm md:text-base font-medium uppercase tracking-wide">
-            {['Home', 'Merch', 'Videos', 'Tour', 'Contact'].map((item) => (
-              <li key={item}>
-                <a
-                  href="#"
+            {navItems.map((item) => (
+              <li key={item.name} className="group relative">
+                <Link
+                  href={item.href}
                   className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200"
                 >
-                  {item}
+                  {item.name}
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00ffff] transition-all duration-300 group-hover:w-full"></span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
