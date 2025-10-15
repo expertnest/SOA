@@ -41,7 +41,7 @@ export default function Modal({ isOpen, onClose, content }) {
                     <img
                       src={content.image}
                       alt={content.title}
-                      className="w-full h-full object-cover"
+                      className="w-full   object-cover"
                     />
                   </div>
                 )}
