@@ -57,7 +57,7 @@ export default function MusicVideos() {
   }, [activeIndex])
 
   return (
-    <div className="mt-6">
+    <div className="mt-4 md:mt-6">
       <h2 className="text-lg md:text-xl font-bold uppercase mb-2 flex space-x-4">
         <span className="text-white">Music Videos</span>
         <span className="text-white/50 hover:text-white cursor-pointer">Shorts</span>
