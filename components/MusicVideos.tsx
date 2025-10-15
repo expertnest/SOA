@@ -90,6 +90,13 @@ export default function MusicVideos() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
+            {/* ===== Top Heading "State of the Art" ===== */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
+              <h1 className="text-3xl md:text-5xl font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-500 drop-shadow-lg select-none">
+                State of the Art
+              </h1>
+            </div>
+
             {/* Scrollable video container */}
             <div
               ref={videoContainerRef}
@@ -127,7 +134,7 @@ export default function MusicVideos() {
                 <FaTimes />
               </button>
 
-              {/* Up Arrow (shows if not on first video) */}
+              {/* Up Arrow */}
               {activeIndex > 0 && (
                 <button
                   onClick={handleUpArrow}
@@ -137,7 +144,7 @@ export default function MusicVideos() {
                 </button>
               )}
 
-              {/* Down Arrow (shows if not on last video) */}
+              {/* Down Arrow */}
               {activeIndex < musicVideos.length - 1 && (
                 <button
                   onClick={handleDownArrow}
