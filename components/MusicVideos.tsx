@@ -26,7 +26,6 @@ export default function MusicVideos() {
     }
   }
 
-  // Update activeIndex based on scroll position
   const handleScroll = () => {
     if (!videoContainerRef.current) return
     const container = videoContainerRef.current
@@ -49,7 +48,6 @@ export default function MusicVideos() {
     setActiveIndex(closestIndex)
   }
 
-  // Ensure correct activeIndex on mount when overlay opens
   useEffect(() => {
     if (activeIndex !== null) {
       videoRefs.current[activeIndex]?.scrollIntoView({ behavior: "instant" })
@@ -58,13 +56,23 @@ export default function MusicVideos() {
 
   return (
     <div className="mt-4 md:mt-6">
-      <h2 className="text-lg md:text-xl font-bold uppercase mb-2 flex space-x-4">
-        <span className="text-white">Music Videos</span>
-        <span className="text-white/50 hover:text-white cursor-pointer">Shorts</span>
-        <span className="text-white/50 hover:text-white cursor-pointer">Podcasts</span>
-      </h2>
+      {/* ===== Mobile-only "State of the Art" Heading ===== */}
+      <div className="text-center mb-4 md:hidden">
+        <h1 className="text-4xl font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 drop-shadow-lg select-none">
+          State of the Art
+        </h1>
+      </div>
 
-      {/* Horizontal thumbnails */}
+      {/* ===== Music Videos Tabs ===== */}
+      <div className="text-center">
+        <h2 className="text-lg md:text-xl font-bold uppercase mb-2 flex justify-center gap-4">
+          <span className="text-white">Music Videos</span>
+          <span className="text-white/50 hover:text-white cursor-pointer">Shorts</span>
+          <span className="text-white/50 hover:text-white cursor-pointer">Podcasts</span>
+        </h2>
+      </div>
+
+      {/* ===== Horizontal thumbnails ===== */}
       <div className="flex space-x-3 overflow-x-auto pb-2 mt-6 scrollbar-hide snap-x snap-mandatory">
         {musicVideos.map((mv, idx) => (
           <div
@@ -80,7 +88,7 @@ export default function MusicVideos() {
         ))}
       </div>
 
-      {/* Fullscreen overlay */}
+      {/* ===== Fullscreen overlay ===== */}
       <AnimatePresence>
         {activeIndex !== null && (
           <motion.div
@@ -90,14 +98,14 @@ export default function MusicVideos() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* ===== Top Heading "State of the Art" ===== */}
+            {/* ===== Top Heading "State of the Art" overlay ===== */}
             <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
-              <h1 className="text-3xl md:text-5xl font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-500 drop-shadow-lg select-none">
+              <h1 className="text-3xl md:text-5xl font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 drop-shadow-lg select-none">
                 State of the Art
               </h1>
             </div>
 
-            {/* Scrollable video container */}
+            {/* ===== Scrollable video container ===== */}
             <div
               ref={videoContainerRef}
               className="w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth"
