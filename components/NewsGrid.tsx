@@ -40,7 +40,7 @@ export default function NewsGrid() {
     ></div>
 
     {/* Gradient overlay */}
-    <div className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-40`}></div>
+    <div className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-20`}></div>
 
     {/* Content */}
     <div className="relative z-10 p-5 md:p-8 flex flex-col justify-end h-full">
@@ -71,7 +71,7 @@ export default function NewsGrid() {
       style={{ backgroundImage: `url(${post.image})` }}
     ></div>
     <div
-      className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-30`}
+      className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-20`}
     ></div>
     <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
       <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
