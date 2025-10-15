@@ -7,9 +7,8 @@ export const newsPosts = [
     date: "Oct 7, 2025",
     modalText: `ShottiGotSwag and Qmilly are back in the studio cooking up magic!
 Their collab for ‘Swerve’ showcases their unique styles and synergy.
-In this post, we dive into their creative process, how the track came together, and the story behind the visuals.
-Fans get an exclusive peek into the making of one of the hottest trap tracks of the year.`,
-    image: "/moneywalk.png",
+ `,
+    image: "/soa.png",
     color: "from-green-500 to-teal-500",
     span: "md:col-span-1 md:row-span-1",
   },
@@ -21,8 +20,7 @@ Fans get an exclusive peek into the making of one of the hottest trap tracks of 
     date: "Oct 8, 2025",
     modalText: `ShottiGotSwag just dropped his latest single ‘Swerve’ featuring Qmilly.
 This high-energy trap banger blends cinematic beats with storytelling that captures the thrill of the streets.
-Fans are already sharing clips, praising the chemistry between Shotti and Qmilly, and the visually stunning music video is creating waves across socials.
-Check out the full breakdown and behind-the-scenes moments here.`,
+ `,
     image: "/swerve.jpeg",
     color: "from-purple-600 to-indigo-600",
   },

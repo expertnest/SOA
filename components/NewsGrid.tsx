@@ -28,24 +28,30 @@ export default function NewsGrid() {
     <>
       {/* --- Featured Post --- */}
       {featured && (
-        <div
-          key={featured.id}
-          className="relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col md:col-span-2 md:row-span-2 cursor-pointer"
-          onClick={() => setSelectedPost(featured)}
-        >
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${featured.image})` }}
-          ></div>
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-30`}
-          ></div>
-          <div className="relative z-10 p-4 md:p-6 flex flex-col justify-end h-full">
-            <span className="text-xs text-white/70 uppercase mb-2">{featured.date}</span>
-            <h2 className="text-xl md:text-2xl font-bold mb-2">{featured.headline}</h2>
-          </div>
-        </div>
-      )}
+  <div
+    key={featured.id}
+    className="relative rounded-2xl overflow-hidden shadow-xl border border-gray-700 hover:shadow-2xl hover:scale-[1.03] transition-transform duration-300 flex flex-col md:col-span-2 md:row-span-2 cursor-pointer"
+    onClick={() => setSelectedPost(featured)}
+  >
+    {/* Background image */}
+    <div
+      className="absolute inset-0 bg-cover bg-center transform transition-transform duration-500 hover:scale-105"
+      style={{ backgroundImage: `url(${featured.image})` }}
+    ></div>
+
+    {/* Gradient overlay */}
+    <div className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-20`}></div>
+
+    {/* Content */}
+    <div className="relative z-10 p-5 md:p-8 flex flex-col justify-end h-full">
+      <span className="text-xs md:text-sm text-white/70 uppercase tracking-wider mb-2">{featured.date}</span>
+      <h2 className="text-lg md:text-2xl font-extrabold text-white drop-shadow-lg leading-tight">{featured.headline}</h2>
+    </div>
+
+    {/* Optional subtle hover shine effect */}
+    <div className="absolute inset-0 pointer-events-none bg-white/5 opacity-0 hover:opacity-30 transition-opacity duration-500"></div>
+  </div>
+)}
  
    <Newsletter />
  
@@ -65,7 +71,7 @@ export default function NewsGrid() {
       style={{ backgroundImage: `url(${post.image})` }}
     ></div>
     <div
-      className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-30`}
+      className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-20`}
     ></div>
     <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
       <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">

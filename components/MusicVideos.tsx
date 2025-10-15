@@ -49,14 +49,11 @@ export default function MusicVideos() {
             onClick={() => setActiveIndex(idx)}
             className={`flex-shrink-0 w-36 h-52 md:w-48 md:h-64 rounded-lg shadow-lg bg-gradient-to-br ${mv.color} cursor-pointer relative transform transition-transform duration-300 hover:scale-105 flex items-end justify-center`}
           >
-            {/* Overlay with title + play icon */}
             <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 flex items-center justify-between rounded-b-lg">
-  <span className="text-white font-medium text-sm truncate">{mv.title}</span>
-  <FaPlay className="text-white text-base" />
-</div>
+              <span className="text-white font-medium text-sm truncate">{mv.title}</span>
+              <FaPlay className="text-white text-base" />
+            </div>
           </div>
-
-          
         ))}
       </div>
 
@@ -70,14 +67,6 @@ export default function MusicVideos() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Close button */}
-            <button
-              onClick={() => setActiveIndex(null)}
-              className="absolute top-16 sm:top-4 right-4 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center"
-            >
-              <FaTimes />
-            </button>
-
             {/* Scrollable video container */}
             <div
               ref={videoContainerRef}
@@ -87,7 +76,7 @@ export default function MusicVideos() {
               {musicVideos.map((mv, idx) => (
                 <div
                   key={mv.id}
-                  ref={(el) => { videoRefs.current[idx] = el }} // fixed TS ref
+                  ref={(el) => { videoRefs.current[idx] = el }}
                   className="w-full h-screen flex items-center justify-center snap-start"
                 >
                   <div
@@ -100,7 +89,7 @@ export default function MusicVideos() {
             </div>
 
             {/* Up/Down arrows */}
-            <div className="absolute right-6 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-50">
+            <div className="absolute right-24 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-50">
               {activeIndex > 0 && (
                 <button
                   onClick={handleUpArrow}
@@ -118,6 +107,14 @@ export default function MusicVideos() {
                 </button>
               )}
             </div>
+
+            {/* Close button fixed to right side */}
+            <button
+              onClick={() => setActiveIndex(null)}
+              className="absolute right-6 top-1/2 transform -translate-y-1/2 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center"
+            >
+              <FaTimes />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

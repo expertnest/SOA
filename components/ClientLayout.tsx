@@ -97,7 +97,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile Music Player */}
         {hideSidebars && (
-          <div className="fixed bottom-0 left-0 right-0 z-50">
+          <div className="fixed bottom-0 left-0 right-0 z-50  ">
             <MusicPlayer />
           </div>
         )}
