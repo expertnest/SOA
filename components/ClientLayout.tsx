@@ -17,7 +17,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollRef = useRef(0);
 
-  const isScrollNav = pathname === "/" || pathname === "/news"; // Only scroll-hide on these routes
+  const isScrollNav = pathname === "/" || pathname === "/news";
 
   useEffect(() => {
     if (!hideSidebars || !isScrollNav) return;
@@ -53,7 +53,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             <div className="sticky top-0 z-50 flex justify-center bg-gradient-to-r from-black via-[#0a0a0a] to-black shadow-lg border-b border-gray-800">
               <div className="flex-1 max-w-[calc(100%-500px)] px-4 py-3 flex items-center justify-between">
                 {/* Brand */}
-                <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-[#00ffff] via-white to-[#00ffff] drop-shadow-[0_0_6px_rgba(0,255,255,0.6)]">
+                <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-white drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]">
                   State of the Art
                 </div>
 
@@ -63,10 +63,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200 group"
+                      className="relative group cursor-pointer"
                     >
-                      {item.name}
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00ffff] transition-all duration-300 group-hover:w-full"></span>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-300 via-blue-300 to-white transition-all duration-300 group-hover:from-white group-hover:via-purple-400 group-hover:to-white">
+                        {item.name}
+                      </span>
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-white transition-all duration-300 group-hover:w-full"></span>
                     </Link>
                   ))}
                 </nav>
@@ -77,7 +79,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
-            {/* ✅ Only one scrollable container (mobile + desktop) */}
             <main
               ref={scrollContainerRef}
               className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px]"

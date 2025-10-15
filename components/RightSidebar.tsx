@@ -8,14 +8,14 @@ export default function RightSidebar() {
 
   return (
     <aside
-      className={`bg-gradient-to-b from-[#0f0f0f] via-[#111827] to-[#1f1f1f] text-white border-t md:border-t-0 md:border-l border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
+      className={`bg-gradient-to-b from-[#120a23] via-[#000000] to-[#1a0f2b] text-white border-t md:border-t-0 md:border-l border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
         rightCollapsed ? "w-12 md:w-12" : "w-64 md:w-80"
       } flex-shrink-0`}
     >
       {/* Collapse Button */}
       <button
         onClick={() => setRightCollapsed(!rightCollapsed)}
-        className="mb-2 md:mb-4 hover:text-[#00ffff] self-start transition-colors duration-200"
+        className="mb-2 md:mb-4 hover:text-purple-400 self-start transition-colors duration-200"
       >
         <ChevronRight
           size={20}
@@ -26,8 +26,8 @@ export default function RightSidebar() {
       {!rightCollapsed && (
         <>
           {/* Social Feed */}
-          <div className="sticky top-0 bg-[#111827]/80   mb-2 rounded-md p-2">
-            <h2 className="text-lg font-bold uppercase text-[#00ffff]">
+          <div className="sticky top-0 bg-[#120a23]/80 mb-2 rounded-md p-2">
+            <h2 className="text-lg font-bold uppercase text-gray-300">
               Social Feed
             </h2>
           </div>
@@ -37,7 +37,7 @@ export default function RightSidebar() {
                 key={idx}
                 href="https://instagram.com"
                 target="_blank"
-                className="block bg-[#111827] rounded-lg shadow hover:bg-[#1f1f1f] transition-colors duration-200"
+                className="block bg-[#120a23] rounded-lg shadow hover:bg-gradient-to-r from-[#120a23] via-[#000000] to-[#1a0f2b] transition-colors duration-200"
               >
                 <div className="relative h-24 md:h-40 w-full">
                   <img
@@ -50,7 +50,7 @@ export default function RightSidebar() {
                 </div>
                 <div className="p-1 md:p-2">
                   <p className="text-xs text-white/60 mb-1">@artisthandle</p>
-                  <p className="text-sm font-semibold line-clamp-2">
+                  <p className="text-sm font-semibold text-white/90 line-clamp-2">
                     Check out this latest drop!
                   </p>
                 </div>
@@ -59,8 +59,8 @@ export default function RightSidebar() {
           </div>
 
           {/* Tour Dates */}
-          <div className="sticky top-0 bg-[#111827]/80   mb-2 rounded-md p-2">
-            <h2 className="text-lg font-bold uppercase text-[#00ffff]">
+          <div className="sticky top-0 bg-[#120a23]/80 mb-2 rounded-md p-2">
+            <h2 className="text-lg font-bold uppercase text-gray-300">
               Upcoming Tour Dates
             </h2>
           </div>
@@ -90,10 +90,10 @@ export default function RightSidebar() {
               ].map((tour, idx) => (
                 <li
                   key={idx}
-                  className="p-2 bg-[#111827] rounded hover:bg-[#1f1f1f] transition-colors duration-200"
+                  className="p-2 bg-[#120a23] rounded hover:bg-gradient-to-r from-[#120a23] via-[#000000] to-[#1a0f2b] transition-colors duration-200"
                 >
                   <p className="text-xs text-white/60">{tour.date}</p>
-                  <p className="text-sm font-semibold">{tour.city}</p>
+                  <p className="text-sm font-semibold text-white/90">{tour.city}</p>
                   <p className="text-xs text-white/50">{tour.venue}</p>
                 </li>
               ))}

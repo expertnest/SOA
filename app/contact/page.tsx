@@ -1,7 +1,7 @@
 'use client'
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Suspense, useRef, useState, useEffect } from "react";
+import { Suspense, useRef, useState, useEffect, useMemo } from "react";
 import Loader from '../../components/loader'
 import Logo from '../../model/logo'
 import { Environment, Center, Stars } from '@react-three/drei';
@@ -22,8 +22,8 @@ function MouseFollower() {
   const ref = useRef<THREE.Group>(null);
   const width = useWindowWidth();
 
-  // Slightly bigger logo on mobile
-  const scale = width < 768 ? 1.2 : 1.7;
+  // Scale: slightly bigger on mobile
+  const scale = useMemo(() => (width < 768 ? 1.8 : 1.5), [width]);
 
   useFrame(({ mouse }) => {
     if (ref.current) {
@@ -59,10 +59,13 @@ export default function Home() {
   const starsHeight = width < 768 ? '55vh' : '60vh';
 
   return (
-    <section className="w-full min-h-screen flex flex-col items-center justify-start bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#000000] relative overflow-hidden">
+    <section className="w-full flex flex-col items-center justify-start bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#000000] relative overflow-hidden">
 
       {/* 3D Logo Section */}
-      <div className={`w-full relative`} style={{ height: starsHeight }}>
+      <div
+        className={`w-full relative px-4 sm:px-6`} // Added horizontal padding
+        style={{ height: starsHeight }}
+      >
         <Canvas
           className="w-full h-full"
           camera={{ position: [0, 0, 5], near: 0.1, far: 1000 }}
@@ -79,7 +82,7 @@ export default function Home() {
       </div>
 
       {/* Form Section */}
-      <div className="w-full max-w-md sm:max-w-[90%] mt-6 p-4 sm:p-2 bg-[#111111]/80 rounded-xl shadow-lg text-white flex flex-wrap gap-3 justify-between">
+      <div className="w-full max-w-md sm:max-w-[90%] mt-6 p-4 sm:p-2 bg-gradient-to-br from-purple-700 via-black to-indigo-900 rounded-xl shadow-lg text-white flex flex-wrap gap-3 justify-between">
         <h2 className="w-full text-lg font-bold mb-3 text-center">Get in Touch</h2>
         <input
           type="text"
@@ -105,15 +108,7 @@ export default function Home() {
       </div>
 
       {/* Corner Navigation */}
-      {navItems.map((item, idx) => (
-        <Link 
-          key={item.name}
-          href={item.href}
-          className={`absolute ${positions[idx]} text-white uppercase tracking-[0.2em] text-sm md:text-base font-bold cursor-pointer transition hover:text-gray-400`}
-        >
-          {item.name}
-        </Link>
-      ))}
+   
     </section>
   );
 }

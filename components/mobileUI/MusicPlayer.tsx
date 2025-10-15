@@ -66,7 +66,15 @@ const MusicPlayer = () => {
             className="flex items-center gap-2 sm:gap-3 flex-1 cursor-pointer"
             onClick={() => setShowFullScreen(true)}
           >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md"></div>
+            {currentSong?.image ? (
+              <img
+                src={currentSong.image}
+                alt={currentSong.title}
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-md object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md"></div>
+            )}
             <div className="leading-tight">
               <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[200px]">
                 {currentSong?.title ?? "No Song"}
@@ -116,7 +124,15 @@ const MusicPlayer = () => {
 
             {/* Top Image Section */}
             <div className="flex justify-center items-center p-6">
-              <div className="w-40 h-40 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-lg shadow-lg"></div>
+              {currentSong?.image ? (
+                <img
+                  src={currentSong.image}
+                  alt={currentSong.title}
+                  className="w-40 h-40 rounded-lg shadow-lg object-cover"
+                />
+              ) : (
+                <div className="w-40 h-40 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-lg shadow-lg"></div>
+              )}
             </div>
 
             {/* Category Picker */}
@@ -163,9 +179,20 @@ const MusicPlayer = () => {
                       className="p-3 bg-neutral-800 rounded-lg flex justify-between items-center hover:bg-neutral-700 transition cursor-pointer"
                       onClick={() => playSong(song)}
                     >
-                      <div>
-                        <p className="font-semibold text-white">{song.title}</p>
-                        <p className="text-sm text-white">{song.artist}</p>
+                      <div className="flex items-center gap-3">
+                        {song.image ? (
+                          <img
+                            src={song.image}
+                            alt={song.title}
+                            className="w-12 h-12 rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-700 rounded-md"></div>
+                        )}
+                        <div>
+                          <p className="font-semibold text-white">{song.title}</p>
+                          <p className="text-sm text-white">{song.artist}</p>
+                        </div>
                       </div>
                       <div
                         onClick={(e) => {
@@ -208,7 +235,15 @@ const MusicPlayer = () => {
 
             <div className="flex-1 flex flex-col items-center justify-center px-6">
               {/* Album Art */}
-              <div className="w-72 h-72 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
+              {currentSong?.image ? (
+                <img
+                  src={currentSong.image}
+                  alt={currentSong.title}
+                  className="w-72 h-72 sm:w-80 sm:h-80 rounded-xl shadow-lg object-cover"
+                />
+              ) : (
+                <div className="w-72 h-72 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
+              )}
 
               <h3 className="text-2xl font-bold mt-6 text-white">{currentSong?.title ?? "No Song"}</h3>
               <p className="text-white text-lg mt-1">{currentSong?.artist}</p>
