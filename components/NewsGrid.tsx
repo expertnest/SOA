@@ -1,87 +1,100 @@
 "use client"
 
-import Link from "next/link"
-import { Fragment } from "react"
+import { useState } from "react"
 import { newsPosts } from "@/data/newPosts"
 import Newsletter from "./Newsletter"
 
+// Define the type for a post
+type Post = {
+  id: number
+  headline: string
+  subheadline: string
+  title: string
+  date: string
+  modalText: string
+  image: string
+  color: string
+  span?: string
+}
+
 export default function NewsGrid() {
-  // pull out featured (id=1) and the rest
+  // Update the state type to include both Post and null
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+
   const featured = newsPosts.find((post) => post.id === 1)
   const others = newsPosts.filter((post) => post.id !== 1)
 
   return (
     <>
-      {/* --- Hero Section --- */}
+      {/* --- Featured Post --- */}
       {featured && (
         <div
           key={featured.id}
-          className="relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col md:col-span-2 md:row-span-2"
+          className="relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col md:col-span-2 md:row-span-2 cursor-pointer"
+          onClick={() => setSelectedPost(featured)}
         >
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${featured.image})` }}
           ></div>
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-70`}
+            className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-30`}
           ></div>
           <div className="relative z-10 p-4 md:p-6 flex flex-col justify-end h-full">
-            <span className="text-xs text-white/70 uppercase mb-2">
-              {featured.date}
-            </span>
-            <h2 className="text-xl md:text-2xl font-bold mb-2">{featured.title}</h2>
-            <p className="text-sm md:text-base text-white/90 mb-2 line-clamp-3">
-              {featured.excerpt}
-            </p>
-            <Link
-              href={`/news/${featured.id}`}
-              className="mt-2 text-xs md:text-sm font-bold uppercase text-white hover:text-gray-200"
-            >
-              Read More →
-            </Link>
+            <span className="text-xs text-white/70 uppercase mb-2">{featured.date}</span>
+            <h2 className="text-xl md:text-2xl font-bold mb-2">{featured.headline}</h2>
           </div>
         </div>
       )}
 
       <Newsletter />
 
-      {/* --- Grid for the rest --- */}
+      {/* --- Other Posts Grid --- */}
       {others.map((post, index) => (
         <div
           key={post.id}
           className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
             index === 0 ? "mt-10 md:mt-0" : ""
-          } ${index === others.length - 1 ? " 4" : ""}`} // <-- pb-8 only for last
+          } cursor-pointer`}
+          onClick={() => setSelectedPost(post)}
         >
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${post.image})` }}
           ></div>
           <div
-            className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-70`}
+            className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-30`}
           ></div>
           <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
             <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
               {post.date}
             </span>
-            <h2 className="text-sm sm:text-lg font-semibold mb-1">
-              {post.title}
-            </h2>
-            <p className="text-xs sm:text-sm text-white/90 mb-1 line-clamp-3">
-              {post.excerpt}
-            </p>
-            <Link
-              href={`/news/${post.id}`}
-              className="mt-1 text-[8px] sm:text-xs font-bold uppercase text-white hover:text-gray-200"
-            >
-              Read More →
-            </Link>
+            <h2 className="text-sm sm:text-lg font-semibold mb-1">{post.headline}</h2>
           </div>
         </div>
       ))}
-      <div className="w-full bg-black">
 
-      </div>
+      {/* --- Modal --- */}
+      {selectedPost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="bg-gray-900 rounded-xl max-w-3xl w-full p-8 relative shadow-lg overflow-y-auto max-h-[90vh]">
+            <button
+              className="absolute top-4 right-4 text-white text-2xl font-bold"
+              onClick={() => setSelectedPost(null)}
+            >
+              ×
+            </button>
+            <img
+              src={selectedPost.image}
+              alt={selectedPost.title}
+              className="w-full rounded mb-6"
+            />
+            <h2 className="text-2xl font-bold mb-3">{selectedPost.title}</h2>
+            <span className="text-sm text-white/70 mb-4 block">{selectedPost.date}</span>
+            <p className="text-white/90 whitespace-pre-line">{selectedPost.modalText}</p>
+          </div>
+        </div>
+      )}
     </>
   )
 }
