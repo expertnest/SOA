@@ -138,3 +138,7 @@
   overscroll-behavior: contain; /* Prevent body scroll from interfering */
   touch-action: pan-y; /* Allow vertical pan gestures */
 }
+
+html, body {
+  -webkit-overflow-scrolling: touch;
+}

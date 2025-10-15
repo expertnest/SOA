@@ -77,8 +77,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
-            <main ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-[70px] md:pt-[0px]">
-              {children}
+            {/* ✅ Only one scrollable container (mobile + desktop) */}
+            <main
+              ref={scrollContainerRef}
+              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px]"
+            >
+              <div className="min-h-full pb-[100px]">{children}</div>
             </main>
             {!hideSidebars && <RightSidebar />}
           </div>
@@ -97,7 +101,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile Music Player */}
         {hideSidebars && (
-          <div className="fixed bottom-0 left-0 right-0 z-50  ">
+          <div className="fixed bottom-0 left-0 right-0 z-50">
             <MusicPlayer />
           </div>
         )}
