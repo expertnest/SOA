@@ -89,12 +89,19 @@ const MusicPlayer = () => {
           <div className="flex items-center gap-3 sm:gap-4">
             <SkipBack size={20} className="cursor-pointer" onClick={handlePrev} />
             {isPlaying ? (
-              <Pause size={isIPad ? 28 : 32} className="cursor-pointer" onClick={togglePlay} />
+              <Pause
+                size={isIPad ? 28 : 32}
+                className="cursor-pointer"
+                onClick={togglePlay}
+              />
             ) : (
-              <Play size={isIPad ? 28 : 32} className="cursor-pointer" onClick={togglePlay} />
+              <Play
+                size={isIPad ? 28 : 32}
+                className="cursor-pointer"
+                onClick={togglePlay}
+              />
             )}
             <SkipForward size={20} className="cursor-pointer" onClick={handleNext} />
-
             <Library
               size={22}
               className="cursor-pointer hover:text-purple-400 transition"
@@ -166,9 +173,7 @@ const MusicPlayer = () => {
             </div>
 
             {/* Song List */}
-            <div
-              className={`flex-1 overflow-y-auto px-4 pb-4 ${isDragging ? "pointer-events-none" : ""}`}
-            >
+            <div className={`flex-1 overflow-y-auto px-4 pb-4 ${isDragging ? "pointer-events-none" : ""}`}>
               <h3 className="text-lg font-semibold text-white mb-3">Up Next</h3>
               <ul className="space-y-2">
                 {filteredSongs.map((song) => {
@@ -221,7 +226,7 @@ const MusicPlayer = () => {
         {showFullScreen && (
           <motion.div
             key="fullScreenPlayer"
-            className="fixed inset-0 bg-black text-white z-40 flex flex-col"
+            className="fixed inset-0 bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white z-40 flex flex-col"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -245,7 +250,9 @@ const MusicPlayer = () => {
                 <div className="w-72 h-72 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
               )}
 
-              <h3 className="text-2xl font-bold mt-6 text-white">{currentSong?.title ?? "No Song"}</h3>
+              <h3 className="text-2xl font-bold mt-6 text-white">
+                {currentSong?.title ?? "No Song"}
+              </h3>
               <p className="text-white text-lg mt-1">{currentSong?.artist}</p>
 
               {/* Playback Controls */}
