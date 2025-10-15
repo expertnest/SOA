@@ -100,9 +100,7 @@ export default function MusicVideos() {
           >
             {/* ===== Top Heading "State of the Art" overlay ===== */}
             <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50">
-              <h1 className="text-3xl md:text-5xl font-extrabold uppercase tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-600 drop-shadow-lg select-none">
-                State of the Art
-              </h1>
+              
             </div>
 
             {/* ===== Scrollable video container ===== */}

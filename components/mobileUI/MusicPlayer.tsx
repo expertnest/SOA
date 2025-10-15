@@ -73,7 +73,7 @@ const MusicPlayer = () => {
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-md object-cover"
               />
             ) : (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-md"></div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-md"></div>
             )}
             <div className="leading-tight">
               <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[200px]">
@@ -129,8 +129,8 @@ const MusicPlayer = () => {
             {/* Drag handle */}
             <div className="w-12 h-1 bg-gray-500/50 rounded-full mx-auto my-3 cursor-grab"></div>
 
-            {/* Top Image Section */}
-            <div className="flex justify-center items-center p-6">
+            {/* Top Image Section with Purple Gradient Header */}
+            <div className="flex justify-center items-center p-6 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-b-3xl">
               {currentSong?.image ? (
                 <img
                   src={currentSong.image}
@@ -138,7 +138,7 @@ const MusicPlayer = () => {
                   className="w-40 h-40 rounded-lg shadow-lg object-cover"
                 />
               ) : (
-                <div className="w-40 h-40 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-lg shadow-lg"></div>
+                <div className="w-40 h-40 bg-gray-800 rounded-lg shadow-lg"></div>
               )}
             </div>
 
@@ -173,7 +173,11 @@ const MusicPlayer = () => {
             </div>
 
             {/* Song List */}
-            <div className={`flex-1 overflow-y-auto px-4 pb-4 ${isDragging ? "pointer-events-none" : ""}`}>
+            <div
+              className={`flex-1 overflow-y-auto px-4 pb-4 ${
+                isDragging ? "pointer-events-none" : ""
+              }`}
+            >
               <h3 className="text-lg font-semibold text-white mb-3">Up Next</h3>
               <ul className="space-y-2">
                 {filteredSongs.map((song) => {
@@ -247,7 +251,7 @@ const MusicPlayer = () => {
                   className="w-72 h-72 sm:w-80 sm:h-80 rounded-xl shadow-lg object-cover"
                 />
               ) : (
-                <div className="w-72 h-72 sm:w-80 sm:h-80 bg-gradient-to-br from-purple-700 to-indigo-800 rounded-xl shadow-lg"></div>
+                <div className="w-72 h-72 sm:w-80 sm:h-80 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-xl shadow-lg"></div>
               )}
 
               <h3 className="text-2xl font-bold mt-6 text-white">
