@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { musicVideos } from "@/data/musicVideos"
 import { FaChevronUp, FaChevronDown, FaTimes, FaPlay } from "react-icons/fa"
@@ -26,12 +26,35 @@ export default function MusicVideos() {
     }
   }
 
+  // Update activeIndex based on scroll position
   const handleScroll = () => {
     if (!videoContainerRef.current) return
-    const scrollTop = videoContainerRef.current.scrollTop
-    const newIndex = Math.round(scrollTop / window.innerHeight)
-    setActiveIndex(newIndex)
+    const container = videoContainerRef.current
+    const scrollTop = container.scrollTop
+    const sectionHeight = window.innerHeight
+
+    let closestIndex = 0
+    let smallestDiff = Infinity
+
+    videoRefs.current.forEach((ref, i) => {
+      if (!ref) return
+      const offset = i * sectionHeight
+      const diff = Math.abs(scrollTop - offset)
+      if (diff < smallestDiff) {
+        smallestDiff = diff
+        closestIndex = i
+      }
+    })
+
+    setActiveIndex(closestIndex)
   }
+
+  // Ensure correct activeIndex on mount when overlay opens
+  useEffect(() => {
+    if (activeIndex !== null) {
+      videoRefs.current[activeIndex]?.scrollIntoView({ behavior: "instant" })
+    }
+  }, [activeIndex])
 
   return (
     <div className="mt-6">
@@ -88,8 +111,23 @@ export default function MusicVideos() {
               ))}
             </div>
 
-            {/* Up/Down arrows */}
-            <div className="absolute right-24 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-50">
+            {/* ===== Controls (Close + Arrows) ===== */}
+            <div
+              className="
+                absolute right-0 top-1/2 -translate-y-1/2 
+                flex flex-col items-center space-y-3
+                md:right-24 md:top-1/2 md:-translate-y-1/2
+              "
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setActiveIndex(null)}
+                className="bg-black/50 hover:bg-black/70 text-white text-3xl rounded-full w-12 h-12 flex items-center justify-center transition"
+              >
+                <FaTimes />
+              </button>
+
+              {/* Up Arrow (shows if not on first video) */}
               {activeIndex > 0 && (
                 <button
                   onClick={handleUpArrow}
@@ -98,6 +136,8 @@ export default function MusicVideos() {
                   <FaChevronUp />
                 </button>
               )}
+
+              {/* Down Arrow (shows if not on last video) */}
               {activeIndex < musicVideos.length - 1 && (
                 <button
                   onClick={handleDownArrow}
@@ -107,14 +147,6 @@ export default function MusicVideos() {
                 </button>
               )}
             </div>
-
-            {/* Close button fixed to right side */}
-            <button
-              onClick={() => setActiveIndex(null)}
-              className="absolute right-6 top-1/2 transform -translate-y-1/2 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center"
-            >
-              <FaTimes />
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
