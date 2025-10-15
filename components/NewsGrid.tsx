@@ -40,7 +40,7 @@ export default function NewsGrid() {
           <div
             className={`absolute inset-0 bg-gradient-to-br ${featured.color} opacity-30`}
           ></div>
-          <div className="relative z-10 p-4 md:p-6 flex flex-col justify-end h-full">
+          <div className="relative z-10 p-4 md:p-6 flex flex-col justify-end ">
             <span className="text-xs text-white/70 uppercase mb-2">{featured.date}</span>
             <h2 className="text-xl md:text-2xl font-bold mb-2">{featured.headline}</h2>
           </div>
@@ -56,7 +56,7 @@ export default function NewsGrid() {
   <div
     key={post.id}
     className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
-      index === 0 ? "h-full md:mt-0" : ""
+      index === 0 ? "  md:mt-0" : ""
     } ${index === others.length - 1 ? "mb-12 md:mb-0" : ""} cursor-pointer`} // <-- add mb-24 to last post
     onClick={() => setSelectedPost(post)}
   >
@@ -67,7 +67,7 @@ export default function NewsGrid() {
     <div
       className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-30`}
     ></div>
-    <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
+    <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end  ">
       <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
         {post.date}
       </span>
