@@ -46,33 +46,35 @@ export default function NewsGrid() {
           </div>
         </div>
       )}
-
-      <Newsletter />
+ 
+   <Newsletter />
+ 
+     
 
       {/* --- Other Posts Grid --- */}
       {others.map((post, index) => (
-        <div
-          key={post.id}
-          className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
-            index === 0 ? "mt-10 md:mt-0" : ""
-          } cursor-pointer`}
-          onClick={() => setSelectedPost(post)}
-        >
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${post.image})` }}
-          ></div>
-          <div
-            className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-30`}
-          ></div>
-          <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
-            <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
-              {post.date}
-            </span>
-            <h2 className="text-sm sm:text-lg font-semibold mb-1">{post.headline}</h2>
-          </div>
-        </div>
-      ))}
+  <div
+    key={post.id}
+    className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
+      index === 0 ? "h-full md:mt-0" : ""
+    } ${index === others.length - 1 ? "mb-12 md:mb-0" : ""} cursor-pointer`} // <-- add mb-24 to last post
+    onClick={() => setSelectedPost(post)}
+  >
+    <div
+      className="absolute inset-0 bg-cover bg-center"
+      style={{ backgroundImage: `url(${post.image})` }}
+    ></div>
+    <div
+      className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-30`}
+    ></div>
+    <div className="relative z-10 p-2 md:p-4 flex flex-col justify-end h-full">
+      <span className="text-[9px] sm:text-xs text-white/70 uppercase mb-1">
+        {post.date}
+      </span>
+      <h2 className="text-sm sm:text-lg font-semibold mb-1">{post.headline}</h2>
+    </div>
+  </div>
+))}
 
       {/* --- Modal --- */}
       {selectedPost && (
