@@ -65,7 +65,7 @@ export default function NewsGrid() {
     key={post.id}
     className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
       index === 0 ? "h-44 mt-1 md:h-68 md:mt-4 md:mt-0" : "md:mt-4 mt-0 md:mt-0 h-44 md:h-68  "
-    } ${index === others.length - 1 ? "mb-18 md:mb-0" : ""} cursor-pointer`} // <-- add mb-24 to last post
+    } ${index === others.length - 1 ? " md:mb-0" : ""} cursor-pointer`} // <-- add mb-24 to last post
     onClick={() => setSelectedPost(post)}
   >
     <div
