@@ -1,50 +1,24 @@
-'use client'
- 
- 
-import BackgroundStars from "@/components/BackgroundStars"
-import MusicVideos from "@/components/MusicVideos"
-import NewsGrid from "@/components/NewsGrid"
+"use client";
 
-
-
- 
- 
-
+import BackgroundStars from "@/components/BackgroundStars";
+import MusicVideos from "@/components/MusicVideos";
+import NewsGrid from "@/components/NewsGrid";
 
 export default function Home() {
-  
   return (
-    <div className="relative w-full  bg-black text-white flex flex-col overflow-hidden">
-      {/* Stars background */}
+    <div className="relative w-full bg-black text-white flex flex-col overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 z-0">
-        <BackgroundStars/>
+        <BackgroundStars />
       </div>
 
-      {/* Header */}
-     
-
-      {/* Main Layout */}
+      {/* Content */}
       <div className="relative z-10 flex flex-1 flex-row overflow-hidden">
-        {/* Left Sidebar */}
-   
-
-        {/* Middle Scrollable Feed */}
-        <div className="flex-1 overflow-y-auto px-2 md:px-4 py-4 md:pt-8 md:pb-6">
-          {/* Music Videos */}
-        <MusicVideos />
-
-          {/* News Grid */}
-        
-        <NewsGrid />
-    
+        <div className="flex-1 overflow-y-auto px-2 md:px-4 py-0 md:pt-6 md:pb-4">
+          <MusicVideos />
+          <NewsGrid />
         </div>
-
-        {/* Right Sidebar */}
-      
-      
       </div>
-  
-      
     </div>
-  )
+  );
 }

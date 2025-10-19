@@ -18,6 +18,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const lastScrollRef = useRef(0);
   const isScrollNav = pathname === "/" || pathname === "/news";
 
+  // Handle scroll-hide navbar behavior
   useEffect(() => {
     if (!hideSidebars || !isScrollNav) return;
     const container = scrollContainerRef.current;
@@ -34,19 +35,18 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hideSidebars, isScrollNav]);
 
-  // ✅ Added Artist page here
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Merch", href: "/merch" },
     { name: "Videos", href: "/videos" },
     { name: "Tour", href: "/tour" },
-    { name: "Artists", href: "/artists" }, // 👈 new link
+    { name: "Artists", href: "/artists" },
     { name: "Contact", href: "/contact" },
   ];
 
   return (
     <MusicProvider>
-      <div className="relative w-full h-screen flex flex-col overflow-hidden">
+      <div className="relative w-full h-screen flex flex-col overflow-hidden bg-black text-white">
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Desktop Navbar */}
           {!hideSidebars && (
@@ -76,15 +76,18 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          {/* Main Layout */}
+          {/* Main Scroll Container */}
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
+
             <main
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px]"
+              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[60px] md:pt-0"
             >
-              <div className="min-h-full pb-[100px]">{children}</div>
+              {/* reduce extra space at bottom */}
+              <div className="pb-[70px] md:pb-[50px]">{children}</div>
             </main>
+
             {!hideSidebars && <RightSidebar />}
           </div>
         </div>
