@@ -64,7 +64,7 @@ export default function NewsGrid() {
       </div>
 
       {/* --- Other Posts Grid --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 ">
         {others.map((post, index) => (
           <div
             key={post.id}
