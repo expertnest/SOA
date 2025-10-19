@@ -20,13 +20,17 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hideSidebars || !isScrollNav) return;
+
     const container = scrollContainerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
       const currentScroll = container.scrollTop;
+
+      // Hide navbar when scrolling down, show when scrolling up
       if (currentScroll > lastScrollRef.current + 10) setShowUI(false);
       else if (currentScroll < lastScrollRef.current - 10) setShowUI(true);
+
       lastScrollRef.current = currentScroll;
     };
 
@@ -42,6 +46,10 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     { name: "Artists", href: "/artists" },
     { name: "Contact", href: "/contact" },
   ];
+
+  // Mobile layout paddings
+  const mobileTopPad = showUI ? 56 : 0; // navbar height
+  const mobileBottomPad = 80; // music player height
 
   return (
     <MusicProvider>
@@ -74,16 +82,19 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         {/* --- Main Scroll Layout --- */}
         <div className="flex flex-1 flex-row overflow-hidden">
           {!hideSidebars && <LeftSidebar />}
+
           <main
             ref={scrollContainerRef}
-            className={`flex-1 overflow-y-auto overscroll-contain touch-pan-y ${
-              hideSidebars
-                ? "pt-[64px] pb-[90px]" // mobile: navbar height + music player space
-                : "pt-0 pb-[60px]" // desktop: some breathing space
-            }`}
+            className="flex-1 overflow-y-auto overscroll-contain touch-pan-y"
+            style={{
+              paddingTop: hideSidebars ? `${mobileTopPad + 10}px` : "0px",
+              paddingBottom: hideSidebars ? `${mobileBottomPad}px` : "60px",
+              scrollPaddingTop: hideSidebars ? "70px" : "0px",
+            }}
           >
             <div className="min-h-full">{children}</div>
           </main>
+
           {!hideSidebars && <RightSidebar />}
         </div>
 

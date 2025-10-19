@@ -143,4 +143,7 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
- 
+main {
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
