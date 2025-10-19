@@ -76,7 +76,6 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  
 }
 
 .dark {
@@ -113,37 +112,55 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ===== Base Styles ===== */
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
+/* ===== Scroll Behavior Fixes ===== */
+
+/* Prevent iOS bounce and root scroll conflicts */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure Next.js container fills full viewport */
+#__next {
+  height: 100%;
+}
+
+/* Internal smooth scroll container */
+main {
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  transform: translateZ(0); /* Prevent jitter by forcing GPU compositing */
+}
+
+/* Smooth, momentum scroll on iOS */
+.scroll-smooth-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional class for scroll containers */
 .touch-scroll {
   -webkit-overflow-scrolling: touch;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-
-/* Overlay scroll fix */
+/* Optional variant for overlays or modals with their own scroll */
 .touch-scroll-1 {
-  -webkit-overflow-scrolling: touch; /* Smooth momentum scroll on iOS */
-  overflow-y: auto;
-  overscroll-behavior: contain; /* Prevent body scroll from interfering */
-  touch-action: pan-y; /* Allow vertical pan gestures */
-}
-
-html, body {
   -webkit-overflow-scrolling: touch;
-}
-
-main {
+  overflow-y: auto;
   overscroll-behavior: contain;
-  scroll-behavior: smooth;
+  touch-action: pan-y;
 }

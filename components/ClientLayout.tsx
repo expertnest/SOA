@@ -18,19 +18,30 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const lastScrollRef = useRef(0);
   const isScrollNav = pathname === "/" || pathname === "/news";
 
+  // ✅ Handle show/hide mobile navbar on scroll
   useEffect(() => {
     if (!hideSidebars || !isScrollNav) return;
+
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    let ticking = false;
+
     const handleScroll = () => {
       const currentScroll = container.scrollTop;
-      if (currentScroll > lastScrollRef.current + 10) setShowUI(false);
-      else if (currentScroll < lastScrollRef.current - 10) setShowUI(true);
-      lastScrollRef.current = currentScroll;
+
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (currentScroll > lastScrollRef.current + 10) setShowUI(false);
+          else if (currentScroll < lastScrollRef.current - 10) setShowUI(true);
+          lastScrollRef.current = currentScroll;
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
 
-    container.addEventListener("scroll", handleScroll);
+    container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hideSidebars, isScrollNav]);
 
@@ -79,12 +90,15 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
+
+            {/* ✅ Scroll Container Fix */}
             <main
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px]"
+              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px] will-change-transform transform-gpu scroll-smooth-touch"
             >
               <div className="min-h-full pb-[100px]">{children}</div>
             </main>
+
             {!hideSidebars && <RightSidebar />}
           </div>
         </div>
@@ -92,7 +106,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         {/* Mobile Navbar */}
         {hideSidebars && (
           <div
-            className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${
+            className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-200 ease-out ${
               isScrollNav ? (showUI ? "translate-y-0" : "-translate-y-full") : ""
             }`}
           >
