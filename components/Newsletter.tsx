@@ -2,9 +2,9 @@
 
 export default function Newsletter() {
   return (
-    <div className="flex flex-col md:col-span-2 md:row-span-1">
-      <div className="relative rounded-lg overflow-hidden shadow-lg border border-gray-700 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 flex flex-col items-center justify-center text-center p-4 sm:p-6 md:p-12 min-h-[160px] md:min-h-[220px]">
-        <h2 className="text-xl md:text-3xl font-bold uppercase mb-3 md:mb-4">
+    <div className="flex flex-col mt-4 md:mt-4 md:col-span-2 md:row-span-1">
+      <div className="relative rounded-lg   overflow-hidden shadow-lg border border-gray-700 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 flex flex-col items-center justify-center text-center p-4 sm:p-6 md:p-12 min-h-[160px] md:min-h-[220px]">
+        <h2 className="text-xl md:text-3xl  font-bold uppercase mb-3 md:mb-4">
           Stay Updated
         </h2>
         <p className="text-xs md:text-base text-white/90 mb-4 md:mb-6 max-w-xl px-2">

@@ -34,9 +34,9 @@ export default function Home() {
         <MusicVideos />
 
           {/* News Grid */}
-        
+          <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[180px] sm:auto-rows-[220px] gap-3 md:gap-6 w-full mt-6">
         <NewsGrid />
-    
+        </div>
         </div>
 
         {/* Right Sidebar */}

@@ -25,13 +25,12 @@ export default function NewsGrid() {
   const others = newsPosts.filter((post) => post.id !== 1)
 
   return (
-    <div className="md:mb-18 mt-4 ">
+    <>
       {/* --- Featured Post --- */}
-       
       {featured && (
   <div
     key={featured.id}
-    className="relative rounded-2xl overflow-hidden h-72 md:h-120 shadow-xl border border-gray-700 hover:shadow-2xl hover:scale-[1.03] transition-transform duration-300 flex flex-col md:col-span-2 md:row-span-2 cursor-pointer"
+    className="relative rounded-2xl overflow-hidden shadow-xl border border-gray-700 hover:shadow-2xl hover:scale-[1.03] transition-transform duration-300 flex flex-col md:col-span-2 md:row-span-2 cursor-pointer"
     onClick={() => setSelectedPost(featured)}
   >
     {/* Background image */}
@@ -58,13 +57,12 @@ export default function NewsGrid() {
  
      
 
-     <div className="flex grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-
-{others.map((post, index) => (
+      {/* --- Other Posts Grid --- */}
+      {others.map((post, index) => (
   <div
     key={post.id}
     className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col ${post.span} ${
-      index === 0 ? "h-44 md:h-68 md:mt-4 md:mt-0" : "md:mt-4 md:mt-0 h-44 md:h-68  "
+      index === 0 ? "h-full md:mt-0" : ""
     } ${index === others.length - 1 ? "mb-18 md:mb-0" : ""} cursor-pointer`} // <-- add mb-24 to last post
     onClick={() => setSelectedPost(post)}
   >
@@ -83,11 +81,6 @@ export default function NewsGrid() {
     </div>
   </div>
 ))}
-      
-     </div>
-
-      {/* --- Other Posts Grid --- */}
-      
 
       {/* --- Modal --- */}
       {selectedPost && (
@@ -110,6 +103,6 @@ export default function NewsGrid() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }

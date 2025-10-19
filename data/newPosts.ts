@@ -34,9 +34,9 @@ This high-energy trap banger blends cinematic beats with storytelling that captu
 Their collab for ‘Swerve’ showcases their unique styles and synergy.
 In this post, we dive into their creative process, how the track came together, and the story behind the visuals.
 Fans get an exclusive peek into the making of one of the hottest trap tracks of the year.`,
-    image: "/moneywalkw.png",
+image: "/swerve.jpeg",
     color: "from-green-500 to-teal-500",
-    span: "md:col-span-1 md:row-span-1",
+    span: "md:col-span-1 md:row-span-1  ",
   },
   {
     id: 4,
@@ -49,7 +49,7 @@ From high-speed chases to neon-lit cyber visuals, we break down the production, 
 Exclusive insights from the director and crew included.`,
     image: "/images/behind-the-beat.jpg",
     color: "from-pink-500 to-red-500",
-    span: "md:col-span-1 md:row-span-1",
+    span: "md:col-span-1 md:row-span-1  ",
   },
   {
     id: 5,
@@ -63,6 +63,6 @@ VIP packages, special guests, and exclusive merch are all part of the experience
 Don’t miss the chance to see ShottiGotSwag and Qmilly perform on stage together.`,
     image: "/images/tour-news.jpg",
     color: "from-yellow-400 to-orange-400",
-    span: "md:col-span-1 md:row-span-1",
+    span: "md:col-span-1 md:row-span-1  ",
   },
 ]
