@@ -18,7 +18,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const lastScrollRef = useRef(0);
   const isScrollNav = pathname === "/" || pathname === "/news";
 
-  // Handle scroll-hide navbar behavior
+  // Detect scroll direction to show/hide mobile navbar
   useEffect(() => {
     if (!hideSidebars || !isScrollNav) return;
     const container = scrollContainerRef.current;
@@ -43,6 +43,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     { name: "Artists", href: "/artists" },
     { name: "Contact", href: "/contact" },
   ];
+
+  // ✅ Dynamic padding top depending on navbar visibility
+  const topPaddingMobile = showUI ? "pt-[60px]" : "pt-[10px]";
 
   return (
     <MusicProvider>
@@ -82,9 +85,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
             <main
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[60px] md:pt-0"
+              className={`flex-1 overflow-y-auto overscroll-contain touch-pan-y transition-all duration-300 ${hideSidebars ? topPaddingMobile : "pt-0"}`}
             >
-              {/* reduce extra space at bottom */}
               <div className="pb-[70px] md:pb-[50px]">{children}</div>
             </main>
 
