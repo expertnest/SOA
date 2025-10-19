@@ -20,7 +20,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!hideSidebars || !isScrollNav) return;
-
     const container = scrollContainerRef.current;
     if (!container) return;
 
@@ -35,17 +34,19 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hideSidebars, isScrollNav]);
 
+  // ✅ Added Artist page here
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Merch", href: "/merch" },
     { name: "Videos", href: "/videos" },
     { name: "Tour", href: "/tour" },
+    { name: "Artist", href: "/artist" }, // 👈 new link
     { name: "Contact", href: "/contact" },
   ];
 
   return (
     <MusicProvider>
-      <div className="relative w-full  flex flex-col overflow-hidden">
+      <div className="relative w-full md:h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Desktop Navbar */}
           {!hideSidebars && (
