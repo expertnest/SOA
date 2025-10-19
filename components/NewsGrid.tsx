@@ -25,7 +25,7 @@ export default function NewsGrid() {
   const others = newsPosts.filter((post) => post.id !== 1)
 
   return (
-    <div className="md:mb-18 mt-4 ">
+    <div className="md:mb-18 mt-2 ">
       {/* --- Featured Post --- */}
        
       {featured && (
