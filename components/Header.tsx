@@ -4,10 +4,11 @@ import Link from "next/link"
 
 export default function Header() {
   const navItems = [
-    { name: 'Homssse', href: '/' },
+    { name: 'Home', href: '/' },
     { name: 'Merch', href: '/merch' },
     { name: 'Videos', href: '/videos' },
     { name: 'Tour', href: '/tour' },
+    { name: 'Artist', href: '/artists' }, // 👈 added Artist link here
     { name: 'Contact', href: '/contact' },
   ]
 

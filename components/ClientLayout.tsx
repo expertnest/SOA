@@ -34,11 +34,13 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hideSidebars, isScrollNav]);
 
+  // ✅ Added Artist page here
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Merch", href: "/merch" },
     { name: "Videos", href: "/videos" },
     { name: "Tour", href: "/tour" },
+    { name: "Artists", href: "/artist" }, // 👈 new link
     { name: "Contact", href: "/contact" },
   ];
 
@@ -54,6 +56,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-white drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]">
                   State of the Art
                 </div>
+
                 {/* Nav Links */}
                 <nav className="hidden md:flex gap-8 text-sm md:text-base font-medium uppercase tracking-wide">
                   {navItems.map((item) => (

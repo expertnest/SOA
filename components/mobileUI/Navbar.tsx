@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ShoppingBag, MapPin, PlayCircle, Phone } from "lucide-react";
+import { Home, ShoppingBag, MapPin, PlayCircle, Phone, User } from "lucide-react";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -12,6 +12,7 @@ const Navbar = () => {
     { href: "/merch", label: "Merch", icon: ShoppingBag },
     { href: "/tour", label: "Tour", icon: MapPin },
     { href: "/videos", label: "Videos", icon: PlayCircle },
+    { href: "/artists", label: "Artists", icon: User }, // 👈 new item added here
     { href: "/contact", label: "Contact", icon: Phone },
   ];
 
