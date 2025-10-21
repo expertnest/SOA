@@ -57,7 +57,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   return (
     <MusicProvider>
-      <div className="relative w-full md:h-screen flex flex-col overflow-hidden">
+      <div className="relative w-full h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Desktop Navbar */}
           {!hideSidebars && (
