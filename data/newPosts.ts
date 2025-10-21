@@ -1,4 +1,17 @@
-export const newsPosts = [
+export type Post = {
+  id: number;
+  headline: string;
+  subheadline: string;
+  title: string;
+  date: string;
+  modalText: string;
+  image: string;
+  color: string;
+  span?: string;
+  slug: string;
+};
+
+export const newsPosts: Post[] = [
   {
     id: 1,
     headline: "MoneyWalk Coming to Cash Out",
@@ -7,10 +20,10 @@ export const newsPosts = [
     date: "Oct 7, 2025",
     modalText: `ShottiGotSwag and Qmilly are back in the studio cooking up magic!
 Their collab for ‘Swerve’ showcases their unique styles and synergy.
- `,
+`,
     image: "/soa.png",
     color: "from-green-500 to-teal-500",
-    span: "md:col-span-1 md:row-span-1",
+    slug: "moneywalk-coming-to-cash-out",
   },
   {
     id: 2,
@@ -20,9 +33,10 @@ Their collab for ‘Swerve’ showcases their unique styles and synergy.
     date: "Oct 8, 2025",
     modalText: `ShottiGotSwag just dropped his latest single ‘Swerve’ featuring Qmilly.
 This high-energy trap banger blends cinematic beats with storytelling that captures the thrill of the streets.
- `,
+`,
     image: "/swerve.jpeg",
     color: "from-purple-600 to-indigo-600",
+    slug: "swerve-ft-qmilly-out-now",
   },
   {
     id: 3,
@@ -34,9 +48,9 @@ This high-energy trap banger blends cinematic beats with storytelling that captu
 Their collab for ‘Swerve’ showcases their unique styles and synergy.
 In this post, we dive into their creative process, how the track came together, and the story behind the visuals.
 Fans get an exclusive peek into the making of one of the hottest trap tracks of the year.`,
-image: "/swerve.jpeg",
+    image: "/swerve.jpeg",
     color: "from-green-500 to-teal-500",
-    span: "md:col-span-1 md:row-span-1  ",
+    slug: "moneywalk-studio-insights",
   },
   {
     id: 4,
@@ -49,7 +63,7 @@ From high-speed chases to neon-lit cyber visuals, we break down the production, 
 Exclusive insights from the director and crew included.`,
     image: "/images/behind-the-beat.jpg",
     color: "from-pink-500 to-red-500",
-    span: "md:col-span-1 md:row-span-1  ",
+    slug: "behind-the-scenes-swerve",
   },
   {
     id: 5,
@@ -63,6 +77,6 @@ VIP packages, special guests, and exclusive merch are all part of the experience
 Don’t miss the chance to see ShottiGotSwag and Qmilly perform on stage together.`,
     image: "/images/tour-news.jpg",
     color: "from-yellow-400 to-orange-400",
-    span: "md:col-span-1 md:row-span-1  ",
+    slug: "tour-dates-announced",
   },
-]
+];

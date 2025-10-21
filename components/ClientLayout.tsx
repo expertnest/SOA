@@ -14,13 +14,17 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile();
   const pathname = usePathname();
   const [showUI, setShowUI] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastScrollRef = useRef(0);
   const isScrollNav = pathname === "/" || pathname === "/news";
 
+  // ✅ Ensure no hydration mismatch — render after mount
+  useEffect(() => setMounted(true), []);
+
   // ✅ Handle show/hide mobile navbar on scroll
   useEffect(() => {
-    if (!hideSidebars || !isScrollNav) return;
+    if (!mounted || !hideSidebars || !isScrollNav) return;
 
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -43,21 +47,27 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
     container.addEventListener("scroll", handleScroll, { passive: true });
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [hideSidebars, isScrollNav]);
+  }, [mounted, hideSidebars, isScrollNav]);
 
-  // ✅ Added Artist page here
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Merch", href: "/merch" },
     { name: "Videos", href: "/videos" },
     { name: "Tour", href: "/tour" },
-    { name: "Artist", href: "/artist" }, // 👈 new link
+    { name: "Artist", href: "/artist" },
     { name: "Contact", href: "/contact" },
   ];
 
+  // ✅ Render consistent shell pre-hydration to prevent mismatches
+  if (!mounted) {
+    return (
+      <div className="relative w-full h-screen flex flex-col overflow-hidden bg-black text-white" />
+    );
+  }
+
   return (
     <MusicProvider>
-      <div className="relative w-full md:h-screen flex flex-col overflow-hidden">
+      <div className="relative w-full h-screen md:h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Desktop Navbar */}
           {!hideSidebars && (
@@ -91,10 +101,10 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
 
-            {/* ✅ Scroll Container Fix */}
+            {/* ✅ Scroll Container */}
             <main
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px] will-change-transform transform-gpu scroll-smooth-touch"
+              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-0 will-change-transform transform-gpu scroll-smooth"
             >
               <div className="min-h-full pb-[100px]">{children}</div>
             </main>
