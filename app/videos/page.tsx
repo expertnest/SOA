@@ -66,29 +66,40 @@ export default function VideoContents() {
   };
 
   return (
-    <div className="bg-black text-white px-4 py-6 sm:px-6">
-      <h1 className="text-3xl font-bold mb-6">Video Library</h1>
+    <div className="relative w-full min-h-screen bg-black text-white flex flex-col overflow-hidden px-4 py-6 sm:px-6">
+      {/* === Stars background === */}
+      <div className="absolute inset-0 z-0">
+        <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
+      </div>
 
-      {categories.map(([category, videos], idx) => (
-        <div
-          key={category}
-          className={`mb-10 ${idx === categories.length - 1 ? "pb-24 sm:pb-32" : ""}`}
-        >
-          <h2 className="text-xl font-semibold mb-3">{category}</h2>
-          <VideoRow
-            videos={videos}
-            onClick={(id) => {
-              setSelectedVideo(id);
-              const index = allVideos.findIndex((v) => v.id === id);
-              setCurrentIndex(index);
-            }}
-          />
-        </div>
-      ))}
+      {/* === Main content === */}
+      <div className="relative z-10">
+        <h1 className="text-3xl font-bold mb-6 text-center md:text-left">
+          Video Library
+        </h1>
 
+        {categories.map(([category, videos], idx) => (
+          <div
+            key={category}
+            className={`mb-10 ${idx === categories.length - 1 ? "pb-24 sm:pb-32" : ""}`}
+          >
+            <h2 className="text-xl font-semibold mb-3">{category}</h2>
+            <VideoRow
+              videos={videos}
+              onClick={(id) => {
+                setSelectedVideo(id);
+                const index = allVideos.findIndex((v) => v.id === id);
+                setCurrentIndex(index);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* === Fullscreen Video Overlay === */}
       {selectedVideo !== null && (
         <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-          {/* Close Button - lowered on mobile */}
+          {/* Close Button */}
           <button
             onClick={() => setSelectedVideo(null)}
             className="absolute top-16 sm:top-4 right-4 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center"
@@ -96,8 +107,8 @@ export default function VideoContents() {
             ✕
           </button>
 
+          {/* Scrollable Videos */}
           <div className="w-full h-full relative flex items-center justify-center">
-            {/* Scrollable video container */}
             <div
               ref={videoContainerRef}
               className="w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth"
@@ -122,7 +133,7 @@ export default function VideoContents() {
               ))}
             </div>
 
-            {/* Subtle Up/Down arrows */}
+            {/* Up/Down Arrows */}
             <div className="absolute right-6 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-50">
               <button
                 onClick={handleUpArrow}
@@ -162,7 +173,9 @@ function VideoRow({
             className={`flex-shrink-0 w-56 h-32 sm:w-64 sm:h-36 lg:w-80 lg:h-44 rounded-md shadow-lg bg-gradient-to-br ${colorClass} cursor-pointer snap-start relative transform transition-transform duration-300 hover:scale-105`}
           >
             <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 flex items-center justify-between">
-              <span className="text-white font-medium text-sm truncate">{video.title}</span>
+              <span className="text-white font-medium text-sm truncate">
+                {video.title}
+              </span>
               <FaPlay className="text-white text-base" />
             </div>
           </div>

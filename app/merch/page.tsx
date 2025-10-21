@@ -34,33 +34,40 @@ export default function MerchPage() {
   }, [selected]);
 
   return (
-    <main className="px-6 py-8 pt-[80px] bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 text-white flex flex-col">
-      {/* Header */}
-      <header className="mb-2">
+    <main className="relative w-full text-white flex flex-col overflow-hidden min-h-screen">
+      {/* 🌌 Stars background */}
+      <div className="absolute inset-0 z-0">
+        <div className="w-full h-full bg-black bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
+      </div>
+
+      {/* ===== Header ===== */}
+      <header className="relative z-10 px-6 pt-[90px] mb-2 text-center">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
           Official Merch
         </h1>
       </header>
 
-      {/* Products Grid */}
-      <div className="flex-1 flex items-start justify-center mt-0">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 gap-4 w-full max-w-3xl pb-[120px]">
+      {/* ===== Products Grid ===== */}
+      <div className="relative z-10 flex-1 flex items-start justify-center mt-0 px-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-2 md:gap-4 w-full max-w-3xl pb-[120px]">
           {products.map((product) => (
             <button
               key={product.id}
               onClick={() => { setSelected(product); setSize(""); }}
               className="group block text-left relative"
             >
-              <div className="relative overflow-hidden rounded-xl bg-gray-700 h-32 sm:h-48 md:h-72 lg:h-80">
+              <div className="relative overflow-hidden rounded-xl bg-zinc-800/80 h-32 sm:h-48 md:h-72 lg:h-80 backdrop-blur-sm hover:bg-zinc-700/80 transition">
                 <Image
                   src={product.image}
                   alt={product.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform"
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {/* Coming Soon overlay */}
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                  <span className="text-white font-bold text-lg md:text-2xl">Coming Soon</span>
+                  <span className="text-white font-bold text-lg md:text-2xl">
+                    Coming Soon
+                  </span>
                 </div>
               </div>
               <h2 className="mt-2 text-sm md:text-base font-medium">{product.name}</h2>
@@ -70,7 +77,7 @@ export default function MerchPage() {
         </div>
       </div>
 
-      {/* Overlay / Detail View */}
+      {/* ===== Overlay / Detail View ===== */}
       <AnimatePresence>
         {selected && (
           <>
@@ -85,12 +92,16 @@ export default function MerchPage() {
 
             {/* Sliding panel */}
             <motion.div
-              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-gray-900 z-50 shadow-xl p-5 overflow-y-auto pb-32"
+              className="fixed inset-y-0 right-0 w-full sm:w-[400px] bg-zinc-900/95 z-50 shadow-xl p-5 overflow-y-auto pb-32"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain", touchAction: "pan-y" }}
+              style={{
+                WebkitOverflowScrolling: "touch",
+                overscrollBehavior: "contain",
+                touchAction: "pan-y",
+              }}
             >
               {/* Top bar */}
               <div className="flex items-center justify-between mb-4 pt-10 sm:pt-0">
@@ -103,10 +114,12 @@ export default function MerchPage() {
               </div>
 
               {/* Product Image with Coming Soon overlay */}
-              <div className="relative overflow-hidden rounded-2xl bg-gray-800 h-56 sm:h-64 md:h-[280px] lg:h-[300px]">
+              <div className="relative overflow-hidden rounded-2xl bg-zinc-800 h-56 sm:h-64 md:h-[280px] lg:h-[300px]">
                 <Image src={selected.image} alt={selected.name} fill className="object-cover" />
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                  <span className="text-white font-bold text-lg md:text-2xl">Coming Soon</span>
+                  <span className="text-white font-bold text-lg md:text-2xl">
+                    Coming Soon
+                  </span>
                 </div>
               </div>
 

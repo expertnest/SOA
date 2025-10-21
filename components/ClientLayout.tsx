@@ -51,7 +51,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     { name: "Merch", href: "/merch" },
     { name: "Videos", href: "/videos" },
     { name: "Tour", href: "/tour" },
-    { name: "Artist", href: "/artist" }, // 👈 new link
+    { name: "Artist", href: "/artists" }, // 👈 new link
     { name: "Contact", href: "/contact" },
   ];
 

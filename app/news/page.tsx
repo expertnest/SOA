@@ -5,8 +5,14 @@ import { newsPosts } from "@/data/newPosts";
 
 export default function NewsListPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-900 via-blue-800 to-black text-white flex flex-col">
-      <div className="max-w-5xl mx-auto w-full px-6 py-6 flex flex-col gap-6">
+    <div className="relative w-full p-2 bg-black text-white flex flex-col overflow-hidden min-h-screen">
+      {/* Stars background */}
+      <div className="absolute inset-0 z-0">
+        <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col flex-1 w-full max-w-5xl mx-auto px-6 py-6 gap-6">
         {/* ===== Back to Home Button ===== */}
         <div className="text-left">
           <Link
@@ -23,7 +29,7 @@ export default function NewsListPage() {
         </div>
 
         {/* ===== Page Title ===== */}
-        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-6">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-4">
           All News Articles
         </h1>
 
@@ -31,25 +37,30 @@ export default function NewsListPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {newsPosts.map((post) => (
             <Link href={`/news/${post.slug}`} key={post.id}>
-              <div className="relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform cursor-pointer h-56">
+              <div className="relative rounded-lg overflow-hidden shadow-md border border-gray-700 hover:bg-zinc-800 transition-transform hover:scale-[1.02] cursor-pointer h-56">
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: `url(${post.image})` }}
                 ></div>
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-20`}
+                  className={`absolute inset-0 bg-gradient-to-br ${post.color} opacity-25`}
                 ></div>
                 <div className="relative z-10 p-4 flex flex-col justify-end h-full">
                   <span className="text-xs text-white/70 uppercase mb-1">
                     {post.date}
                   </span>
-                  <h2 className="text-lg font-semibold text-white">{post.headline}</h2>
+                  <h2 className="text-lg font-semibold text-white">
+                    {post.headline}
+                  </h2>
                 </div>
               </div>
             </Link>
           ))}
         </div>
       </div>
+
+      {/* Footer Spacer */}
+      <div className="bg-black min-h-[75px]"></div>
     </div>
   );
 }
