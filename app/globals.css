@@ -76,7 +76,6 @@
   --sidebar-ring: oklch(0.708 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  
 }
 
 .dark {
@@ -116,34 +115,35 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+    overflow: hidden; /* prevent double scroll */
+  }
+  html {
+    height: 100%;
+    overflow: hidden; /* prevent double scroll */
   }
 }
 
-.touch-scroll {
-  -webkit-overflow-scrolling: touch;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-
-/* Overlay scroll fix */
-.touch-scroll-1 {
-  -webkit-overflow-scrolling: touch; /* Smooth momentum scroll on iOS */
-  overflow-y: auto;
-  overscroll-behavior: contain; /* Prevent body scroll from interfering */
-  touch-action: pan-y; /* Allow vertical pan gestures */
-}
-
-html, body {
-  -webkit-overflow-scrolling: touch;
-}
-
 main {
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
+  height: 100vh; /* explicit height for mobile Chrome */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scroll */
+  overscroll-behavior-y: auto; /* prevent shake */
+  touch-action: pan-y;
+  scroll-behavior: smooth; /* smooth on desktop */
 }
+
+/* Optional helper for other scroll containers */
+.touch-scroll-1 {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+}
+
+/* Keep your dark mode and color vars intact */
