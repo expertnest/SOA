@@ -135,7 +135,7 @@
 .touch-scroll-1 {
   -webkit-overflow-scrolling: touch; /* Smooth momentum scroll on iOS */
   overflow-y: auto;
-  overscroll-behavior: auto; /* Prevent body scroll from interfering */
+  overscroll-behavior: contain; /* Prevent body scroll from interfering */
   touch-action: pan-y; /* Allow vertical pan gestures */
 }
 
@@ -144,6 +144,6 @@ html, body {
 }
 
 main {
-  overscroll-behavior: auto;
+  overscroll-behavior: contain;
   scroll-behavior: smooth;
 }
