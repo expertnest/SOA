@@ -10,6 +10,55 @@ import MusicPlayer from "@/components/mobileUI/MusicPlayer";
 import Navbar from "./mobileUI/Navbar";
 import { MusicProvider } from "@/hooks/MusicContext";
 
+// ✅ Contribution Tab Component (flush on desktop, above music player on mobile)
+function ContributionTab() {
+  const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  const bottomPosition = isMobile ? "70px" : "20px";
+
+  return (
+    <div
+      className="fixed right-4 z-50 flex flex-col items-end"
+      style={{ bottom: bottomPosition }}
+    >
+      {/* Donation Panel */}
+      <div
+        className={`flex flex-col items-center rounded-xl shadow-xl p-4 gap-3 mb-2 transition-all duration-300 overflow-hidden bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-600 ${
+          open ? "max-w-xs opacity-100 scale-100" : "max-w-0 opacity-0 scale-95"
+        }`}
+      >
+        <p className="text-white font-semibold text-center text-sm">
+          🎵 If you enjoy our music, make a donation!
+        </p>
+        <div className="flex gap-2">
+          <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
+            💵 $5
+          </button>
+          <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
+            💵 $10
+          </button>
+          <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
+            💵 $25
+          </button>
+        </div>
+        <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
+          💳 Custom
+        </button>
+      </div>
+
+      {/* Fire Icon Toggle */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="bg-red-500 text-white p-4 rounded-full shadow-lg hover:bg-red-600 transition-all text-2xl"
+      >
+        🔥
+      </button>
+    </div>
+  );
+}
+     
+
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile();
   const pathname = usePathname();
@@ -45,13 +94,13 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hideSidebars, isScrollNav]);
 
-  // ✅ Added Artist page here
+  // ✅ Navigation items
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Merch", href: "/merch" },
     { name: "Videos", href: "/videos" },
     { name: "Tour", href: "/tour" },
-    { name: "Artist", href: "/artists" }, // 👈 new link
+    { name: "Artist", href: "/artists" },
     { name: "Contact", href: "/contact" },
   ];
 
@@ -91,7 +140,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
 
-            {/* ✅ Scroll Container Fix */}
+            {/* Scroll Container */}
             <main
               ref={scrollContainerRef}
               className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px] will-change-transform transform-gpu scroll-smooth-touch"
@@ -120,6 +169,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             <MusicPlayer />
           </div>
         )}
+
+        {/* ✅ Contribution Tab (desktop flush bottom-right, mobile above music player) */}
+        <ContributionTab />
       </div>
     </MusicProvider>
   );
