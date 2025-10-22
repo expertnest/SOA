@@ -19,7 +19,7 @@ function ContributionTab() {
 
   return (
     <div
-      className="fixed right-4 z-50 flex flex-col items-end"
+      className="fixed right-4 z-40 flex flex-col items-end"
       style={{ bottom: bottomPosition }}
     >
       {/* Donation Panel */}
