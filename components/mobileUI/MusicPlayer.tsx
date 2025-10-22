@@ -32,6 +32,18 @@ const MusicPlayer = () => {
     setIsIPad(iPad || modernIPad);
   }, []);
 
+  // Disable background scrolling when modal is open
+  useEffect(() => {
+    if (showQueue || showFullScreen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showQueue, showFullScreen]);
+
   const categories = Array.from(new Set(songs.map((s) => s.category)));
   const filteredSongs = selectedCategory
     ? songs.filter((s) => s.category === selectedCategory)
@@ -123,13 +135,14 @@ const MusicPlayer = () => {
             className="fixed inset-0 bg-black text-white z-30 flex flex-col"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.4} // more sensitive drag
             onDragStart={() => setIsDragging(true)}
             onDragEnd={handleDragEnd}
           >
             {/* Drag handle */}
-            <div className="w-12 h-1 bg-gray-500/50 rounded-full mx-auto my-3 cursor-grab"></div>
+            <div className="w-16 h-2 rounded-full mx-auto my-3 cursor-grab bg-gradient-to-r from-green-400 via-green-600 to-green-400"></div>
 
-            {/* Top Image Section with Purple Gradient Header */}
+            {/* Top Image Section */}
             <div className="flex justify-center items-center p-6 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-b-3xl">
               {currentSong?.image ? (
                 <img
@@ -237,10 +250,11 @@ const MusicPlayer = () => {
             transition={{ type: "tween", duration: 0.4 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.4} // more sensitive drag
             onDragEnd={handleDragEnd}
           >
             {/* Drag handle */}
-            <div className="w-12 h-1 bg-gray-500/40 rounded-full mx-auto my-3 cursor-grab"></div>
+            <div className="w-16 h-2 rounded-full mx-auto my-3 cursor-grab bg-gradient-to-r from-green-400 via-green-600 to-green-400"></div>
 
             <div className="flex-1 flex flex-col items-center justify-center px-6">
               {/* Album Art */}
