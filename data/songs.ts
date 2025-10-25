@@ -63,4 +63,26 @@ export const songs = [
     category: "Qmilly",
     image: "/assets/images/music/new_release1.jpg",
   },
+  {
+    id: 11,
+    title: "7Gunna",
+    artist: "Beats",
+    src: "/assets/music/7gunna.mp3",
+    category: "Beats",
+    image: "/assets/images/music/track1.jpg",
+  },  {
+    id: 12,
+    title: "Parlay",
+    artist: "Beats",
+    src: "/assets/music/Parlay.mp3",
+    category: "Beats",
+    image: "/assets/images/music/track1.jpg",
+  },  {
+    id: 13,
+    title: "Where u are",
+    artist: "Beats",
+    src: "/assets/music/whereur.mp3",
+    category: "Beats",
+    image: "/assets/images/music/track1.jpg",
+  },
 ];
