@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
-import HeroAutoScroll from "@/components/HeroAutoScroll"; // ⬅️ new client component
+ 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased text-white overflow-x-hidden`}
       >
         {/* 🎵 The Hero section (client behavior handled inside HeroAutoScroll) */}
-        <HeroAutoScroll />
+       
 
         {/* 🌟 Main app content */}
         <main
