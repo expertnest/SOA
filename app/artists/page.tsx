@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +19,7 @@ const artists = [
     name: "Qmilly",
     bio: "Qmilly brings soulful melodies and smooth lyricism, blending modern R&B with deep emotion. His sound captures the late-night vibes of the city.",
     image:
-      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80", // ✅ new male image
+      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80",
     socials: {
       instagram: "https://instagram.com/",
       spotify: "#",
@@ -31,11 +31,6 @@ const artists = [
 export default function Artists() {
   return (
     <div className="relative w-full min-h-screen bg-black text-white flex flex-col items-center overflow-hidden px-4 py-10 sm:px-8">
-      {/* 🌌 Stars background */}
-      <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
-      </div>
-
       {/* Content */}
       <div className="relative z-10 w-full max-w-6xl flex flex-col items-center text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-10">
@@ -46,7 +41,7 @@ export default function Artists() {
           {artists.map((artist) => (
             <div
               key={artist.name}
-              className="bg-zinc-900/80 rounded-2xl shadow-xl border border-zinc-800 p-6 flex flex-col items-center text-center hover:bg-zinc-800 transition-all duration-300"
+              className="bg-zinc-900 rounded-2xl shadow-xl border border-zinc-800 p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300"
             >
               <div className="relative w-48 h-48 rounded-full overflow-hidden mb-4 border-4 border-white/20">
                 <Image

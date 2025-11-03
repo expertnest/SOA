@@ -1,12 +1,11 @@
-'use client'
+'use client';
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Suspense, useRef, useState, useEffect, useMemo } from "react";
-import Loader from '../../components/loader'
-import Logo from '../../model/logo'
-import { Environment, Center, Stars } from '@react-three/drei';
+import Loader from '../../components/loader';
+import Logo from '../../model/logo';
+import { Center, Environment } from '@react-three/drei';
 import * as THREE from 'three';
-import Link from "next/link";
 
 function useWindowWidth() {
   const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
@@ -22,7 +21,6 @@ function MouseFollower() {
   const ref = useRef<THREE.Group>(null);
   const width = useWindowWidth();
 
-  // Scale: slightly bigger on mobile
   const scale = useMemo(() => (width < 768 ? 1.8 : 1.5), [width]);
 
   useFrame(({ mouse }) => {
@@ -44,34 +42,21 @@ function MouseFollower() {
 export default function Home() {
   const width = useWindowWidth();
 
-  const navItems = [
-    { name: "Home", href: "/news" },
-  ];
-
-  const positions = [
-    "top-6 left-6",
-    "top-6 right-6",
-    "bottom-6 left-6",
-    "bottom-6 right-6"
-  ];
-
-  // Adjust 3D stars container height
-  const starsHeight = width < 768 ? '55vh' : '60vh';
+  const logoHeight = width < 768 ? '50vh' : '60vh';
 
   return (
-    <section className="w-full flex flex-col items-center justify-start bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#000000] relative overflow-hidden">
+    <section className="w-full flex flex-col items-center justify-start bg-black relative overflow-hidden min-h-screen">
 
       {/* 3D Logo Section */}
       <div
-        className={`w-full relative px-4 sm:px-6`} // Added horizontal padding
-        style={{ height: starsHeight }}
+        className="w-full relative"
+        style={{ height: logoHeight }}
       >
         <Canvas
           className="w-full h-full"
           camera={{ position: [0, 0, 5], near: 0.1, far: 1000 }}
         >
           <Suspense fallback={<Loader />}>
-            <Stars radius={80} depth={50} count={1500} factor={4} saturation={0.0} fade />
             <ambientLight intensity={0.3} />
             <directionalLight position={[5, 5, 5]} intensity={1.5} />
             <pointLight position={[0, 5, 10]} intensity={1.5} />
@@ -81,34 +66,32 @@ export default function Home() {
         </Canvas>
       </div>
 
-      {/* Form Section */}
-      <div className="w-full max-w-md sm:max-w-[90%] mt-6 p-4 sm:p-2 bg-gradient-to-br from-purple-700 via-black to-indigo-900 rounded-xl shadow-lg text-white flex flex-wrap gap-3 justify-between">
-        <h2 className="w-full text-lg font-bold mb-3 text-center">Get in Touch</h2>
+      {/* Minimal Black Contact Form */}
+      <div className="w-full max-w-md sm:max-w-[90%] mt-8 p-6 bg-black border border-gray-800 rounded-xl shadow-lg text-white flex flex-col gap-4">
+        <h2 className="text-2xl font-bold text-center">Get in Touch</h2>
         <input
           type="text"
           placeholder="Your Name"
-          className="flex-1 min-w-[120px] p-2 rounded bg-[#222] focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="w-full p-3 rounded-lg bg-black border border-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-gray-600"
         />
         <input
           type="email"
           placeholder="Your Email"
-          className="flex-1 min-w-[120px] p-2 rounded bg-[#222] focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="w-full p-3 rounded-lg bg-black border border-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-gray-600"
         />
         <textarea
           placeholder="Your Message"
-          rows={2}
-          className="w-full p-2 rounded bg-[#222] focus:outline-none focus:ring-2 focus:ring-gray-500"
-        ></textarea>
+          rows={4}
+          className="w-full p-3 rounded-lg bg-black border border-gray-700 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-gray-600"
+        />
         <button
           type="submit"
-          className="w-full md:w-auto py-2 px-4 bg-white text-black font-semibold rounded hover:bg-gray-200 transition"
+          className="w-full py-3 bg-black border border-gray-700 rounded-lg text-white font-semibold hover:bg-gray-900 transition"
         >
           Send Message
         </button>
       </div>
 
-      {/* Corner Navigation */}
-   
     </section>
   );
 }

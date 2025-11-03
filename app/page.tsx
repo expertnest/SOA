@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <div className="relative w-full bg-black text-white flex flex-col overflow-hidden min-h-screen">
       <div className="absolute inset-0 z-0">
-        <BackgroundStars />
+         
       </div>
 
       <div className="relative z-10 flex flex-1 flex-col overflow-hidden">

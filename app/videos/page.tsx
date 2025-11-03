@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useRef } from "react";
 import { FaPlay } from "react-icons/fa";
@@ -67,11 +67,6 @@ export default function VideoContents() {
 
   return (
     <div className="relative w-full min-h-screen bg-black text-white flex flex-col overflow-hidden px-4 py-6 sm:px-6">
-      {/* === Stars background === */}
-      <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-repeat opacity-70"></div>
-      </div>
-
       {/* === Main content === */}
       <div className="relative z-10">
         <h1 className="text-3xl font-bold mb-6 text-center md:text-left">
@@ -102,7 +97,7 @@ export default function VideoContents() {
           {/* Close Button */}
           <button
             onClick={() => setSelectedVideo(null)}
-            className="absolute top-16 sm:top-4 right-4 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center"
+            className="absolute top-6 right-6 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center transition"
           >
             ✕
           </button>
@@ -125,7 +120,7 @@ export default function VideoContents() {
                   <iframe
                     src={video.url}
                     title={video.title}
-                    className="w-full h-full sm:w-96 sm:h-[600px] md:w-[400px] lg:w-[500px] lg:h-[700px]"
+                    className="w-full h-full sm:w-96 sm:h-[600px] md:w-[400px] lg:w-[500px] lg:h-[700px] rounded-md shadow-lg"
                     allow="autoplay; fullscreen"
                     allowFullScreen
                   ></iframe>
@@ -172,7 +167,7 @@ function VideoRow({
             onClick={() => onClick(video.id)}
             className={`flex-shrink-0 w-56 h-32 sm:w-64 sm:h-36 lg:w-80 lg:h-44 rounded-md shadow-lg bg-gradient-to-br ${colorClass} cursor-pointer snap-start relative transform transition-transform duration-300 hover:scale-105`}
           >
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 flex items-center justify-between">
+            <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 flex items-center justify-between rounded-b-md">
               <span className="text-white font-medium text-sm truncate">
                 {video.title}
               </span>

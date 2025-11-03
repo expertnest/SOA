@@ -8,15 +8,15 @@ export default function Header() {
     { name: 'Merch', href: '/merch' },
     { name: 'Videos', href: '/videos' },
     { name: 'Tour', href: '/tour' },
-    { name: 'Artist', href: '/artists' }, // 👈 added Artist link here
+    { name: 'Artist', href: '/artists' },
     { name: 'Contact', href: '/contact' },
   ]
 
   return (
-    <header className="relative z-10 w-full bg-gradient-to-r from-black via-[#0a0a0a] to-black py-4 px-4 md:py-6 md:px-6 shadow-lg border-b border-gray-800">
+    <header className="relative z-10 w-full bg-black/90 backdrop-blur-sm py-4 px-4 md:py-6 md:px-6 shadow-lg border-b border-gray-800">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand */}
-        <h1 className="text-2xl md:text-4xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-[#00ffff] via-white to-[#00ffff] drop-shadow-[0_0_6px_rgba(0,255,255,0.6)]">
+        <h1 className="text-2xl md:text-4xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-[#00ffff] via-white to-[#00ffff] drop-shadow-[0_0_10px_rgba(0,255,255,0.7)] transition-all duration-300 hover:scale-105">
           State of the Art
         </h1>
 
@@ -27,10 +27,11 @@ export default function Header() {
               <li key={item.name} className="group relative">
                 <Link
                   href={item.href}
-                  className="relative text-gray-300 hover:text-[#00ffff] transition-colors duration-200"
+                  className="relative text-gray-300 hover:text-[#00ffff] transition-all duration-300 group-hover:scale-105"
                 >
                   {item.name}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00ffff] transition-all duration-300 group-hover:w-full"></span>
+                  {/* Glow underline */}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#00ffff] shadow-[0_0_10px_cyan] transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               </li>
             ))}

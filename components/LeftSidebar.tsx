@@ -1,4 +1,4 @@
-"use client"; // MUST be at the top
+"use client";
 
 import {
   ChevronLeft,
@@ -7,6 +7,11 @@ import {
   SkipBack,
   SkipForward,
   Volume2,
+  Star,
+  Flame ,
+  Music,
+  Rocket,
+  Moon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -47,14 +52,14 @@ export default function LeftSidebar() {
 
   return (
     <aside
-      className={`bg-gradient-to-b from-[#120a23] via-[#000000] to-[#1a0f2b] text-white border-t md:border-t-0 md:border-r border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
+      className={`bg-black/60 backdrop-blur-lg text-white border-r border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
         leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-72"
       } flex-shrink-0 shadow-lg`}
     >
       {/* Collapse Button */}
       <button
         onClick={() => setLeftCollapsed(!leftCollapsed)}
-        className="mb-2 md:mb-4 hover:text-purple-400 self-end transition-colors duration-200"
+        className="mb-2 md:mb-4 hover:text-white/70 self-end transition-colors duration-200"
       >
         <ChevronLeft
           size={20}
@@ -65,17 +70,17 @@ export default function LeftSidebar() {
       {!leftCollapsed && (
         <>
           {/* Playlist Header */}
-          <h2 className="text-lg font-semibold uppercase mb-3 tracking-wide text-gray-300">
+          <h2 className="text-md font-semibold mb-3 tracking-wide text-white/70">
             Playlist
           </h2>
 
           {/* Playlist Categories */}
-          <ul className="flex md:flex-col space-x-3 md:space-x-0 md:space-y-3 text-sm overflow-x-auto md:overflow-visible mb-5">
+          <ul className="flex md:flex-col space-x-3 md:space-x-0 md:space-y-2 text-sm overflow-x-auto md:overflow-visible mb-5">
             {playlists.map((pl) => (
               <li
                 key={pl}
-                className={`cursor-pointer hover:text-white transition-colors duration-200 rounded-lg px-3 py-2 transform hover:scale-105 hover:bg-gray-800 ${
-                  selectedCategory === pl ? "bg-gray-800" : ""
+                className={`cursor-pointer transition-colors duration-200 px-2 py-1 rounded ${
+                  selectedCategory === pl ? "bg-white/10" : "hover:bg-white/5"
                 }`}
                 onClick={() => {
                   setSelectedCategory(pl);
@@ -83,43 +88,37 @@ export default function LeftSidebar() {
                 }}
               >
                 <span
-                  className={`${
+                  className={`flex items-center gap-1 ${
                     selectedCategory === pl
-                      ? "bg-gradient-to-r from-white/90 via-purple-500 to-white/80 bg-clip-text text-transparent font-semibold"
-                      : "text-white"
+                      ? "font-semibold text-white"
+                      : "text-white/70"
                   }`}
                 >
-                  {pl === "New Releases"
-                    ? "💥 New Releases"
-                    : pl === "ShottiGotSwag"
-                    ? "🔥 ShottiGotSwag"
-                    : pl === "QMIlly"
-                    ? "🎶 QMIlly"
-                    : pl === "SOA"
-                    ? "🚀 SOA"
-                    : "🌙 Beats"}
+                  {pl === "New Releases" && <Star size={14} />}
+                  {pl === "ShottiGotSwag" && <Flame size={14} />}
+                  {pl === "QMIlly" && <Music size={14} />}
+                  {pl === "SOA" && <Rocket size={14} />}
+                  {pl === "Beats" && <Moon size={14} />}
+                  {pl}
                 </span>
               </li>
             ))}
           </ul>
 
-          {/* Current Song Image / Placeholder with Dark Purple Gradient */}
-          <div className="relative mb-5">
-            {displaySong.image ? (
+          {/* Current Song Image */}
+          <div className="relative mb-5 rounded-xl overflow-hidden h-56 md:h-60 bg-black/40">
+            {displaySong.image && (
               <Image
                 src={displaySong.image}
                 alt={displaySong.title || "Song"}
-                width={600}
-                height={400}
-                className="object-cover w-full h-56 md:h-60 rounded-xl opacity-90"
+                fill
+                className="object-cover opacity-90"
               />
-            ) : (
-              <div className="w-full h-56 md:h-60 rounded-xl bg-gradient-to-br from-purple-900 via-black to-indigo-900 opacity-80"></div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent rounded-xl"></div>
+            <div className="absolute inset-0 bg-black/50"></div>
             <div className="absolute bottom-3 left-3 right-3">
-              <p className="text-lg font-semibold truncate">
-                {displaySong.title || "Select a song to play"}
+              <p className="text-md font-semibold truncate">
+                {displaySong.title || "Select a song"}
               </p>
               <p className="text-xs text-white/70 truncate">
                 {displaySong.artist || ""}
@@ -127,29 +126,27 @@ export default function LeftSidebar() {
             </div>
           </div>
 
-          {/* Scrollable Song List */}
-          <div className="overflow-y-auto flex-1 pr-1 text-sm space-y-2 max-h-[calc(100vh-420px)] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+          {/* Song List */}
+          <div className="overflow-y-auto flex-1 pr-1 text-sm space-y-1 max-h-[calc(100vh-420px)] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {filteredSongs.map((song) => {
               const isCurrent = currentSong?.id === song.id;
               return (
                 <div
                   key={song.id}
-                  className={`p-2 rounded-lg cursor-pointer flex justify-between items-center transition-colors duration-200 ${
-                    isCurrent ? "bg-gray-800" : "hover:bg-gray-800"
+                  className={`p-2 rounded cursor-pointer flex justify-between items-center transition-colors duration-150 ${
+                    isCurrent ? "bg-white/10" : "hover:bg-white/5"
                   }`}
                   onClick={() => playSong(song)}
                 >
                   <div className="flex flex-col min-w-0">
                     <p
-                      className={`font-semibold truncate ${
-                        isCurrent
-                          ? "bg-gradient-to-r from-white/90 via-purple-500 to-white/80 bg-clip-text text-transparent"
-                          : "text-white"
+                      className={`truncate ${
+                        isCurrent ? "font-semibold text-white" : "text-white/70"
                       }`}
                     >
                       {song.title}
                     </p>
-                    <p className="text-xs text-white/60 truncate">
+                    <p className="text-xs text-white/50 truncate">
                       {song.artist}
                     </p>
                   </div>
@@ -159,7 +156,7 @@ export default function LeftSidebar() {
                       if (isCurrent) togglePlay();
                       else playSong(song);
                     }}
-                    className="ml-2 p-1 rounded-full hover:bg-gray-700"
+                    className="ml-2 p-1 rounded-full hover:bg-white/10 transition"
                   >
                     {isCurrent && isPlaying ? <Pause size={16} /> : <Play size={16} />}
                   </button>
@@ -170,32 +167,34 @@ export default function LeftSidebar() {
 
           {/* Now Playing & Controls */}
           {currentSong && (
-            <div className="mt-auto pt-3 border-t border-gray-700">
-              <p className="text-xs text-white/70 uppercase mb-2 tracking-wide">
+            <div className="mt-auto pt-3 border-t border-white/20">
+              <p className="text-xs text-white/50 uppercase mb-2 tracking-wide">
                 Now Playing
               </p>
-              <div className="bg-gray-800/80 rounded-lg p-3 flex items-center gap-3 backdrop-blur-sm">
+              <div className="bg-black/40 rounded-lg p-3 flex items-center gap-3 backdrop-blur-sm">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate text-transparent bg-clip-text bg-gradient-to-r from-white/90 via-purple-500 to-white/80">
+                  <p className="text-sm font-semibold truncate text-white">
                     {currentSong.title}
                   </p>
-                  <p className="text-xs text-white/60 truncate">{currentSong.artist}</p>
+                  <p className="text-xs text-white/50 truncate">
+                    {currentSong.artist}
+                  </p>
                 </div>
                 <button
                   onClick={togglePlay}
-                  className="p-2 rounded-full hover:bg-gray-700 transition"
+                  className="p-2 rounded-full hover:bg-white/10 transition"
                 >
                   {isPlaying ? <Pause size={20} /> : <Play size={20} />}
                 </button>
               </div>
 
               {/* Progress Bar */}
-              <div className="flex items-center justify-between mt-2 text-white/70">
+              <div className="flex items-center justify-between mt-2 text-white/50">
                 <button onClick={handlePrev}>
                   <SkipBack size={18} />
                 </button>
                 <div
-                  className="flex-1 h-1 mx-2 bg-gray-600 rounded cursor-pointer relative"
+                  className="flex-1 h-1 mx-2 bg-white/20 rounded cursor-pointer relative"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const clickX = e.clientX - rect.left;
@@ -204,7 +203,7 @@ export default function LeftSidebar() {
                   }}
                 >
                   <div
-                    className="h-1 bg-purple-700 rounded absolute left-0 top-0"
+                    className="h-1 bg-white rounded absolute left-0 top-0"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
@@ -223,7 +222,7 @@ export default function LeftSidebar() {
                   step="0.01"
                   value={volume}
                   onChange={(e) => setVolume(parseFloat(e.target.value))}
-                  className="w-full accent-purple-700 cursor-pointer"
+                  className="w-full accent-white/70 cursor-pointer"
                 />
               </div>
             </div>

@@ -72,20 +72,23 @@ export default function NewsGrid() {
       </div>
 
       {/* --- Subtle Read More Articles Button with Purple Gradient --- */}
+     
       <div className="mt-8 text-center">
-        <Link
-          href="/news"
-          className="
-            inline-flex items-center gap-2 px-6 py-2 rounded-full font-semibold
-            text-white text-sm
-            bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600
-            bg-opacity-20 hover:bg-opacity-40 transition-all duration-300
-          "
-        >
-          Read More Articles
-          <span className="text-base">→</span>
-        </Link>
-      </div>
+  <Link
+    href="/news"
+    className="
+      inline-flex items-center gap-2 px-6 py-2 rounded-full font-semibold
+      text-white text-sm
+      bg-black/30 hover:bg-white/10
+      border border-white/20
+      transition-all duration-300
+    "
+  >
+    Read More Articles
+    <span className="text-base">→</span>
+  </Link>
+</div>
+     
     </div>
   );
 }

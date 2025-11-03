@@ -32,13 +32,8 @@ const MusicPlayer = () => {
     setIsIPad(iPad || modernIPad);
   }, []);
 
-  // Disable background scrolling when modal is open
   useEffect(() => {
-    if (showQueue || showFullScreen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = showQueue || showFullScreen ? "hidden" : "auto";
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -71,7 +66,7 @@ const MusicPlayer = () => {
   return (
     <>
       {/* MAIN PLAYER BAR */}
-      <div className="fixed bottom-0 left-0 w-full bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white shadow-lg z-20">
+      <div className="fixed bottom-0 left-0 w-full bg-black text-white shadow-lg z-20 border-t border-gray-700">
         <div className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 relative">
           {/* Song Info (FULL CLICKABLE AREA) */}
           <div
@@ -85,7 +80,7 @@ const MusicPlayer = () => {
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-md object-cover"
               />
             ) : (
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-md"></div>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-md"></div>
             )}
             <div className="leading-tight">
               <h2 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[200px]">
@@ -101,29 +96,21 @@ const MusicPlayer = () => {
           <div className="flex items-center gap-3 sm:gap-4">
             <SkipBack size={20} className="cursor-pointer" onClick={handlePrev} />
             {isPlaying ? (
-              <Pause
-                size={isIPad ? 28 : 32}
-                className="cursor-pointer"
-                onClick={togglePlay}
-              />
+              <Pause size={isIPad ? 28 : 32} className="cursor-pointer" onClick={togglePlay} />
             ) : (
-              <Play
-                size={isIPad ? 28 : 32}
-                className="cursor-pointer"
-                onClick={togglePlay}
-              />
+              <Play size={isIPad ? 28 : 32} className="cursor-pointer" onClick={togglePlay} />
             )}
             <SkipForward size={20} className="cursor-pointer" onClick={handleNext} />
             <Library
               size={22}
-              className="cursor-pointer hover:text-purple-400 transition"
+              className="cursor-pointer hover:text-teal-400 transition"
               onClick={() => setShowQueue(true)}
             />
           </div>
         </div>
       </div>
 
-      {/* FULLSCREEN QUEUE */}
+      {/* PLAYLIST POPUP */}
       <AnimatePresence>
         {showQueue && (
           <motion.div
@@ -132,31 +119,34 @@ const MusicPlayer = () => {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", duration: 0.3 }}
-            className="fixed inset-0 bg-black text-white z-30 flex flex-col"
+            className="fixed inset-0 text-white z-30 flex flex-col"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.4} // more sensitive drag
+            dragElastic={0.4}
             onDragStart={() => setIsDragging(true)}
             onDragEnd={handleDragEnd}
           >
-            {/* Drag handle */}
-            <div className="w-16 h-2 rounded-full mx-auto my-3 cursor-grab bg-gradient-to-r from-green-400 via-green-600 to-green-400"></div>
+            {/* Glassy background */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-2xl" />
 
-            {/* Top Image Section */}
-            <div className="flex justify-center items-center p-6 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-b-3xl">
+            {/* Drag handle */}
+            <div className="relative z-10 w-16 h-2 rounded-full mx-auto my-3 cursor-grab bg-gradient-to-r from-teal-400 via-green-400 to-teal-400" />
+
+            {/* Top Album Art */}
+            <div className="relative z-10 flex justify-center items-center p-6">
               {currentSong?.image ? (
                 <img
                   src={currentSong.image}
                   alt={currentSong.title}
-                  className="w-40 h-40 rounded-lg shadow-lg object-cover"
+                  className="w-40 h-40 rounded-xl shadow-2xl object-cover"
                 />
               ) : (
-                <div className="w-40 h-40 bg-gray-800 rounded-lg shadow-lg"></div>
+                <div className="w-40 h-40 bg-black/30 backdrop-blur-md rounded-xl shadow-2xl" />
               )}
             </div>
 
             {/* Category Picker */}
-            <div className="px-4 mb-3">
+            <div className="relative z-10 px-4 mb-3">
               <h3 className="text-xl font-bold text-white mb-2">Filter by Category</h3>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -187,7 +177,7 @@ const MusicPlayer = () => {
 
             {/* Song List */}
             <div
-              className={`flex-1 overflow-y-auto px-4 pb-4 ${
+              className={`relative z-10 flex-1 overflow-y-auto px-4 pb-4 ${
                 isDragging ? "pointer-events-none" : ""
               }`}
             >
@@ -198,7 +188,7 @@ const MusicPlayer = () => {
                   return (
                     <li
                       key={song.id}
-                      className="p-3 bg-neutral-800 rounded-lg flex justify-between items-center hover:bg-neutral-700 transition cursor-pointer"
+                      className="p-3 bg-black/30 backdrop-blur-md rounded-xl flex justify-between items-center hover:bg-black/40 transition cursor-pointer"
                       onClick={() => playSong(song)}
                     >
                       <div className="flex items-center gap-3">
@@ -209,7 +199,7 @@ const MusicPlayer = () => {
                             className="w-12 h-12 rounded-md object-cover"
                           />
                         ) : (
-                          <div className="w-12 h-12 bg-gray-700 rounded-md"></div>
+                          <div className="w-12 h-12 bg-black/20 rounded-md" />
                         )}
                         <div>
                           <p className="font-semibold text-white">{song.title}</p>
@@ -238,34 +228,37 @@ const MusicPlayer = () => {
         )}
       </AnimatePresence>
 
-      {/* FULL SCREEN PLAYER */}
+      {/* FULLSCREEN PLAYER */}
       <AnimatePresence>
         {showFullScreen && (
           <motion.div
             key="fullScreenPlayer"
-            className="fixed inset-0 bg-gradient-to-r from-purple-950 via-black to-indigo-950 text-white z-40 flex flex-col"
+            className="fixed inset-0 text-white z-40 flex flex-col"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "tween", duration: 0.4 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0.4} // more sensitive drag
+            dragElastic={0.4}
             onDragEnd={handleDragEnd}
           >
-            {/* Drag handle */}
-            <div className="w-16 h-2 rounded-full mx-auto my-3 cursor-grab bg-gradient-to-r from-green-400 via-green-600 to-green-400"></div>
+            {/* Glassy background */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-2xl" />
 
-            <div className="flex-1 flex flex-col items-center justify-center px-6">
+            {/* Drag handle */}
+            <div className="relative z-10 w-16 h-2 rounded-full mx-auto my-3 cursor-grab bg-gradient-to-r from-teal-400 via-green-400 to-teal-400" />
+
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6">
               {/* Album Art */}
               {currentSong?.image ? (
                 <img
                   src={currentSong.image}
                   alt={currentSong.title}
-                  className="w-72 h-72 sm:w-80 sm:h-80 rounded-xl shadow-lg object-cover"
+                  className="w-72 h-72 sm:w-80 sm:h-80 rounded-xl shadow-2xl object-cover"
                 />
               ) : (
-                <div className="w-72 h-72 sm:w-80 sm:h-80 bg-gradient-to-r from-purple-950 via-black to-indigo-950 rounded-xl shadow-lg"></div>
+                <div className="w-72 h-72 sm:w-80 sm:h-80 bg-black/30 backdrop-blur-md rounded-xl shadow-2xl" />
               )}
 
               <h3 className="text-2xl font-bold mt-6 text-white">
@@ -292,11 +285,11 @@ const MusicPlayer = () => {
                   max={100}
                   value={progress}
                   onChange={handleSeek}
-                  className="w-full h-1 appearance-none bg-zinc-700/50 accent-teal-400 cursor-pointer"
+                  className="w-full h-1 appearance-none bg-zinc-700/50 accent-teal-400 cursor-pointer rounded"
                 />
                 <div className="flex justify-between text-xs text-white mt-1">
                   <span>{formatTime(progress)}</span>
-                  <span>{duration ? formatTime(100) : "0:00"}</span>
+                  <span>{formatTime(100)}</span>
                 </div>
               </div>
             </div>

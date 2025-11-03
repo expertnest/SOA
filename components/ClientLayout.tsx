@@ -10,54 +10,52 @@ import MusicPlayer from "@/components/mobileUI/MusicPlayer";
 import Navbar from "./mobileUI/Navbar";
 import { MusicProvider } from "@/hooks/MusicContext";
 
-// ✅ Contribution Tab Component (flush on desktop, above music player on mobile)
+// ✅ Contribution Tab Component (masculine Tidal-style)
 function ContributionTab() {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
-
-  const bottomPosition = isMobile ? "70px" : "20px";
+  const bottomPosition = isMobile ? "80px" : "20px";
 
   return (
     <div
       className="fixed right-4 z-40 flex flex-col items-end"
       style={{ bottom: bottomPosition }}
     >
-      {/* Donation Panel */}
+      {/* Panel */}
       <div
-        className={`flex flex-col items-center rounded-xl shadow-xl p-4 gap-3 mb-2 transition-all duration-300 overflow-hidden bg-gradient-to-r from-purple-700 via-indigo-700 to-blue-600 ${
-          open ? "max-w-xs opacity-100 scale-100" : "max-w-0 opacity-0 scale-95"
+        className={`flex flex-col items-center rounded-3xl shadow-2xl p-5 gap-4 mb-2 transition-all duration-300 backdrop-blur-xl bg-gray-900/80 border border-gray-700 ${
+          open ? "max-w-xs opacity-100 scale-100" : "max-w-0 opacity-0 scale-90"
         }`}
       >
-        <p className="text-white font-semibold text-center text-sm">
-          🎵 If you enjoy our music, make a donation!
+        <p className="text-gray-200 font-semibold text-center text-sm">
+          🎵 Enjoy our music? Support the artist!
         </p>
-        <div className="flex gap-2">
-          <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
-            💵 $5
-          </button>
-          <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
-            💵 $10
-          </button>
-          <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
-            💵 $25
+
+        <div className="flex flex-wrap gap-3 justify-center">
+          {["$5", "$10", "$25"].map((amount) => (
+            <button
+              key={amount}
+              className="bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 hover:from-gray-600 hover:via-gray-700 hover:to-gray-800 py-3 px-6 rounded-xl text-gray-100 font-bold transition-all shadow-lg hover:scale-105"
+            >
+              💵 {amount}
+            </button>
+          ))}
+          <button className="bg-gradient-to-r from-green-800 via-green-700 to-green-600 hover:from-green-700 hover:via-green-600 hover:to-green-500 py-3 px-6 rounded-xl text-gray-100 font-bold transition-all shadow-lg hover:scale-105">
+            💳 Custom
           </button>
         </div>
-        <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 py-2 px-5 rounded-lg text-white font-bold transition-all">
-          💳 Custom
-        </button>
       </div>
 
-      {/* Fire Icon Toggle */}
+      {/* Fire Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="bg-red-500 text-white p-4 rounded-full shadow-lg hover:bg-red-600 transition-all text-2xl"
+        className="bg-gray-800 text-gray-100 p-4 rounded-full shadow-lg hover:bg-gray-700 transition-all text-2xl"
       >
         🔥
       </button>
     </div>
   );
 }
-     
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile();
@@ -94,7 +92,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [hideSidebars, isScrollNav]);
 
-  // ✅ Navigation items
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Merch", href: "/merch" },
@@ -104,34 +101,51 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     { name: "Contact", href: "/contact" },
   ];
 
+  const extraLinks = ["Mac Phantom", "Qmilly"];
+
   return (
     <MusicProvider>
-      <div className="relative w-full md:h-screen flex-1 flex flex-col overflow-hidden">
+      <div className="relative w-full md:h-screen flex-1 flex flex-col overflow-hidden bg-black text-white">
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Desktop Navbar */}
           {!hideSidebars && (
-            <div className="sticky top-0 z-50 flex justify-center bg-gradient-to-r from-black via-[#0a0a0a] to-black shadow-lg border-b border-gray-800">
-              <div className="flex-1 max-w-[calc(100%-500px)] px-4 py-3 flex items-center justify-between">
-                {/* Brand */}
-                <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-white drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]">
-                  State of the Art
+            <div className="sticky top-0 z-50 flex justify-center bg-black/95 backdrop-blur-sm shadow-lg border-b border-gray-800">
+              <div className="flex-1 max-w-[calc(100%-500px)] mx-auto px-4 py-3 flex">
+                {/* Left: Brand */}
+                <div className="w-1/3 flex justify-start">
+                  <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-white">
+                    State of the Art
+                  </div>
                 </div>
 
-                {/* Nav Links */}
-                <nav className="hidden md:flex gap-8 text-sm md:text-base font-medium uppercase tracking-wide">
+                {/* Middle: Nav Links */}
+                <nav className="w-1/3 flex justify-center gap-8 text-sm md:text-base font-medium uppercase tracking-wide">
                   {navItems.map((item) => (
                     <Link
                       key={item.name}
                       href={item.href}
                       className="relative group cursor-pointer"
                     >
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-300 via-blue-300 to-white transition-all duration-300 group-hover:from-white group-hover:via-purple-400 group-hover:to-white">
+                      <span className="text-white/70 transition-all duration-300 group-hover:text-white">
                         {item.name}
                       </span>
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 via-purple-400 to-white transition-all duration-300 group-hover:w-full"></span>
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
                     </Link>
                   ))}
                 </nav>
+
+                {/* Right: Extra Links */}
+                <div className="w-1/3 flex justify-end gap-6">
+                  {extraLinks.map((name) => (
+                    <Link
+                      key={name}
+                      href="#"
+                      className="relative group cursor-pointer text-white/70 hover:text-white font-medium uppercase"
+                    >
+                      {name}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -139,15 +153,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           {/* Main Layout */}
           <div className="flex flex-1 flex-row overflow-hidden">
             {!hideSidebars && <LeftSidebar />}
-
-            {/* Scroll Container */}
             <main
               ref={scrollContainerRef}
-              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px] will-change-transform transform-gpu scroll-smooth-touch"
+              className="flex-1 overflow-y-auto overscroll-contain touch-pan-y pt-[70px] md:pt-[0px] will-change-transform transform-gpu scroll-smooth"
             >
               <div className="min-h-full pb-[100px]">{children}</div>
             </main>
-
             {!hideSidebars && <RightSidebar />}
           </div>
         </div>
@@ -170,7 +181,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        {/* ✅ Contribution Tab (desktop flush bottom-right, mobile above music player) */}
+        {/* ✅ Contribution Tab */}
         <ContributionTab />
       </div>
     </MusicProvider>
