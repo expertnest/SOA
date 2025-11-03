@@ -13,7 +13,7 @@ export default function NewsGrid() {
       {/* --- Featured Post --- */}
       {featured && (
         <Link href={`/news/${featured.slug}`} key={featured.id}>
-          <div className="relative rounded-2xl overflow-hidden h-72 md:h-120 shadow-xl border border-gray-700 hover:shadow-2xl hover:scale-[1.03] transition-transform duration-300 flex flex-col cursor-pointer">
+          <div className="relative overflow-hidden h-72 md:h-120 shadow-xl border border-gray-700 hover:shadow-2xl hover:scale-[1.03] transition-transform duration-300 flex flex-col cursor-pointer">
             <div
               className="absolute inset-0 bg-cover bg-center transform transition-transform duration-500 hover:scale-105"
               style={{ backgroundImage: `url(${featured.image})` }}
@@ -47,7 +47,7 @@ export default function NewsGrid() {
         {others.map((post, index) => (
           <Link href={`/news/${post.slug}`} key={post.id}>
             <div
-              className={`relative rounded-lg overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col cursor-pointer ${
+              className={`relative overflow-hidden shadow-lg border border-gray-700 hover:scale-[1.02] transition-transform flex flex-col cursor-pointer ${
                 index === 0 ? "h-44 md:h-68 mt-1 md:mt-4" : "h-44 md:h-68 mt-0 md:mt-4"
               }`}
             >
@@ -72,23 +72,21 @@ export default function NewsGrid() {
       </div>
 
       {/* --- Subtle Read More Articles Button with Purple Gradient --- */}
-     
       <div className="mt-8 text-center">
-  <Link
-    href="/news"
-    className="
-      inline-flex items-center gap-2 px-6 py-2 rounded-full font-semibold
-      text-white text-sm
-      bg-black/30 hover:bg-white/10
-      border border-white/20
-      transition-all duration-300
-    "
-  >
-    Read More Articles
-    <span className="text-base">→</span>
-  </Link>
-</div>
-     
+        <Link
+          href="/news"
+          className="
+            inline-flex items-center gap-2 px-6 py-2 font-semibold
+            text-white text-sm
+            bg-black/30 hover:bg-white/10
+            border border-white/20
+            transition-all duration-300
+          "
+        >
+          Read More Articles
+          <span className="text-base">→</span>
+        </Link>
+      </div>
     </div>
   );
 }
