@@ -27,7 +27,7 @@ export default function Footer() {
         {/* Left: Name / Logo */}
         <div className="flex-1 text-center md:text-left">
           <div className="text-lg font-bold tracking-widest uppercase">
-            State of the Art
+           Mac Phantom
           </div>
         </div>
 

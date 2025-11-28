@@ -7,10 +7,7 @@ import {
   SkipBack,
   SkipForward,
   Volume2,
-  Star,
-  Flame ,
-  Music,
-  Rocket,
+  Flame,
   Moon,
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -41,12 +38,13 @@ export default function LeftSidebar() {
     setMounted(true);
   }, []);
 
-  const playlists = ["New Releases", "ShottiGotSwag", "QMIlly", "SOA", "Beats"];
+  const playlists = ["MacPhantom", "Mac808"];
   const filteredSongs = songs.filter(
     (song) => song.category === selectedCategory
   );
 
-  const displaySong = currentSong || filteredSongs[0];
+  // Always display the current song in the image section
+  const displaySong = currentSong;
 
   if (!mounted) return null;
 
@@ -82,10 +80,7 @@ export default function LeftSidebar() {
                 className={`cursor-pointer transition-colors duration-200 px-2 py-1 rounded ${
                   selectedCategory === pl ? "bg-white/10" : "hover:bg-white/5"
                 }`}
-                onClick={() => {
-                  setSelectedCategory(pl);
-                  setCurrentSongIndex(0);
-                }}
+                onClick={() => setSelectedCategory(pl)}
               >
                 <span
                   className={`flex items-center gap-1 ${
@@ -94,11 +89,8 @@ export default function LeftSidebar() {
                       : "text-white/70"
                   }`}
                 >
-                  {pl === "New Releases" && <Star size={14} />}
-                  {pl === "ShottiGotSwag" && <Flame size={14} />}
-                  {pl === "QMIlly" && <Music size={14} />}
-                  {pl === "SOA" && <Rocket size={14} />}
-                  {pl === "Beats" && <Moon size={14} />}
+                  {pl === "MacPhantom" && <Flame size={14} />}
+                  {pl === "Mac808" && <Moon size={14} />}
                   {pl}
                 </span>
               </li>
@@ -107,7 +99,7 @@ export default function LeftSidebar() {
 
           {/* Current Song Image */}
           <div className="relative mb-5 rounded-xl overflow-hidden h-56 md:h-60 bg-black/40">
-            {displaySong.image && (
+            {displaySong?.image && (
               <Image
                 src={displaySong.image}
                 alt={displaySong.title || "Song"}
@@ -118,10 +110,10 @@ export default function LeftSidebar() {
             <div className="absolute inset-0 bg-black/50"></div>
             <div className="absolute bottom-3 left-3 right-3">
               <p className="text-md font-semibold truncate">
-                {displaySong.title || "Select a song"}
+                {displaySong?.title || "Select a song"}
               </p>
               <p className="text-xs text-white/70 truncate">
-                {displaySong.artist || ""}
+                {displaySong?.artist || ""}
               </p>
             </div>
           </div>

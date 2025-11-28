@@ -28,28 +28,29 @@ export default function MusicVideos() {
 
   return (
     <div className="mt-4 md:mt-6 bg-black p-4 md:p-0">
-      {/* Mobile Brand */}
+      {/* Mobile Brand  TOP SQARESSSS*/}
       <div className="relative mb-4 md:hidden">
         {/* Top-left and top-right links */}
         <div className="w-full flex justify-between px-4 py-2 mb-2">
-          <a
+        {/* <a
             href="#mac-phantom"
             className="text-xs font-bold uppercase tracking-widest text-white bg-white/10 hover:bg-white/20 active:bg-white/30 px-3 py-1 rounded transition"
           >
             Mac Phantom
-          </a>
-          <a
-            href="#qmilly"
-            className="text-xs font-bold uppercase tracking-widest text-white bg-white/10 hover:bg-white/20 active:bg-white/30 px-3 py-1 rounded transition"
-          >
-            QMilly
-          </a>
+          </a> */}
+       {/*
+<a
+  href="#qmilly"
+  className="text-xs font-bold uppercase tracking-widest text-white bg-white/10 hover:bg-white/20 active:bg-white/30 px-3 py-1 rounded transition"
+>
+</a>
+*/}
         </div>
 
         {/* Main title */}
         <div className="text-center mt-8">
           <h1 className="text-4xl font-extrabold uppercase tracking-wider text-white drop-shadow select-none">
-            State of the Art
+            Mac Phantom
           </h1>
         </div>
       </div>

@@ -15,17 +15,7 @@ const artists = [
       youtube: "#",
     },
   },
-  {
-    name: "Qmilly",
-    bio: "Qmilly brings soulful melodies and smooth lyricism, blending modern R&B with deep emotion. His sound captures the late-night vibes of the city.",
-    image:
-      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80",
-    socials: {
-      instagram: "https://instagram.com/",
-      spotify: "#",
-      youtube: "#",
-    },
-  },
+  
 ];
 
 export default function Artists() {

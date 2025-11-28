@@ -101,7 +101,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     { name: "Contact", href: "/contact" },
   ];
 
-  const extraLinks = ["Mac Phantom", "Qmilly"];
+   ;
 
   return (
     <MusicProvider>
@@ -114,7 +114,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 {/* Left: Brand */}
                 <div className="w-1/3 flex justify-start">
                   <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-white">
-                    State of the Art
+                  Mac Phantom
                   </div>
                 </div>
 
@@ -135,17 +135,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 </nav>
 
                 {/* Right: Extra Links */}
-                <div className="w-1/3 flex justify-end gap-6">
-                  {extraLinks.map((name) => (
-                    <Link
-                      key={name}
-                      href="#"
-                      className="relative group cursor-pointer text-white/70 hover:text-white font-medium uppercase"
-                    >
-                      {name}
-                    </Link>
-                  ))}
-                </div>
+              
               </div>
             </div>
           )}
