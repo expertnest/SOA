@@ -1,0 +1,347 @@
+┌───────────────────────────────────────────────┐
+│                USER INTERACTION              │
+│ (music, videos, merch, events, community)   │
+└───────────────────────┬───────────────────────┘
+                        │
+           ┌────────────┴──────────────┬────────────┴─────────────┐
+           │                           │                             │
+┌──────────▼─────────────┐      ┌──────▼─────────────┐     ┌──────▼─────────────┐
+│    ANONYMOUS USERS     │      │   LOGGED-IN FANS   │     │   ARTISTS / TEAM   │
+│  (no account required) │      │    (with login)    │     │   (admin access)   │
+└──────────┬─────────────┘      └─────────┬───────────┘     └─────────┬───────────┘
+           │                              │                           │
+┌──────────▼─────────────┐        ┌───────▼─────────────┐      ┌──────▼─────────────┐
+│    PLAYS / WATCHES     │        │   PLAYS / WATCHES   │      │   ADMIN ACTIONS    │
+├─────────────────────────┤       ├─────────────────────┤      ├────────────────────┤
+│ • Track / Video ID      │       │ • Track / Video ID  │      │ • Upload music     │
+│ • Timestamp             │       │ • Timestamp         │      │ • Upload videos    │
+│ • Action (play/skip)    │       │ • Action            │      │ • Manage drops     │
+│ • Duration Played       │       │ • Duration Played   │      │ • Manage merch     │
+│ • Page / Context        │       │ • Page / Context    │      │ • Edit site content│
+└──────────┬──────────────┘       └─────────┬───────────┘      └─────────┬──────────┘
+           │                                │                            │
+   ┌───────▼───────────┐          ┌──────▼───────────┐        ┌──────▼────────────┐
+   │   SESSION DATA    │          │  FAN FEATURES    │        │ LABEL FEATURES    │
+   ├───────────────────┤          ├──────────────────┤        ├───────────────────┤
+   │ • Session ID      │          │ • Favorites/Likes│        │ • Artist accounts │
+   │ • Time on Site    │          │ • Playlists      │        │ • Revenue tracking│
+   │ • Pages Visited   │          │ • Comments       │        │ • Fan segmentation│
+   │ • Device / Browser│          │ • Messages/DMs   │        │ • Drop analytics  │
+   │ • Geo (anon)      │          │ • Early access grants│    │ • Royalty splits  │
+   └──────────┬────────┘          │ • NFT / Master claims│    │ • Contracts / rights│
+              │                   └─────────┬──────────┘      └──────────┬──────────┘
+              │                             │                            │
+              └───────────────┬─────────────┴───────────────  ┬──────────┘
+                              │                               │
+                    ┌─────────▼─────────┐           ┌─────────▼─────────┐
+                    │   COMMERCE LAYER  │           │ COMMUNITY LAYER   │
+                    ├───────────────────┤           ├────────────────────┤
+                    │ • Merch purchases │           │ • Fan comments     │
+                    │ • Music downloads │           │ • Ratings / polls  │
+                    │ • Ticket sales    │           │ • Fan leaderboard  │
+                    │ • Drop minting (NFT)│         │ • Private channels │
+                    │ • Cart / checkout  │          │ • Clubs / tiers    │
+                    └──────────┬─────────┘          └──────────┬─────────┘
+                               │                               │
+                               └───────────────┬───────────────┘
+                                               │
+                              ┌────────────────▼────────────────┐
+                              │         RATE LIMITING + SECURITY│
+                              │ (bot/spam/ddos/fraud protection)│
+                              └───────────────┬─────────────────┘
+                                              │
+                 ┌────────────────────────────┴─────────────────────────────┐
+                 │                     AGGREGATED ANALYTICS                 │
+                 └───────────────┬────────────────────┬─────────────────────┘
+                                 │                    │
+                      ┌──────────▼───────────┐   ┌───▼────────────────────┐
+                      │     FAN ENGAGEMENT   │   │     GROWTH / MARKETING │
+                      ├──────────────────────┤   ├────────────────────────┤
+                      │ • Skip / Replay rate │   │ • Campaign source      │
+                      │ • Avg listen/watch   │   │ • UTM performance      │
+                      │ • Songs per session  │   │ • Returning fans       │
+                      │ • Completion rate    │   │ • Social conversions   │
+                      │ • Community actions  │   │ • Email/SMS opt-ins    │
+                      │ • Anon → Fan conversion│ │ • Geo heatmaps         │
+                      └───────────┬────────────┘  └───────────┬───────────┘
+                                  │                           │
+                         ┌────────▼───────────┐     ┌─────────▼─────────────┐
+                         │    REVENUE METRICS │     │     CONTENT INSIGHTS  │
+                         ├────────────────────┤     ├───────────────────────┤
+                         │ • Merch revenue    │     │ • Top tracks/videos   │
+                         │ • Ticket revenue   │     │ • Drop performance    │
+                         │ • NFT sales        │     │ • Fan favorites       │
+                         │ • ARPU (per fan)   │     │ • Content lifespan    │
+                         │ • LTV (per fan)    │     │ • Optimal drop timing │
+                         └────────────────────┘     └───────────────────────┘
+                                               │
+                              ┌────────────────▼─────────────────┐
+                              │     EMAIL / SMS / PUSH SYSTEM    │
+                              ├──────────────────────────────────┤
+                              │ • New drop alerts                │
+                              │ • Tour / show announcements      │
+                              │ • Fan-tier exclusive content     │
+                              │ • Abandoned cart reminders       │
+                              │ • Reactivation campaigns         │
+                              └────────────────┬─────────────────┘
+                                               │
+                             ┌─────────────────▼───────────────────┐
+                             │ DISTRIBUTION / EXTERNAL PLATFORMS   │
+                             ├─────────────────────────────────────┤
+                             │ • Spotify / Apple Music / Tidal     │
+                             │ • YouTube / TikTok / IG             │
+                             │ • Web3 / NFT marketplaces           │
+                             │ • Ticket platforms                  │
+                             └─────────────────────────────────────┘
+
+
+
+
+
+
+Monetization/Drop Strategy Notes:
+
+┌───────────────────────────────┐
+│ Teasers / Previews            │
+│ (Spotify, YouTube, Apple)     │
+│ - 30–60 sec snippets          │
+│ - Build hype & drive traffic  │
+│ - Include UTM / referral links│
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│ Premium Early Streaming       │
+│ (Your Platform)               │
+│ - Full songs/albums           │
+│ - Streaming-only, no downloads│
+│ - Early access for superfans  │
+│ - Optional NFTs, merch bundles│
+│ - Limited time window         │
+│ - Single-login enforcement    │
+│ - Watermark / fingerprinting  │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│ Public Release                │
+│ (Spotify, YouTube, Apple)     │
+│ - Standard release            │
+│ - Streams = royalties         │
+│ - Exposure & traffic          │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│ Analytics & Fan Tracking      │
+│ - Plays, skips, time spent    │
+│ - Conversion: teaser → early  │
+│ - Engagement metrics          │
+│ - Identify superfans          │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│ Monetization Loop             │
+│ - Subscriptions for early access│
+│ - NFTs / merch / exclusive perks│
+│ - Limited edition campaigns   │
+│ - Optimize future drops       │
+└───────────────────────────────┘
+
+
+
+
+Splits: 
+
+┌───────────────────────────────┐
+│ Artist Website & Monetization │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Song / Beat Types             │
+├───────────────────────────────┤
+│ • Owned Beats / Original Songs│
+│   - Full monetization on site │
+│   - Early access, VIP, NFTs   │
+│ • Leased Beats / Collaborations│
+│   - Public platforms only     │
+│   - Free teasers (15–30 sec) │
+│   - Attribution required      │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Platform Distribution          │
+├───────────────────────────────┤
+│ • YouTube / Spotify / Apple   │
+│   - Full songs for exposure   │
+│   - Leased beats revenue split│
+│ • Your Website                │
+│   - Owned beats only          │
+│   - Monetized subscriptions   │
+│   - Early access & VIP content│
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Monetization Flow             │
+├───────────────────────────────┤
+│ 1. Platform pays $100         │
+│ 2. Distributor (CD Baby) 9%  │
+│    → $9 fee                   │
+│ 3. Remaining $91 split 50/50  │
+│    - Producer (leased beat):  │
+│      $45.50                   │
+│    - You: $45.50 (owned beat)│
+│ • Owned beats: you keep all remaining after fees │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Teasers & Previews            │
+├───────────────────────────────┤
+│ • Leased beats: 15–30 sec clips│
+│ • Free, streaming-only         │
+│ • Attribution to producer      │
+│ • Drives traffic to platform   │
+│ • Do NOT monetize leased beats │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Release Strategy              │
+├───────────────────────────────┤
+│ Phase 0 – Prep                │
+│   - Artist branding, logos    │
+│   - Platform & website setup  │
+│   - Plan release schedule     │
+│ Phase 1 – Public Release      │
+│   - Full songs on YouTube / Spotify / Apple Music │
+│ Phase 2 – Early Access        │
+│   - Owned beats on website   │
+│   - Subscriptions, VIP, NFTs │
+│ Phase 3 – Ongoing             │
+│   - Analytics & optimization │
+│   - Build fanbase & email list│
+│   - Future releases & premium content │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Best Practices                │
+├───────────────────────────────┤
+│ • Always honor lease splits   │
+│ • Give attribution for leased beats │
+│ • Use short teasers for hype  │
+│ • Monetize only owned beats   │
+│ • Track analytics via UTM / Convex │
+│ • Build relationships with producers │
+└───────────────────────────────┘
+
+
+
+
+
+-------------------------------------------------------------------
+(TLDR)
+
+
+┌───────────────────────────────┐
+│ Artist Platform Strategy TL;DR│
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Song / Beat Types             │
+├───────────────────────────────┤
+│ • Owned Beats → monetize fully│
+│   (subscriptions, VIP, NFTs) │
+│ • Leased Beats → public platforms only │
+│   Free teasers on website     │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Monetization & Revenue Splits │
+├───────────────────────────────┤
+│ • Distributor fee first (e.g., CD Baby 9%) │
+│ • Remaining revenue: split with producer if leased (e.g., 50/50) │
+│ • Owned beats: you keep all after fees   │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Teasers & Promotion           │
+├───────────────────────────────┤
+│ • Short 15–30 sec clips of leased beats│
+│ • Free streaming only, attribution required │
+│ • Drives traffic to website / email list │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Release Strategy              │
+├───────────────────────────────┤
+│ Phase 0 – Prep: branding, platforms, assets │
+│ Phase 1 – Public Release: full songs on YouTube / Spotify / Apple Music │
+│ Phase 2 – Early Access: website w/ owned beats, subscriptions, VIP content │
+│ Phase 3 – Ongoing: analyze analytics, optimize releases, build audience │
+└─────────────┬─────────────────┘
+
+              │
+              ▼
+┌───────────────────────────────┐
+│ Best Practices                │
+├───────────────────────────────┤
+│ • Honor lease agreements      │
+│ • Monetize only what you own  │
+│ • Track analytics (UTM / Convex) │
+│ • Maintain good producer relationships │
+└───────────────────────────────┘
+
+
+
+
+
+Methods:
+
+┌───────────────────────────────┐
+│ Public Platforms (Exposure)   │
+├───────────────────────────────┤
+│ • YouTube (full tracks, ads) │
+│ • SoundCloud (full tracks, streaming analytics) │
+│ • Spotify (full tracks, royalties, charts) │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│ Website Hub / “Premium Player”│
+├───────────────────────────────┤
+│ • Embed YouTube / SoundCloud │
+│ • Fans stream directly → analytics tracked (Convex/UTM) │
+│ • Owned beats & exclusive content available │
+│ • VIP content, early access, subscriptions, merch, NFTs │
+│ • Funnels casual listeners → superfans │
+└─────────────┬─────────────────┘
+              │
+              ▼
+┌───────────────────────────────┐
+│ Monetization & Fan Conversion │
+├───────────────────────────────┤
+│ • Owned beats = full revenue on site │
+│ • Leased beats = public platforms only │
+│ • Subscriptions / VIP tiers / NFTs / merch │
+│ • Email / wallet capture → long-term fanbase │
+└───────────────────────────────┘

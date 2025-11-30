@@ -49,15 +49,25 @@ export const songs = [
     src: "/assets/music/Parlay.mp3",
     category: "Mac808",
     image: "/assets/images/music/track1.jpg",
-  },  {
+  }, 
+  {
     id: 7,
+    title: "Cry For You",
+    artist: "Mac808",
+    src: "/assets/music/CryForYou.mp3",
+    category: "Mac808",
+    image: "/assets/images/music/track1.jpg",
+  },
+  
+  {
+    id: 8,
     title: "Where u are",
     artist: "Mac808",
     src: "/assets/music/where2.mp3",
     category: "Mac808",
     image: "/assets/images/music/track1.jpg",
   },{
-    id: 8,
+    id: 9,
     title: "Farther",
     artist: "Mac808",
     src: "/assets/music/Farther.mp3",
@@ -65,7 +75,7 @@ export const songs = [
     image: "/assets/images/music/track1.jpg",
   },
   {
-    id: 9,
+    id: 10,
     title: "RIP",
     artist: "Mac Phantom",
     src: "/assets/music/trackrip.mp3",
