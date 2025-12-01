@@ -58,16 +58,23 @@ export const songs = [
     category: "Mac808",
     image: "/assets/images/music/track1.jpg",
   },
-  
   {
     id: 8,
+    title: "You Gotta Love",
+    artist: "Mac808",
+    src: "/assets/music/YouGottaLove.mp3",
+    category: "Mac808",
+    image: "/assets/images/music/track1.jpg",
+  },
+  {
+    id: 9,
     title: "Where u are",
     artist: "Mac808",
     src: "/assets/music/where2.mp3",
     category: "Mac808",
     image: "/assets/images/music/track1.jpg",
   },{
-    id: 9,
+    id: 10,
     title: "Farther",
     artist: "Mac808",
     src: "/assets/music/Farther.mp3",
@@ -75,7 +82,7 @@ export const songs = [
     image: "/assets/images/music/track1.jpg",
   },
   {
-    id: 10,
+    id: 11,
     title: "RIP",
     artist: "Mac Phantom",
     src: "/assets/music/trackrip.mp3",
