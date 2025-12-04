@@ -83,6 +83,15 @@ export const songs = [
   },
   {
     id: 11,
+    title: "Drive Safe",
+    artist: "Mac808",
+    src: "/assets/music/DriveSafe.mp3",
+    category: "Mac808",
+    image: "/assets/images/music/track1.jpg",
+  },
+
+  {
+    id: 12,
     title: "RIP",
     artist: "Mac Phantom",
     src: "/assets/music/trackrip.mp3",
