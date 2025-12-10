@@ -92,7 +92,7 @@ export const songs = [
 
   {
     id: 12,
-    title: "RIP",
+    title: "RIPP",
     artist: "Mac Phantom",
     src: "/assets/music/trackrip.mp3",
     category: "MacPhantom",
