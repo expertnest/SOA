@@ -54,7 +54,7 @@ export default function TourPage() {
                   Tickets
                 </Button>
               </Link>
-              <span className="text-gray-400 text-xs">Doors open 1h before, VIP info</span>
+              <span className="text-gray-400 text-xs">Doors open 2h before, VIP info</span>
             </div>
           ))}
         </div>
