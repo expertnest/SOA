@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mac Phantom Music",
-  description: "Mac Phantom Music Videos and News",
+  title: "SOA Music",
+  description: "SOA Music Videos and News",
 };
 
 export default function RootLayout({

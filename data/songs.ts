@@ -92,9 +92,9 @@ export const songs = [
 
   {
     id: 12,
-    title: "RIPP",
+    title: "Bounce Back",
     artist: "Mac Phantom",
-    src: "/assets/music/trackrip.mp3",
+    src: "/assets/music/Bounce.mp3",
     category: "MacPhantom",
     image: "/assets/images/music/track1.jpg",
   },

@@ -50,7 +50,7 @@ export default function MusicVideos() {
         {/* Main title */}
         <div className="text-center mt-8">
           <h1 className="text-4xl font-extrabold uppercase tracking-wider text-white drop-shadow select-none">
-            Mac Phantom
+          SOA
           </h1>
         </div>
       </div>
