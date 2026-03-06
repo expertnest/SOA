@@ -114,7 +114,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 {/* Left: Brand */}
                 <div className="w-1/3 flex justify-start">
                   <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-white">
-                 SOA
+                 State Of The Art Music
                   </div>
                 </div>
 
