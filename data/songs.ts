@@ -1,12 +1,13 @@
+export const defaultArt = "/albumart.png";
+
 export const songs = [
-  
   {
     id: 1,
     title: "Hold On",
     artist: "Mac808",
     src: "/assets/music/HoldOn.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt,
   },
   {
     id: 2,
@@ -14,7 +15,7 @@ export const songs = [
     artist: "Mac808",
     src: "/assets/music/track1.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt,
   },
   {
     id: 3,
@@ -22,41 +23,39 @@ export const songs = [
     artist: "Mac808",
     src: "/assets/music/track2.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track2.jpg",
+    image: defaultArt,
   },
-  
   {
     id: 4,
     title: "See The World",
     artist: "Mac808",
     src: "/assets/music/wannaknow5.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track2.jpg",
+    image: defaultArt,
   },
-   
- 
   {
     id: 5,
     title: "7Gunna",
     artist: "Mac808",
     src: "/assets/music/7gunna.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
-  },  {
+    image: defaultArt,
+  },
+  {
     id: 6,
     title: "Parlay",
     artist: "Mac808",
     src: "/assets/music/Parlay.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
-  }, 
+    image: defaultArt,
+  },
   {
     id: 7,
     title: "Cry For You",
     artist: "Mac808",
     src: "/assets/music/CryForYou.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt,
   },
   {
     id: 8,
@@ -64,7 +63,7 @@ export const songs = [
     artist: "Mac808",
     src: "/assets/music/YouGottaLove.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt,
   },
   {
     id: 9,
@@ -72,14 +71,15 @@ export const songs = [
     artist: "Mac808",
     src: "/assets/music/where2.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
-  },{
+    image: defaultArt,
+  },
+  {
     id: 10,
     title: "Farther",
     artist: "Mac808",
     src: "/assets/music/Farther.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt,
   },
   {
     id: 11,
@@ -87,15 +87,14 @@ export const songs = [
     artist: "Mac808",
     src: "/assets/music/DriveSafe.mp3",
     category: "Mac808",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt,
   },
-
   {
     id: 12,
     title: "Bounce Back",
     artist: "Mac Phantom",
     src: "/assets/music/Bounce.mp3",
     category: "MacPhantom",
-    image: "/assets/images/music/track1.jpg",
+    image: defaultArt, // public/albumart.png
   },
 ];

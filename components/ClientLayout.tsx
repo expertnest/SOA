@@ -114,7 +114,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 {/* Left: Brand */}
                 <div className="w-1/3 flex justify-start">
                   <div className="text-2xl font-extrabold uppercase tracking-[0.15em] text-white">
-                 State Of The Art Music
+                 SOA Music
                   </div>
                 </div>
 
@@ -149,7 +149,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             >
               <div className="min-h-full pb-[100px]">{children}</div>
             </main>
-            {!hideSidebars && <RightSidebar />}
+            {/*!hideSidebars && <RightSidebar />*/}
           </div>
         </div>
 

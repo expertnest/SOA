@@ -13,11 +13,11 @@ import {
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useMusic } from "@/hooks/MusicContext";
-import { songs } from "@/data/songs";
+import { songs, defaultArt } from "@/data/songs";
 
 export default function LeftSidebar() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("New Releases");
+  const [selectedCategory, setSelectedCategory] = useState("Mac808"); // default playlist
   const [mounted, setMounted] = useState(false);
 
   const {
@@ -31,11 +31,16 @@ export default function LeftSidebar() {
     setVolume,
     playSong,
     currentSong,
-    setCurrentSongIndex,
   } = useMusic();
 
   useEffect(() => {
     setMounted(true);
+
+    // Optional: auto-select the first song in Mac808 on first render
+    if (!currentSong) {
+      const firstSong = songs.find((s) => s.category === "Mac808");
+      if (firstSong) playSong(firstSong);
+    }
   }, []);
 
   const playlists = ["MacPhantom", "Mac808"];
@@ -43,8 +48,7 @@ export default function LeftSidebar() {
     (song) => song.category === selectedCategory
   );
 
-  // Always display the current song in the image section
-  const displaySong = currentSong;
+  const displaySong = currentSong || { image: defaultArt, title: "", artist: "" };
 
   if (!mounted) return null;
 
@@ -98,28 +102,27 @@ export default function LeftSidebar() {
           </ul>
 
           {/* Current Song Image */}
-          <div className="relative mb-5 rounded-xl overflow-hidden h-56 md:h-60 bg-black/40">
-            {displaySong?.image && (
-              <Image
-                src={displaySong.image}
-                alt={displaySong.title || "Song"}
-                fill
-                className="object-cover opacity-90"
-              />
-            )}
-            <div className="absolute inset-0 bg-black/50"></div>
-            <div className="absolute bottom-3 left-3 right-3">
-              <p className="text-md font-semibold truncate">
-                {displaySong?.title || "Select a song"}
+          <div className="relative mb-5 rounded-xl overflow-hidden h-72 md:h-80 bg-black/20">
+            <Image
+              src={displaySong.image || defaultArt}
+              alt={displaySong.title || "Song"}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute bottom-5 left-4 right-4">
+              {/*}
+              <p className="text-lg font-semibold truncate text-white drop-shadow-md">
+                {displaySong.title || "Select a song"}
               </p>
-              <p className="text-xs text-white/70 truncate">
-                {displaySong?.artist || ""}
-              </p>
+              <p className="text-sm text-white/80 truncate drop-shadow-md">
+                {displaySong.artist || ""}
+              </p> */}
             </div>
           </div>
 
           {/* Song List */}
-          <div className="overflow-y-auto flex-1 pr-1 text-sm space-y-1 max-h-[calc(100vh-420px)] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
+          <div className="overflow-y-auto flex-1 pr-1 text-sm space-y-1 max-h-[calc(100vh-480px)] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {filteredSongs.map((song) => {
               const isCurrent = currentSong?.id === song.id;
               return (
@@ -197,7 +200,7 @@ export default function LeftSidebar() {
                   <div
                     className="h-1 bg-white rounded absolute left-0 top-0"
                     style={{ width: `${progress}%` }}
-                  ></div>
+                  />
                 </div>
                 <button onClick={handleNext}>
                   <SkipForward size={18} />

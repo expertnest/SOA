@@ -17,7 +17,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand */}
         <h1 className="text-2xl md:text-4xl font-extrabold uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-[#00ffff] via-white to-[#00ffff] drop-shadow-[0_0_10px_rgba(0,255,255,0.7)] transition-all duration-300 hover:scale-105">
-         State Of The Art Music
+         SOA
         </h1>
 
         {/* Navbar */}
