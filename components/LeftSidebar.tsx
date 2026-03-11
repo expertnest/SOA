@@ -102,14 +102,14 @@ export default function LeftSidebar() {
           </ul>
 
           {/* Current Song Image */}
-          <div className="relative mb-5 rounded-xl overflow-hidden h-72 md:h-80 bg-black/20">
+          <div className="relative mb-5 rounded-xl overflow-hidden h-72 md:h-80  ">
             <Image
               src={displaySong.image || defaultArt}
               alt={displaySong.title || "Song"}
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-black/20"></div>
+            <div className="absolute inset-0  "></div>
             <div className="absolute bottom-5 left-4 right-4">
               {/*}
               <p className="text-lg font-semibold truncate text-white drop-shadow-md">
