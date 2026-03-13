@@ -17,7 +17,7 @@ import { songs, defaultArt } from "@/data/songs";
 
 export default function LeftSidebar() {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("Mac808"); // default playlist
+  const [selectedCategory, setSelectedCategory] = useState("MacPhantom");
   const [mounted, setMounted] = useState(false);
 
   const {
@@ -36,19 +36,20 @@ export default function LeftSidebar() {
   useEffect(() => {
     setMounted(true);
 
-    // Optional: auto-select the first song in Mac808 on first render
     if (!currentSong) {
-      const firstSong = songs.find((s) => s.category === "Mac808");
-      if (firstSong) playSong(firstSong);
+      const defaultSong = songs.find((s) => s.id === 12);
+      if (defaultSong) playSong(defaultSong);
     }
   }, []);
 
   const playlists = ["MacPhantom", "Mac808"];
+
   const filteredSongs = songs.filter(
     (song) => song.category === selectedCategory
   );
 
-  const displaySong = currentSong || { image: defaultArt, title: "", artist: "" };
+  const displaySong =
+    currentSong || { image: defaultArt, title: "", artist: "" };
 
   if (!mounted) return null;
 
@@ -102,22 +103,25 @@ export default function LeftSidebar() {
           </ul>
 
           {/* Current Song Image */}
-          <div className="relative mb-5 rounded-xl overflow-hidden h-72 md:h-80  ">
+          <div className="relative mb-5 rounded-xl overflow-hidden h-72 md:h-80">
             <Image
               src={displaySong.image || defaultArt}
               alt={displaySong.title || "Song"}
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0  "></div>
+
+            <div className="absolute inset-0"></div>
+
             <div className="absolute bottom-5 left-4 right-4">
-              {/*}
+              {/* Optional title display
               <p className="text-lg font-semibold truncate text-white drop-shadow-md">
                 {displaySong.title || "Select a song"}
               </p>
               <p className="text-sm text-white/80 truncate drop-shadow-md">
                 {displaySong.artist || ""}
-              </p> */}
+              </p>
+              */}
             </div>
           </div>
 
@@ -125,6 +129,7 @@ export default function LeftSidebar() {
           <div className="overflow-y-auto flex-1 pr-1 text-sm space-y-1 max-h-[calc(100vh-480px)] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
             {filteredSongs.map((song) => {
               const isCurrent = currentSong?.id === song.id;
+
               return (
                 <div
                   key={song.id}
@@ -136,45 +141,57 @@ export default function LeftSidebar() {
                   <div className="flex flex-col min-w-0">
                     <p
                       className={`truncate ${
-                        isCurrent ? "font-semibold text-white" : "text-white/70"
+                        isCurrent
+                          ? "font-semibold text-white"
+                          : "text-white/70"
                       }`}
                     >
                       {song.title}
                     </p>
+
                     <p className="text-xs text-white/50 truncate">
                       {song.artist}
                     </p>
                   </div>
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+
                       if (isCurrent) togglePlay();
                       else playSong(song);
                     }}
                     className="ml-2 p-1 rounded-full hover:bg-white/10 transition"
                   >
-                    {isCurrent && isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                    {isCurrent && isPlaying ? (
+                      <Pause size={16} />
+                    ) : (
+                      <Play size={16} />
+                    )}
                   </button>
                 </div>
               );
             })}
           </div>
 
-          {/* Now Playing & Controls */}
+          {/* Now Playing */}
           {currentSong && (
             <div className="mt-auto pt-3 border-t border-white/20">
               <p className="text-xs text-white/50 uppercase mb-2 tracking-wide">
                 Now Playing
               </p>
+
               <div className="bg-black/40 rounded-lg p-3 flex items-center gap-3 backdrop-blur-sm">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate text-white">
                     {currentSong.title}
                   </p>
+
                   <p className="text-xs text-white/50 truncate">
                     {currentSong.artist}
                   </p>
                 </div>
+
                 <button
                   onClick={togglePlay}
                   className="p-2 rounded-full hover:bg-white/10 transition"
@@ -188,6 +205,7 @@ export default function LeftSidebar() {
                 <button onClick={handlePrev}>
                   <SkipBack size={18} />
                 </button>
+
                 <div
                   className="flex-1 h-1 mx-2 bg-white/20 rounded cursor-pointer relative"
                   onClick={(e) => {
@@ -202,6 +220,7 @@ export default function LeftSidebar() {
                     style={{ width: `${progress}%` }}
                   />
                 </div>
+
                 <button onClick={handleNext}>
                   <SkipForward size={18} />
                 </button>
@@ -210,13 +229,16 @@ export default function LeftSidebar() {
               {/* Volume */}
               <div className="flex items-center gap-2 mt-3">
                 <Volume2 size={16} />
+
                 <input
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
                   value={volume}
-                  onChange={(e) => setVolume(parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    setVolume(parseFloat(e.target.value))
+                  }
                   className="w-full accent-white/70 cursor-pointer"
                 />
               </div>

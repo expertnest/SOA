@@ -21,11 +21,15 @@ type MusicContextType = {
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
 export function MusicProvider({ children }: { children: React.ReactNode }) {
+
+  const defaultIndex = songs.findIndex((s) => s.id === 12);
+
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSongIndex, setCurrentSongIndex] = useState(0);
+  const [currentSongIndex, setCurrentSongIndex] = useState(defaultIndex);
   const [progress, setProgress] = useState(0);
   const [volume, setVolume] = useState(1);
   const [duration, setDuration] = useState(0);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentSong = songs[currentSongIndex];
@@ -39,7 +43,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     const audio = audioRef.current;
 
     const updateProgress = () => {
-      if (audio && audio.duration) {
+      if (audio.duration) {
         setProgress((audio.currentTime / audio.duration) * 100);
         setDuration(audio.duration);
       }
@@ -57,20 +61,24 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       audio.removeEventListener("timeupdate", updateProgress);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [currentSongIndex, isPlaying, currentSong.src]);
+  }, [currentSongIndex, currentSong.src]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
+
     if (isPlaying) audio.pause();
     else audio.play();
+
     setIsPlaying(!isPlaying);
   };
 
   const handleNext = () => {
     if (currentSongIndex >= songs.length - 1) return;
+
     const nextIndex = currentSongIndex + 1;
     setCurrentSongIndex(nextIndex);
+
     if (audioRef.current) {
       audioRef.current.src = songs[nextIndex].src;
       if (isPlaying) audioRef.current.play();
@@ -79,8 +87,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
   const handlePrev = () => {
     if (currentSongIndex <= 0) return;
+
     const prevIndex = currentSongIndex - 1;
     setCurrentSongIndex(prevIndex);
+
     if (audioRef.current) {
       audioRef.current.src = songs[prevIndex].src;
       if (isPlaying) audioRef.current.play();
@@ -89,15 +99,19 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
   const seek = (value: number) => {
     if (audioRef.current && audioRef.current.duration) {
-      audioRef.current.currentTime = (value / 100) * audioRef.current.duration;
+      audioRef.current.currentTime =
+        (value / 100) * audioRef.current.duration;
+
       setProgress(value);
     }
   };
 
   const playSong = (song: typeof songs[0]) => {
     const index = songs.findIndex((s) => s.id === song.id);
+
     if (index !== -1) {
       setCurrentSongIndex(index);
+
       if (audioRef.current) {
         audioRef.current.src = song.src;
         audioRef.current.play();
@@ -105,6 +119,12 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       }
     }
   };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
 
   return (
     <MusicContext.Provider
@@ -130,6 +150,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
 export function useMusic() {
   const ctx = useContext(MusicContext);
-  if (!ctx) throw new Error("useMusic must be used within a MusicProvider");
+  if (!ctx) throw new Error("useMusic must be used within MusicProvider");
   return ctx;
 }

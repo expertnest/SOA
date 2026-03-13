@@ -81,20 +81,13 @@ export const songs = [
     category: "Mac808",
     image: defaultArt,
   },
-  {
-    id: 11,
-    title: "Drive Safe",
-    artist: "Mac808",
-    src: "/assets/music/DriveSafe.mp3",
-    category: "Mac808",
-    image: defaultArt,
-  },
+  
   {
     id: 12,
     title: "Bounce Back",
-    artist: "Mac Phantom",
-    src: "/assets/music/Bounce.mp3",
+    artist: "Mac Phantom (Prod. Onokey)",
+    src: "/assets/music/BounceBackk.mp3",
     category: "MacPhantom",
-    image: defaultArt, // public/albumart.png
+    image: "/album1.png", // public/albumart.png
   },
 ];
