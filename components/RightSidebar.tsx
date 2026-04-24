@@ -9,7 +9,7 @@ export default function RightSidebar() {
   return (
     <aside
       className={`bg-black/40 backdrop-blur-2xl text-white border-l border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 shadow-xl ${
-        rightCollapsed ? "w-12 md:w-12" : "w-64 md:w-80"
+        rightCollapsed ? "w-12 md:w-12" : "w-64 md:w-[245px]"
       } flex-shrink-0`}
     >
       {/* Collapse Button */}

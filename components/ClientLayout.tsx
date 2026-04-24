@@ -149,7 +149,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             >
               <div className="min-h-full pb-[100px]">{children}</div>
             </main>
-            {/*!hideSidebars && <RightSidebar />*/}
+            {!hideSidebars && <RightSidebar />}
           </div>
         </div>
 

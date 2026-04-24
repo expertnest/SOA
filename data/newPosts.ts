@@ -21,7 +21,7 @@ export const newsPosts: Post[] = [
     modalText: `ShottiGotSwag and Qmilly are back in the studio cooking up magic!
 Their collab for ‘Swerve’ showcases their unique styles and synergy.
 `,
-    image: "/soa.png",
+    image: "/crowd.jpg",
     color: "from-green-500 to-teal-500",
     slug: "moneywalk-coming-to-cash-out",
   },

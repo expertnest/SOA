@@ -37,11 +37,11 @@ export default function NewsGrid() {
         </Link>
       )}
 
-      {/* --- Newsletter --- */}
-      <div className="mt-6">
+      {/* --- Newsletter   <div className="mt-6">
         <Newsletter />
       </div>
-
+ --- */}
+    
       {/* --- Other Posts Grid --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         {others.map((post, index) => (

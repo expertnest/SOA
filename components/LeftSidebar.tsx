@@ -56,7 +56,7 @@ export default function LeftSidebar() {
   return (
     <aside
       className={`bg-black/60 backdrop-blur-lg text-white border-r border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
-        leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-72"
+        leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-[245px]"
       } flex-shrink-0 shadow-lg`}
     >
       {/* Collapse Button */}
