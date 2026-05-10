@@ -135,9 +135,7 @@ export default function Home() {
                     />
 
                     {/* HEART OVERLAY */}
-                    <div className="absolute top-1 right-1 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                      ❤️ {Math.floor(Math.random() * 900 + 100)}
-                    </div>
+                 
 
                     {/* HOVER HEART (IG STYLE) */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
