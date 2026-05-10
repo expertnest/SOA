@@ -1,91 +1,95 @@
-'use client'
-
-import { useState } from "react"
-import { ChevronRight } from "lucide-react"
+"use client";
 
 export default function RightSidebar() {
-  const [rightCollapsed, setRightCollapsed] = useState(false)
-
   return (
-    <aside
-      className={`bg-black/40 backdrop-blur-2xl text-white border-l border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 shadow-xl ${
-        rightCollapsed ? "w-12 md:w-12" : "w-64 md:w-[245px]"
-      } flex-shrink-0`}
-    >
-      {/* Collapse Button */}
-      <button
-        onClick={() => setRightCollapsed(!rightCollapsed)}
-        className="mb-2 md:mb-4 text-white/70 hover:text-cyan-400 self-start transition-colors duration-300"
-      >
-        <ChevronRight
-          size={20}
-          className={`${rightCollapsed ? "rotate-180" : ""}`}
+    <aside className="h-full w-64 md:w-[260px] bg-black/60 backdrop-blur-lg text-white border-l border-gray-800 p-3 md:p-4 flex flex-col shadow-lg overflow-y-auto space-y-6">
+
+      {/* TRENDING TRACKS */}
+      <div>
+        <h2 className="text-xs font-bold uppercase text-white/60 tracking-wider mb-2 text-center">
+          Trending Tracks (5)
+        </h2>
+
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-3 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-lg p-2 transition cursor-pointer"
+            >
+              <img
+                src="/albumart.png"
+                className="w-10 h-10 rounded-md object-cover"
+              />
+              <div className="leading-tight">
+                <p className="text-xs font-semibold">Track {idx + 1}</p>
+                <p className="text-[10px] text-white/50">Artist Name</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* MERCH COLLECTION */}
+      <div>
+        <h2 className="text-xs font-bold uppercase text-white/60 tracking-wider mb-2 text-center">
+          Merch Collection
+        </h2>
+
+        <div className="grid grid-cols-2 gap-2">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="relative group overflow-hidden rounded-lg"
+            >
+              <img
+                src={`/clothes${idx + 1}.png`}
+                className="w-full h-20 object-cover group-hover:scale-110 transition duration-500"
+              />
+              <div className="absolute inset-0 bg-black/30 group-hover:bg-indigo-500/10 transition" />
+            </div>
+          ))}
+        </div>
+
+        <button className="mt-2 w-full py-1.5 text-xs font-semibold bg-white text-black rounded-md hover:bg-gray-200 transition">
+          View All Merch
+        </button>
+      </div>
+
+      {/* STAY CONNECTED */}
+      <div>
+        <h2 className="text-xs font-bold uppercase text-white/60 tracking-wider mb-2 text-center">
+          Stay Connected
+        </h2>
+
+        <input
+          type="email"
+          placeholder="Enter your email"
+          className="w-full px-2 py-1.5 rounded-md bg-black/30 border border-gray-700 text-xs focus:outline-none focus:border-indigo-400 text-center"
         />
-      </button>
 
-      {!rightCollapsed && (
-        <>
-          {/* Social Feed */}
-          <div className="sticky top-0 bg-black/30 backdrop-blur-sm mb-3 rounded-md p-2 shadow-inner">
-            <h2 className="text-lg font-bold uppercase text-white/60 tracking-wider">
-              Social Feed
-            </h2>
-          </div>
-          <div className="flex-1 overflow-y-auto pr-2 pl-2 space-y-3 scrollbar-thin scrollbar-thumb-cyan-600 scrollbar-track-transparent">
-            {Array.from({ length: 6 }).map((_, idx) => (
-              <a
-                key={idx}
-                href="https://instagram.com"
-                target="_blank"
-                className="block bg-black/30 rounded-xl shadow-lg hover:shadow-cyan-500/40 hover:scale-105 transition-all duration-300 border border-transparent hover:border-cyan-400 p-2 md:p-3"
-              >
-                <div className="relative h-24 md:h-40 w-full overflow-hidden rounded-t-xl">
-                  <img
-                    src={`https://via.placeholder.com/300x300.png?text=IG+Post+${
-                      idx + 1
-                    }`}
-                    alt={`IG Post ${idx + 1}`}
-                    className="object-cover w-full h-full transition-transform duration-500 hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-                </div>
-                <div className="pt-2 md:pt-3">
-                  <p className="text-xs text-white/50 mb-1">@artisthandle</p>
-                  <p className="text-sm font-semibold text-white/90 line-clamp-2">
-                    Check out this latest drop!
-                  </p>
-                </div>
-              </a>
-            ))}
-          </div>
+        <button className="mt-2 w-full py-1.5 text-xs font-semibold bg-white text-black rounded-md hover:bg-gray-200 transition">
+          Subscribe
+        </button>
+      </div>
 
-          {/* Tour Dates */}
-          <div className="sticky top-0 bg-black/30 backdrop-blur-sm mt-4 mb-2 rounded-md p-2 shadow-inner">
-            <h2 className="text-lg font-bold uppercase text-white/60 tracking-wider">
-              Upcoming Tour Dates
-            </h2>
-          </div>
-          <div className="flex-1 overflow-y-auto pr-2 pl-2 space-y-3 scrollbar-thin scrollbar-thumb-cyan-600 scrollbar-track-transparent">
-            <ul>
-              {[
-                { date: "Oct 12, 2025", city: "New York, NY", venue: "Madison Square Garden" },
-                { date: "Oct 18, 2025", city: "Los Angeles, CA", venue: "Hollywood Bowl" },
-                { date: "Nov 2, 2025", city: "Chicago, IL", venue: "United Center" },
-                { date: "Nov 10, 2025", city: "Miami, FL", venue: "American Airlines Arena" },
-              ].map((tour, idx) => (
-                <li
-                  key={idx}
-                  className="p-3 md:p-4 bg-black/30 rounded-xl shadow-lg hover:shadow-cyan-500/40 hover:scale-105 transition-all duration-300 border border-transparent hover:border-cyan-400"
-                >
-                  <p className="text-xs text-white/50">{tour.date}</p>
-                  <p className="text-sm font-semibold text-white/90">{tour.city}</p>
-                  <p className="text-xs text-white/50">{tour.venue}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
+      {/* TOUR DATES CARD */}
+      <div className="bg-black/40 rounded-xl overflow-hidden border border-gray-800">
+        <img
+          src="/crowd.jpg"
+          className="w-full h-24 object-cover"
+        />
+
+        <div className="p-3 text-center space-y-1.5">
+          <h3 className="font-semibold text-sm text-white">Tour Dates</h3>
+          <p className="text-xs text-white/60">Coming Soon</p>
+          <p className="text-[10px] text-white/40">Stay Tuned</p>
+
+          <button className="mt-2 px-3 py-1.5 text-xs font-semibold bg-white text-black rounded-md hover:bg-gray-200 transition">
+            Get Updates
+          </button>
+        </div>
+      </div>
+
     </aside>
-  )
+  );
 }

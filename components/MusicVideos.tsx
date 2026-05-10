@@ -37,11 +37,7 @@ export default function MusicVideos() {
     <div className="mt-4 md:mt-6 bg-black p-4 md:p-0">
 
       {/* HEADER */}
-      <div className="text-center mt-6 mb-4">
-        <h1 className="text-4xl font-extrabold uppercase tracking-wider text-white">
-          SOA Music
-        </h1>
-      </div>
+    
 
       {/* TABS */}
       <div className="flex justify-center space-x-6 text-sm font-semibold text-white mb-6 md:hidden">
@@ -58,43 +54,22 @@ export default function MusicVideos() {
         ))}
       </div>
 
-      {/* IG STORIES ROW (ONLY UI NOW) */}
-      <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide px-2">
-
-        {tabData[activeTab].map((video, idx) => {
-          const gradient = storyGradients[idx % storyGradients.length];
-
-          return (
-            <div
-              key={video.id}
-              onClick={() => router.push(`/video-scroll?start=${idx}`)}
-              className="flex flex-col items-center flex-shrink-0 cursor-pointer active:scale-95 transition"
-            >
-
-              {/* Gradient Ring (IG STYLE) */}
-              <div className={`p-[2.5px] rounded-full bg-gradient-to-tr ${gradient}`}>
-                <div className="p-[2.5px] bg-black rounded-full">
-
-                  {/* STORY CIRCLE */}
-                  <div
-                    className="w-18 h-18 md:w-20 md:h-20 rounded-full bg-cover bg-center border border-black"
-                    style={{
-                      backgroundImage: `url(${
-                        video.thumbnail || "/placeholder.png"
-                      })`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* LABEL */}
-              <span className="text-[11px] text-white mt-2 w-16 text-center truncate">
-                {video.title}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {/* IG STORIES ROW (ONLY UI NOW)
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      */}
+ 
 
     </div>
   );
