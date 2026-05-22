@@ -1,181 +1,250 @@
-'use client';
+"use client";
 
-import { useState, useRef } from "react";
-import { FaPlay } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import {
+  Play,
+  Clock3,
+  Flame,
+  Eye,
+  ThumbsUp,
+  ArrowUpRight,
+  X,
+  Sparkles,
+} from "lucide-react";
 
-const videoData = {
-  "Music Videos": [
-    { id: 1, title: "Hit Track 1", url: "https://www.youtube.com/embed/abc1" },
-    { id: 2, title: "Hit Track 2", url: "https://www.youtube.com/embed/abc2" },
-    { id: 3, title: "Hit Track 3", url: "https://www.youtube.com/embed/abc3" },
-  ],
-  Podcasts: [
-    { id: 7, title: "Podcast Ep. 1", url: "https://www.youtube.com/embed/pod1" },
-    { id: 8, title: "Podcast Ep. 2", url: "https://www.youtube.com/embed/pod2" },
-  ],
-  "Behind the Scenes": [
-    { id: 13, title: "BTS 1", url: "https://www.youtube.com/embed/bts1" },
-  ],
-  "Live Performances": [
-    { id: 18, title: "Live Show 1", url: "https://www.youtube.com/embed/live1" },
-  ],
-  Stories: [
-    { id: 23, title: "Story 1", url: "https://www.youtube.com/embed/story1" },
-  ],
+/* ================= TYPES ================= */
+
+type Video = {
+  title: string;
+  year: number;
+  views: number;
+  likes: number;
+  thumbnail: string;
+  src: string;
 };
 
-const colors = [
-  "from-gray-900 to-gray-800",
-  "from-red-900 to-red-700",
-  "from-purple-900 to-purple-700",
-  "from-indigo-900 to-indigo-700",
-  "from-black to-gray-900",
-];
+export default function Videos() {
+  const [sort, setSort] = useState("popular");
+  const [activeVideo, setActiveVideo] = useState<Video | null>(null);
 
-export default function VideoContents() {
-  const categories = Object.entries(videoData);
-  const [selectedVideo, setSelectedVideo] = useState<number | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const videos: Video[] = [
+    {
+      title: "Neon Nights (Official Video)",
+      year: 2024,
+      views: 42000000,
+      likes: 1200000,
+      thumbnail: "/vid1.jpg",
+      src: "/video1.mp4",
+    },
+    {
+      title: "Afterglow (Short Film)",
+      year: 2023,
+      views: 28000000,
+      likes: 890000,
+      thumbnail: "/vid2.jpg",
+      src: "/video2.mp4",
+    },
+    {
+      title: "Static Dreams Visualizer",
+      year: 2022,
+      views: 18000000,
+      likes: 640000,
+      thumbnail: "/vid3.jpg",
+      src: "/video3.mp4",
+    },
+    {
+      title: "Live @ Tokyo",
+      year: 2024,
+      views: 12000000,
+      likes: 510000,
+      thumbnail: "/vid4.jpg",
+      src: "/video4.mp4",
+    },
+  ];
 
-  const videoContainerRef = useRef<HTMLDivElement>(null);
-  const videoRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const merch = [
+    { name: "Neon Hoodie", price: "$80", img: "/m1.jpg" },
+    { name: "Tour Tee", price: "$45", img: "/m2.jpg" },
+    { name: "Vinyl LP", price: "$35", img: "/m3.jpg" },
+    { name: "Cap", price: "$30", img: "/m4.jpg" },
+  ];
 
-  const allVideos = categories.flatMap(([_, vids]) => vids);
+  const sortedVideos = [...videos].sort((a, b) => {
+    if (sort === "popular") return b.views - a.views;
+    if (sort === "newest") return b.year - a.year;
+    if (sort === "liked") return b.likes - a.likes;
+    return 0;
+  });
 
-  const handleUpArrow = () => {
-    if (currentIndex > 0) {
-      const newIndex = currentIndex - 1;
-      setCurrentIndex(newIndex);
-      videoRefs.current[newIndex]?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const stats = [
+    { title: "Total Views", value: "1.2B", icon: Eye },
+    { title: "Subscribers", value: "8.4M", icon: Flame },
+    { title: "Avg Watch Time", value: "5.2m", icon: Clock3 },
+    { title: "Engagement", value: "92%", icon: ThumbsUp },
+  ];
 
-  const handleDownArrow = () => {
-    if (currentIndex < allVideos.length - 1) {
-      const newIndex = currentIndex + 1;
-      setCurrentIndex(newIndex);
-      videoRefs.current[newIndex]?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const handleScroll = () => {
-    if (!videoContainerRef.current) return;
-    const scrollTop = videoContainerRef.current.scrollTop;
-    const newIndex = Math.round(scrollTop / window.innerHeight);
-    setCurrentIndex(newIndex);
-  };
+  // ESC close
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveVideo(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   return (
-    <div className="relative w-full min-h-screen bg-black text-white flex flex-col overflow-hidden px-4 py-6 sm:px-6">
-      {/* === Main content === */}
-      <div className="relative z-10">
-        <h1 className="text-3xl font-bold mb-6 text-center md:text-left">
-          Video Library
-        </h1>
-
-        {categories.map(([category, videos], idx) => (
-          <div
-            key={category}
-            className={`mb-10 ${idx === categories.length - 1 ? "pb-24 sm:pb-32" : ""}`}
-          >
-            <h2 className="text-xl font-semibold mb-3">{category}</h2>
-            <VideoRow
-              videos={videos}
-              onClick={(id) => {
-                setSelectedVideo(id);
-                const index = allVideos.findIndex((v) => v.id === id);
-                setCurrentIndex(index);
-              }}
-            />
-          </div>
-        ))}
+    <div className="min-h-screen bg-black text-white pb-24">
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-cyan-500/10 blur-[180px]" />
+        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-blue-500/10 blur-[180px]" />
       </div>
 
-      {/* === Fullscreen Video Overlay === */}
-      {selectedVideo !== null && (
-        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-          {/* Close Button */}
-          <button
-            onClick={() => setSelectedVideo(null)}
-            className="absolute top-6 right-6 text-white text-3xl z-50 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center transition"
-          >
-            ✕
-          </button>
+      <div className="mx-auto max-w-7xl p-4 sm:p-6 flex flex-col gap-5 sm:gap-6">
+        {/* HERO */}
+        <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-zinc-950 to-black p-4 sm:p-6">
+          <div className="grid gap-5 sm:gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+            <div className="flex flex-col gap-4 sm:gap-5">
+              <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black">
+                Videos
+              </h1>
 
-          {/* Scrollable Videos */}
-          <div className="w-full h-full relative flex items-center justify-center">
-            <div
-              ref={videoContainerRef}
-              className="w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth"
-              onScroll={handleScroll}
-            >
-              {allVideos.map((video, idx) => (
-                <div
-                  key={video.id}
-                  ref={(el: HTMLDivElement | null) => {
-                    videoRefs.current[idx] = el;
-                  }}
-                  className="w-full h-screen flex items-center justify-center snap-start"
-                >
-                  <iframe
-                    src={video.url}
-                    title={video.title}
-                    className="w-full h-full sm:w-96 sm:h-[600px] md:w-[400px] lg:w-[500px] lg:h-[700px] rounded-md shadow-lg"
-                    allow="autoplay; fullscreen"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              ))}
+              <p className="text-zinc-400 max-w-xl text-sm sm:text-base">
+                Cinematic visuals, official music videos, and immersive
+                storytelling.
+              </p>
+
+              <button className="rounded-full bg-white px-4 py-2.5 sm:px-5 sm:py-3 text-black font-bold flex items-center gap-2 text-sm sm:text-base w-fit">
+                <Play size={16} fill="black" />
+                Play All
+              </button>
+
+              {/* STATS */}
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-4">
+                {stats.map((stat, i) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-2xl sm:rounded-3xl border border-white/10 bg-white/[0.03] p-3 sm:p-4"
+                    >
+                      <div className="flex justify-between">
+                        <div className="bg-cyan-500/10 p-1.5 sm:p-2 rounded-lg text-cyan-300">
+                          <Icon size={16} />
+                        </div>
+                        <ArrowUpRight
+                          size={12}
+                          className="text-zinc-600"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg sm:text-2xl font-black">
+                        {stat.value}
+                      </h3>
+                      <p className="text-[10px] sm:text-xs text-zinc-500">
+                        {stat.title}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Up/Down Arrows */}
-            <div className="absolute right-6 top-1/2 transform -translate-y-1/2 flex flex-col space-y-3 z-50">
-              <button
-                onClick={handleUpArrow}
-                className="bg-white/10 hover:bg-white/20 text-white text-xl p-2 rounded transition"
-              >
-                ↑
-              </button>
-              <button
-                onClick={handleDownArrow}
-                className="bg-white/10 hover:bg-white/20 text-white text-xl p-2 rounded transition"
-              >
-                ↓
-              </button>
+            {/* FEATURED */}
+            <div
+              onClick={() => setActiveVideo(videos[0])}
+              className="cursor-pointer rounded-3xl overflow-hidden border border-white/10 relative group h-[220px] sm:h-auto"
+            >
+              <img
+                src={videos[0].thumbnail}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4">
+                <h2 className="text-base sm:text-xl font-bold">
+                  {videos[0].title}
+                </h2>
+                <div className="text-xs text-zinc-400 mt-1">
+                  {videos[0].year}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
 
-function VideoRow({
-  videos,
-  onClick,
-}: {
-  videos: { id: number; title: string; url: string }[];
-  onClick: (id: number) => void;
-}) {
-  return (
-    <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
-      {videos.map((video, idx) => {
-        const colorClass = colors[idx % colors.length];
-        return (
+        {/* SORT */}
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
+          {["popular", "newest", "liked"].map((s) => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm ${
+                sort === s
+                  ? "bg-white text-black"
+                  : "bg-white/5 border border-white/10"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {/* GRID */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {sortedVideos.map((video, i) => (
+            <div
+              key={i}
+              onClick={() => setActiveVideo(video)}
+              className="cursor-pointer group rounded-3xl overflow-hidden border border-white/10 bg-zinc-900/60"
+            >
+              <img
+                src={video.thumbnail}
+                className="h-40 sm:h-48 w-full object-cover"
+              />
+              <div className="p-3">
+                <h3 className="font-semibold text-sm sm:text-base">
+                  {video.title}
+                </h3>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* MODAL */}
+        {activeVideo && (
           <div
-            key={video.id}
-            onClick={() => onClick(video.id)}
-            className={`flex-shrink-0 w-56 h-32 sm:w-64 sm:h-36 lg:w-80 lg:h-44 rounded-md shadow-lg bg-gradient-to-br ${colorClass} cursor-pointer snap-start relative transform transition-transform duration-300 hover:scale-105`}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4"
+            onClick={() => setActiveVideo(null)}
           >
-            <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-2 flex items-center justify-between rounded-b-md">
-              <span className="text-white font-medium text-sm truncate">
-                {video.title}
-              </span>
-              <FaPlay className="text-white text-base" />
+            <div
+              className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-black"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setActiveVideo(null)}
+                className="absolute top-3 right-3 z-10 rounded-full bg-white/10 p-2 hover:bg-white/20"
+              >
+                <X size={18} />
+              </button>
+
+              <video
+                src={activeVideo.src}
+                controls
+                autoPlay
+                className="w-full max-h-[75vh] bg-black"
+              />
+
+              <div className="p-4 border-t border-white/10">
+                <h3 className="text-lg font-bold">
+                  {activeVideo.title}
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  {activeVideo.year}
+                </p>
+              </div>
             </div>
           </div>
-        );
-      })}
+        )}
+      </div>
     </div>
   );
 }

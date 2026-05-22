@@ -2,13 +2,13 @@
 
 import { ReactNode, useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import LeftSidebar from "@/components/LeftSidebar";
 import RightSidebar from "@/components/RightSidebar";
 import useIsMobile from "@/hooks/useIsMobile";
 import MusicPlayer from "@/components/mobileUI/MusicPlayer";
-import Navbar from "./mobileUI/Navbar";
 import { MusicProvider } from "@/hooks/MusicContext";
-import { User } from "lucide-react";
+import { User, X } from "lucide-react";
 
 const navItems = [
   "HOME",
@@ -21,149 +21,287 @@ const navItems = [
   "CONTACT",
 ];
 
+const navLinks: Record<string, string> = {
+  HOME: "/",
+  MUSIC: "/music",
+  VIDEOS: "/videos",
+  TOUR: "/tour",
+  SHOP: "/shop",
+  ABOUT: "/about",
+  LIVE: "/live",
+  CONTACT: "/contact",
+};
+
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile();
   const pathname = usePathname();
 
-  const [showUI, setShowUI] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
+
+  const [messages, setMessages] = useState([
+    { user: "system", text: "Welcome to the live chat 🔥" },
+  ]);
+  const [chatInput, setChatInput] = useState("");
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const lastScrollRef = useRef(0);
 
-  const isScrollNav = pathname === "/" || pathname === "/news";
+  const isActive = (path: string) => pathname === path;
 
-  useEffect(() => {
-    if (!hideSidebars || !isScrollNav) return;
+  const sendMessage = () => {
+    if (!chatInput.trim()) return;
+    setMessages((prev) => [...prev, { user: "you", text: chatInput }]);
+    setChatInput("");
+  };
 
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    let ticking = false;
-
-    const handleScroll = () => {
-      const currentScroll = container.scrollTop;
-
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (currentScroll > lastScrollRef.current + 10) setShowUI(false);
-          else if (currentScroll < lastScrollRef.current - 10) setShowUI(true);
-
-          lastScrollRef.current = currentScroll;
-          ticking = false;
-        });
-
-        ticking = true;
-      }
-    };
-
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [hideSidebars, isScrollNav]);
+  const mobileMainNav = ["HOME", "MUSIC", "VIDEOS", "TOUR"];
+  const mobileMoreNav = ["SHOP", "ABOUT", "LIVE", "CONTACT"];
 
   return (
     <MusicProvider>
       <div className="relative w-full h-screen flex flex-col bg-black text-white overflow-hidden">
-
         <div className="flex flex-1 min-h-0">
-
-          {/* LEFT SIDEBAR */}
           {!hideSidebars && <LeftSidebar />}
 
-          {/* CENTER AREA */}
           <div className="flex-1 flex flex-col min-h-0 bg-black">
-
-            {/* 🔥 NAVBAR */}
+            {/* DESKTOP TOP NAV */}
             {!hideSidebars && (
               <div className="w-full flex justify-center px-6 py-4 border-b border-gray-800 shrink-0">
                 <div className="w-full max-w-[1400px] flex justify-center">
-
-                  <div className="flex items-center justify-between w-full px-8 py-3
-                    bg-black/40 backdrop-blur-xl 
-                    border border-white/10 
-                    rounded-2xl 
-                    shadow-[0_0_35px_rgba(99,102,241,0.08)]">
-
-                    {/* BRAND */}
-                    <div className="flex items-center gap-6">
-                      <div className="text-xs tracking-[0.35em] text-white font-semibold">
-                        SOA
-                      </div>
+                  <div className="flex items-center justify-between w-full px-8 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl">
+                    <div className="text-xs tracking-[0.35em] text-white font-semibold">
+                      SOA
                     </div>
 
-                    {/* NAV ITEMS */}
                     <div className="flex items-center gap-8">
                       {navItems.map((item) => (
-                        <button
+                        <Link
                           key={item}
-                          className="relative text-[11px] tracking-[0.28em] text-white/50 hover:text-white transition group"
+                          href={navLinks[item]}
+                          className="text-[11px] tracking-[0.28em] text-white/50 hover:text-white transition"
                         >
                           {item}
-                          <span className="absolute left-0 -bottom-1 h-[1px] w-0 bg-indigo-400 transition-all duration-300 group-hover:w-full" />
-                        </button>
+                        </Link>
                       ))}
                     </div>
 
-                    {/* RIGHT SIDE */}
                     <div className="flex items-center gap-4 pl-6 border-l border-white/10">
-                      <button className="text-xs text-white/60 hover:text-white transition tracking-wide">
-                        LOGIN
+                      <button
+                        onClick={() => setIsLoggedIn((p) => !p)}
+                        className="text-xs text-white/60 hover:text-white transition"
+                      >
+                        {isLoggedIn ? "LOGOFF" : "LOGIN"}
                       </button>
 
-                      <User className="w-5 h-5 text-white/60 hover:text-indigo-400 cursor-pointer transition" />
+                      <User className="w-5 h-5 text-white/60" />
                     </div>
-
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 🔥 MAIN BODY */}
             <div className="flex flex-1 min-h-0">
-
-              {/* MAIN CONTENT */}
               <main
                 ref={scrollContainerRef}
-                className="flex-1 overflow-y-auto scroll-smooth min-h-0"
+                className="flex-1 overflow-y-auto min-h-0"
               >
-                <div className="min-h-full pb-[120px]">
-                  {children}
-                </div>
+                <div className="min-h-full pb-[140px]">{children}</div>
               </main>
 
-              {/* RIGHT SIDEBAR */}
               {!hideSidebars && (
-                <div className="w-[260px] flex flex-col min-h-0 border-l border-gray-800">
-                  <RightSidebar />
+                <div className="w-[320px] flex flex-col border-l border-gray-800">
+                  {!isLoggedIn ? (
+                    <RightSidebar />
+                  ) : (
+                    <div className="flex flex-col h-full bg-black/40">
+                      <div className="p-3 border-b border-white/10 text-xs tracking-[0.3em]">
+                        LIVE CHAT
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                        {messages.map((msg, i) => (
+                          <div
+                            key={i}
+                            className={`text-xs ${
+                              msg.user === "you"
+                                ? "text-indigo-300 text-right"
+                                : "text-white/70"
+                            }`}
+                          >
+                            <span className="opacity-50 mr-1">
+                              {msg.user}:
+                            </span>
+                            {msg.text}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-3 border-t border-white/10 flex gap-2">
+                        <input
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                          className="flex-1 bg-black/50 text-xs p-2 rounded-md border border-white/10"
+                          placeholder="Say something..."
+                        />
+                        <button
+                          onClick={sendMessage}
+                          className="text-xs px-3 py-2 bg-indigo-500/20 rounded-md"
+                        >
+                          SEND
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-
             </div>
           </div>
         </div>
 
-        {/* 📱 MOBILE NAV */}
+        {/* ================= MOBILE UI ================= */}
         {hideSidebars && (
-          <div
-            className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-200 ${
-              isScrollNav ? (showUI ? "translate-y-0" : "-translate-y-full") : ""
-            }`}
-          >
-            <div className="flex justify-center">
-              <div className="w-full max-w-5xl">
-                <Navbar />
+          <>
+            {/* MOBILE BOTTOM NAV */}
+            <div className="fixed bottom-[70px] left-0 right-0 z-40 flex justify-center">
+              <div className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl mx-3 px-2 py-2 flex justify-between">
+                {mobileMainNav.map((item) => {
+                  const href = navLinks[item];
+                  const active = isActive(href);
+
+                  return (
+                    <Link
+                      key={item}
+                      href={href}
+                      className={`text-[10px] tracking-[0.25em] px-2 py-1 rounded-md transition ${
+                        active
+                          ? "text-white bg-white/10"
+                          : "text-white/50 hover:text-white"
+                      }`}
+                    >
+                      {item}
+                    </Link>
+                  );
+                })}
+
+                <button
+                  onClick={() => setMobileMoreOpen(true)}
+                  className="text-[10px] tracking-[0.25em] px-2 py-1 rounded-md text-white/50 hover:text-white transition"
+                >
+                  MORE
+                </button>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* 📱 MOBILE MUSIC PLAYER */}
-        {hideSidebars && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center">
-            <div className="w-full max-w-5xl">
-              <MusicPlayer />
+            {/* MORE POPUP (GRID + LOGIN UPDATED) */}
+            {mobileMoreOpen && (
+              <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
+                <div className="w-full max-w-md bg-black border-t border-white/10 rounded-t-2xl p-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-[10px] tracking-[0.3em] text-white/60">
+                      MENU
+                    </div>
+                    <button onClick={() => setMobileMoreOpen(false)}>
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* GRID */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {mobileMoreNav.map((item) => {
+                      const href = navLinks[item];
+
+                      return (
+                        <Link
+                          key={item}
+                          href={href}
+                          onClick={() => setMobileMoreOpen(false)}
+                          className="flex items-center justify-center text-[10px] tracking-[0.2em] text-white/60 hover:text-white transition bg-white/5 border border-white/10 rounded-lg py-3 active:scale-[0.98]"
+                        >
+                          {item}
+                        </Link>
+                      );
+                    })}
+
+                    {/* LOGIN BUTTON (sm+ full width only) */}
+                    <button
+                      onClick={() => {
+                        setIsLoggedIn((p) => !p);
+                        setMobileMoreOpen(false);
+                      }}
+                      className="flex items-center justify-center text-[10px] tracking-[0.2em] text-indigo-300 hover:text-white transition bg-indigo-500/10 border border-indigo-500/20 rounded-lg py-3 active:scale-[0.98] col-span-1 sm:col-span-2"
+                    >
+                      {isLoggedIn ? "LOGOFF" : "LOGIN"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MOBILE CHAT BUTTON */}
+            {isLoggedIn && (
+              <button
+                onClick={() => setMobileChatOpen(true)}
+                className="fixed bottom-28 right-4 z-50 w-12 h-12 rounded-full bg-indigo-500/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+              >
+                <User className="w-5 h-5 text-white" />
+              </button>
+            )}
+
+            {/* MOBILE CHAT PANEL */}
+            {mobileChatOpen && (
+              <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
+                <div className="w-full max-w-md h-[70%] bg-black border-t border-white/10 rounded-t-2xl flex flex-col">
+                  <div className="p-3 flex justify-between items-center border-b border-white/10">
+                    <div className="text-[10px] tracking-[0.3em]">
+                      LIVE CHAT
+                    </div>
+                    <button onClick={() => setMobileChatOpen(false)}>
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                    {messages.map((msg, i) => (
+                      <div
+                        key={i}
+                        className={`text-xs ${
+                          msg.user === "you"
+                            ? "text-indigo-300 text-right"
+                            : "text-white/70"
+                        }`}
+                      >
+                        <span className="opacity-50 mr-1">{msg.user}:</span>
+                        {msg.text}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-3 border-t border-white/10 flex gap-2">
+                    <input
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                      className="flex-1 bg-black/50 text-xs p-2 rounded-md border border-white/10"
+                      placeholder="Say something..."
+                    />
+                    <button className="text-xs px-3 py-2 bg-indigo-500/20 rounded-md">
+                      SEND
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MOBILE MUSIC PLAYER */}
+            <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center">
+              <div className="w-full max-w-5xl">
+                <MusicPlayer />
+              </div>
             </div>
-          </div>
+          </>
         )}
-
       </div>
     </MusicProvider>
   );
