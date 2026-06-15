@@ -7,7 +7,7 @@ export default function RightSidebar() {
       {/* TRENDING TRACKS */}
       <div>
         <h2 className="text-xs font-bold uppercase text-white/60 tracking-wider mb-2 text-center">
-          Trending Tracks (5)
+          Trending Tracks (3)
         </h2>
 
         <div className="space-y-2">
@@ -73,22 +73,32 @@ export default function RightSidebar() {
       </div>
 
       {/* TOUR DATES CARD */}
-      <div className="bg-black/40 rounded-xl overflow-hidden border border-gray-800">
-        <img
-          src="/crowd.jpg"
-          className="w-full h-24 object-cover"
-        />
+      <div className="bg-black/40 rounded-xl overflow-hidden border border-gray-800 hover:border-white/20 transition group">
+  <img
+    src="/crowd.jpg"
+    className="w-full h-28 object-cover group-hover:scale-105 transition duration-300"
+  />
 
-        <div className="p-3 text-center space-y-1.5">
-          <h3 className="font-semibold text-sm text-white">Tour Dates</h3>
-          <p className="text-xs text-white/60">Coming Soon</p>
-          <p className="text-[10px] text-white/40">Stay Tuned</p>
+  <div className="p-3 text-center space-y-2">
+    <h3 className="font-semibold text-sm text-white">
+      Join the Community
+    </h3>
 
-          <button className="mt-2 px-3 py-1.5 text-xs font-semibold bg-white text-black rounded-md hover:bg-gray-200 transition">
-            Get Updates
-          </button>
-        </div>
-      </div>
+    <p className="text-xs text-white/60 leading-snug">
+      Get early access to drops, unreleased tracks, and exclusive updates from the label.
+    </p>
+
+    <div className="flex justify-center gap-2 text-[10px] text-white/40">
+      <span>• Early Music</span>
+      <span>• Exclusive Content</span>
+      <span>• Private Drops</span>
+    </div>
+
+    <button className="mt-2 px-3 py-1.5 text-xs font-semibold bg-white text-black rounded-md hover:bg-gray-200 active:scale-95 transition">
+      Join Now
+    </button>
+  </div>
+</div>
 
     </aside>
   );

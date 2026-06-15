@@ -110,7 +110,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               </main>
 
               {!hideSidebars && (
-                <div className="w-[320px] flex flex-col border-l border-gray-800">
+                <div className="w-[270px] flex flex-col border-l border-gray-800">
                   {!isLoggedIn ? (
                     <RightSidebar />
                   ) : (
