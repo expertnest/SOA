@@ -7,6 +7,7 @@ export default defineSchema({
   // ======================
   users: defineTable({
     clerkId: v.string(),
+    
     username: v.string(),
     displayName: v.string(),
     email: v.optional(v.string()),
@@ -57,7 +58,7 @@ export default defineSchema({
     favoriteArtistIds: v.optional(v.array(v.id("artists"))),
     mostListenedSongIds: v.optional(v.array(v.id("songs"))),
   })
-    .index("by_clerkId", ["clerkId"])
+    .index("by_clerkId", ["clerkId"])  
     .index("by_username", ["username"]),
 
   // ======================
@@ -106,21 +107,24 @@ export default defineSchema({
   // ======================
   // 🎧 SONGS
   // ======================
-  songs: defineTable({
-    title: v.string(),
-    artistId: v.id("artists"),
+songs: defineTable({
+  title: v.string(),
+  artistId: v.id("artists"),
 
-    duration: v.number(),
-    genre: v.optional(v.string()),
+  audioUrl: v.string(), // ✅ ADD HERE (Cloudflare / R2 link)
 
-    totalPlays: v.number(),
-    skipRate: v.number(),
-    completionRate: v.number(),
+  duration: v.number(),
+  genre: v.optional(v.string()),
+  coverImage: v.optional(v.string()),
 
-    uniqueListeners: v.optional(v.number()),
-    replayRate: v.optional(v.number()),
-  })
-    .index("by_artistId", ["artistId"]),
+  totalPlays: v.number(),
+  skipRate: v.number(),
+  completionRate: v.number(),
+
+  uniqueListeners: v.optional(v.number()),
+  replayRate: v.optional(v.number()),
+})
+.index("by_artistId", ["artistId"]),
 
   // ======================
   // 🔗 PROJECT SONGS

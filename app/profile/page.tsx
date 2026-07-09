@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import {
   Music2,
   Headphones,
@@ -44,21 +47,24 @@ const countryCodes = [
 
 const avatarOptions = ["🧊","🔥","🌙","⚡","🌀","🌌","🎧","👾"];
 
-/* ================= MOCK DATA ================= */
+/* ================= MOCK DATA ================= */ 
 
-const playlists: Playlist[] = [
-  { title: "Late Night Vibes", tracks: 42 },
-  { title: "Gym Mode", tracks: 28 },
-  { title: "Chill / Focus", tracks: 65 },
-];
-
-const recentTracks: Track[] = [
-  { name: "After Hours", plays: "1.2M" },
-  { name: "Neon Lights", plays: "980K" },
-  { name: "Midnight Drive", plays: "2.1M" },
-];
+const playlists: any[] = [];
+const recentTracks: any[] = [];
 
 export default function Profile() {
+  const { user } = useUser();
+
+  // ===============================
+  // REAL CONVEX USER
+  // ===============================
+  const dbUser = useQuery(
+    api.users.getByClerkId,
+    user?.id ? { clerkId: user.id } : "skip"
+  );
+
+  const updateUser = useMutation(api.users.updateProfile);
+
   const [name, setName] = useState("Nox Listener");
   const [username, setUsername] = useState("noxfan");
   const [avatar, setAvatar] = useState("🌙");
@@ -67,6 +73,35 @@ export default function Profile() {
   const [email, setEmail] = useState("user@email.com");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+
+  // ===============================
+  // SYNC DB → UI
+  // ===============================
+  useEffect(() => {
+    if (!dbUser) return;
+
+    setName(dbUser.displayName ?? "Nox Listener");
+    setUsername(dbUser.username ?? "noxfan");
+    setEmail(dbUser.email ?? "");
+    setAvatar(dbUser.avatar ?? "🌙");
+    setFlag(dbUser.countryCode ?? "US");
+  }, [dbUser]);
+
+  // ===============================
+  // SAVE PROFILE → DB
+  // ===============================
+  const saveProfile = async () => {
+    if (!user?.id) return;
+
+    await updateUser({
+      clerkId: user.id,
+      displayName: name,
+      username,
+      email,
+      avatar,
+      countryCode: flag,
+    });
+  };
 
   const stats = [
     { title: "Time Listened", value: "312 hrs", icon: Clock3 },
@@ -111,12 +146,19 @@ export default function Profile() {
                   </button>
                 ))}
               </div>
+
+              {/* SAVE BUTTON */}
+              <button
+                onClick={saveProfile}
+                className="mt-2 bg-purple-500 px-4 py-2 rounded-full text-sm font-bold"
+              >
+                Save Profile
+              </button>
             </div>
 
             {/* INFO */}
             <div className="flex-1 w-full">
               <div className="grid gap-4 sm:grid-cols-1">
-                {/* ONLY NAME NOW */}
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -125,7 +167,6 @@ export default function Profile() {
                 />
               </div>
 
-              {/* FLAGS */}
               <div className="mt-5 grid grid-cols-8 gap-2">
                 {countryCodes.map((code) => (
                   <button
@@ -166,13 +207,11 @@ export default function Profile() {
         {/* SUBSCRIPTION */}
         <div className="rounded-[34px] border border-white/10 bg-gradient-to-br from-purple-900/20 to-black p-6">
           <h2 className="text-2xl font-bold mb-4">Your Plan</h2>
-
           <div className="flex justify-between items-center">
             <div>
               <p className="font-semibold">Free Plan</p>
               <p className="text-sm text-zinc-400">Ads • Limited skips</p>
             </div>
-
             <button className="bg-purple-500 px-5 py-2 rounded-full text-sm font-bold">
               Upgrade
             </button>
@@ -200,7 +239,6 @@ export default function Profile() {
         {/* PLAYLISTS */}
         <div className="rounded-[34px] border border-white/10 bg-zinc-950 p-6">
           <h2 className="text-2xl font-bold mb-6">Your Playlists</h2>
-
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
             {playlists.map((p, i) => (
               <div key={i} className="rounded-2xl bg-white/5 p-4">
@@ -217,7 +255,6 @@ export default function Profile() {
         {/* RECENT */}
         <div className="rounded-[34px] border border-white/10 bg-zinc-950 p-6">
           <h2 className="text-2xl font-bold mb-6">Recently Played</h2>
-
           {recentTracks.map((t, i) => (
             <div key={i} className="flex justify-between bg-white/5 p-3 rounded-xl mb-2">
               <span>{t.name}</span>
@@ -226,7 +263,7 @@ export default function Profile() {
           ))}
         </div>
 
-        {/* ACCOUNT SETTINGS (UPDATED) */}
+        {/* ACCOUNT SETTINGS */}
         <AccountSettings
           email={email}
           setEmail={setEmail}
@@ -241,7 +278,7 @@ export default function Profile() {
         {/* DANGER */}
         <div className="rounded-[34px] border border-red-500/30 bg-red-500/5 p-6">
           <h2 className="text-red-400 font-bold mb-4 flex gap-2 items-center">
-            <AlertTriangle size={18}/> Danger Zone
+            <AlertTriangle size={18} /> Danger Zone
           </h2>
 
           <button className="bg-red-500 px-5 py-2 rounded-full text-sm font-bold">
@@ -254,7 +291,7 @@ export default function Profile() {
   );
 }
 
-/* ================= ACCOUNT SETTINGS COMPONENT ================= */
+/* ================= ACCOUNT SETTINGS ================= */
 
 function AccountSettings({
   email,
@@ -275,34 +312,31 @@ function AccountSettings({
 
       <div className="grid gap-6 sm:grid-cols-2">
 
-        {/* EMAIL */}
         <div className="flex flex-col gap-2">
           <label className="text-xs text-zinc-500 flex items-center gap-2">
-            <Mail size={14}/> Email
+            <Mail size={14} /> Email
           </label>
           <input
             value={email}
-            onChange={(e)=>setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"
           />
         </div>
 
-        {/* USERNAME */}
         <div className="flex flex-col gap-2">
           <label className="text-xs text-zinc-500 flex items-center gap-2">
-            <User size={14}/> Username
+            <User size={14} /> Username
           </label>
           <input
             value={username}
-            onChange={(e)=>setUsername(e.target.value)}
+            onChange={(e) => setUsername(e.target.value)}
             className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"
           />
         </div>
 
-        {/* PASSWORD */}
         <div className="flex flex-col gap-2 sm:col-span-2">
           <label className="text-xs text-zinc-500 flex items-center gap-2">
-            <Lock size={14}/> Change Password
+            <Lock size={14} /> Change Password
           </label>
 
           <div className="grid sm:grid-cols-2 gap-3">
@@ -310,7 +344,7 @@ function AccountSettings({
               type="password"
               placeholder="Current password"
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"
             />
 
@@ -318,7 +352,7 @@ function AccountSettings({
               type="password"
               placeholder="New password"
               value={newPassword}
-              onChange={(e)=>setNewPassword(e.target.value)}
+              onChange={(e) => setNewPassword(e.target.value)}
               className="rounded-xl bg-white/5 border border-white/10 px-4 py-3"
             />
           </div>

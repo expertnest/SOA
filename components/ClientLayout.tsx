@@ -10,6 +10,13 @@ import MusicPlayer from "@/components/mobileUI/MusicPlayer";
 import { MusicProvider } from "@/hooks/MusicContext";
 import { User, X } from "lucide-react";
 
+// 👇 Clerk
+import {
+  SignInButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
+
 const navItems = [
   "HOME",
   "MUSIC",
@@ -36,7 +43,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const hideSidebars = useIsMobile();
   const pathname = usePathname();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // 👇 Clerk auth state
+  const { isSignedIn } = useUser();
+
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const [mobileMoreOpen, setMobileMoreOpen] = useState(false);
 
@@ -86,15 +95,21 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                       ))}
                     </div>
 
+                    {/* ✅ CLERK DESKTOP AUTH */}
                     <div className="flex items-center gap-4 pl-6 border-l border-white/10">
-                      <button
-                        onClick={() => setIsLoggedIn((p) => !p)}
-                        className="text-xs text-white/60 hover:text-white transition"
-                      >
-                        {isLoggedIn ? "LOGOFF" : "LOGIN"}
-                      </button>
+                      {!isSignedIn ? (
+                        <SignInButton mode="modal">
+                          <button className="text-xs text-white/60 hover:text-white transition">
+                            LOGIN
+                          </button>
+                        </SignInButton>
+                      ) : (
+                        <UserButton />
+                      )}
 
-                      <User className="w-5 h-5 text-white/60" />
+<Link href="/profile" className="cursor-pointer hover:opacity-80">
+  <User className="w-5 h-5 text-white" />
+</Link>
                     </div>
                   </div>
                 </div>
@@ -111,7 +126,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
               {!hideSidebars && (
                 <div className="w-[270px] flex flex-col border-l border-gray-800">
-                  {!isLoggedIn ? (
+                  {!isSignedIn ? (
                     <RightSidebar />
                   ) : (
                     <div className="flex flex-col h-full bg-black/40">
@@ -194,7 +209,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            {/* MORE POPUP (GRID + LOGIN UPDATED) */}
+            {/* MORE POPUP */}
             {mobileMoreOpen && (
               <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
                 <div className="w-full max-w-md bg-black border-t border-white/10 rounded-t-2xl p-4">
@@ -207,7 +222,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                     </button>
                   </div>
 
-                  {/* GRID */}
                   <div className="grid grid-cols-2 gap-2">
                     {mobileMoreNav.map((item) => {
                       const href = navLinks[item];
@@ -224,23 +238,28 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                       );
                     })}
 
-                    {/* LOGIN BUTTON (sm+ full width only) */}
-                    <button
-                      onClick={() => {
-                        setIsLoggedIn((p) => !p);
-                        setMobileMoreOpen(false);
-                      }}
-                      className="flex items-center justify-center text-[10px] tracking-[0.2em] text-indigo-300 hover:text-white transition bg-indigo-500/10 border border-indigo-500/20 rounded-lg py-3 active:scale-[0.98] col-span-1 sm:col-span-2"
-                    >
-                      {isLoggedIn ? "LOGOFF" : "LOGIN"}
-                    </button>
+                    {/* ✅ MOBILE LOGIN */}
+                    {!isSignedIn ? (
+                      <SignInButton appearance={{elements:{logoBox: {display:"none", footer: {display:"none"}}}}} mode="modal">
+                        <button
+                          onClick={() => setMobileMoreOpen(false)}
+                          className="flex items-center justify-center text-[10px] tracking-[0.2em] text-indigo-300 hover:text-white transition bg-indigo-500/10 border border-indigo-500/20 rounded-lg py-3 active:scale-[0.98] col-span-2"
+                        >
+                          LOGIN
+                        </button>
+                      </SignInButton>
+                    ) : (
+                      <div className="col-span-2 flex justify-center">
+                        <UserButton />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
             {/* MOBILE CHAT BUTTON */}
-            {isLoggedIn && (
+            {isSignedIn && (
               <button
                 onClick={() => setMobileChatOpen(true)}
                 className="fixed bottom-28 right-4 z-50 w-12 h-12 rounded-full bg-indigo-500/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"

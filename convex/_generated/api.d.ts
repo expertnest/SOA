@@ -8,7 +8,6 @@
  * @module
  */
 
-import type * as _seed_seedInvincibleAlbum from "../_seed/seedInvincibleAlbum.js";
 import type * as _seed_seedSingle from "../_seed/seedSingle.js";
 import type * as admin from "../admin.js";
 import type * as artistAnalytics from "../artistAnalytics.js";
@@ -16,7 +15,9 @@ import type * as artistComparison from "../artistComparison.js";
 import type * as createProjectWithSongs from "../createProjectWithSongs.js";
 import type * as createSong from "../createSong.js";
 import type * as events from "../events.js";
+import type * as feed from "../feed.js";
 import type * as fixSongs from "../fixSongs.js";
+import type * as http from "../http.js";
 import type * as migrateSongs from "../migrateSongs.js";
 import type * as mutations_events_songEnd from "../mutations/events/songEnd.js";
 import type * as mutations_events_songLike from "../mutations/events/songLike.js";
@@ -26,7 +27,10 @@ import type * as mutations_events_songSkip from "../mutations/events/songSkip.js
 import type * as seed from "../seed.js";
 import type * as seedMoreSongs from "../seedMoreSongs.js";
 import type * as songAnalytics from "../songAnalytics.js";
+import type * as songStats from "../songStats.js";
+import type * as songs from "../songs.js";
 import type * as stats from "../stats.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -35,7 +39,6 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  "_seed/seedInvincibleAlbum": typeof _seed_seedInvincibleAlbum;
   "_seed/seedSingle": typeof _seed_seedSingle;
   admin: typeof admin;
   artistAnalytics: typeof artistAnalytics;
@@ -43,7 +46,9 @@ declare const fullApi: ApiFromModules<{
   createProjectWithSongs: typeof createProjectWithSongs;
   createSong: typeof createSong;
   events: typeof events;
+  feed: typeof feed;
   fixSongs: typeof fixSongs;
+  http: typeof http;
   migrateSongs: typeof migrateSongs;
   "mutations/events/songEnd": typeof mutations_events_songEnd;
   "mutations/events/songLike": typeof mutations_events_songLike;
@@ -53,7 +58,10 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   seedMoreSongs: typeof seedMoreSongs;
   songAnalytics: typeof songAnalytics;
+  songStats: typeof songStats;
+  songs: typeof songs;
   stats: typeof stats;
+  users: typeof users;
 }>;
 
 /**

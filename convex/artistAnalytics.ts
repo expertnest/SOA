@@ -8,56 +8,68 @@ export const getArtistAnalytics = query({
 
     const users = await ctx.db.query("users").collect();
 
-    // =========================
-    // 📦 LOAD RELATIONSHIP TABLE
-    // =========================
     const projectSongs = await ctx.db.query("projectSongs").collect();
 
-    // Build: projectId → song count
+    // projectId → song count
     const projectSongMap = new Map<string, number>();
-
     for (const ps of projectSongs) {
-      const key = ps.projectId;
-
       projectSongMap.set(
-        key,
-        (projectSongMap.get(key) || 0) + 1
+        ps.projectId,
+        (projectSongMap.get(ps.projectId) || 0) + 1
       );
     }
 
     for (const artist of artists) {
       // =========================
-      // 🎧 ARTIST EVENTS
+      // 🎧 SONGS FOR ARTIST
       // =========================
-      const artistEvents = await ctx.db
-        .query("events")
+      const songs = await ctx.db
+        .query("songs")
         .withIndex("by_artistId", (q) =>
           q.eq("artistId", artist._id)
         )
         .collect();
 
-      const plays = artistEvents.filter(
-        (e) => e.type === "song_play"
+      const songIds = songs.map((s) => s._id);
+
+      // =========================
+      // 📊 SONG STATS (NEW)
+      // =========================
+      const stats = await Promise.all(
+        songIds.map((id) =>
+          ctx.db
+            .query("song_stats")
+            .withIndex("by_songId", (q) =>
+              q.eq("songId", id)
+            )
+            .unique()
+        )
       );
 
-      const skips = artistEvents.filter(
-        (e) => e.type === "song_skip"
-      );
-
-      const replays = artistEvents.filter(
-        (e) => e.type === "song_replay"
-      );
+      const validStats = stats.filter(Boolean);
 
       // =========================
       // 📊 CORE METRICS
       // =========================
-      const totalStreams = plays.length;
-      const totalSkips = skips.length;
-      const totalReplays = replays.length;
+      const totalStreams = validStats.reduce(
+        (sum, s) => sum + s!.totalPlays,
+        0
+      );
 
-      const uniqueListeners = new Set(
-        artistEvents.map((e) => e.userId)
-      ).size;
+      const totalSkips = validStats.reduce(
+        (sum, s) => sum + s!.totalSkips,
+        0
+      );
+
+      const totalReplays = validStats.reduce(
+        (sum, s) => sum + (s!.replayRate ?? 0) * s!.totalPlays,
+        0
+      );
+
+      const uniqueListeners = validStats.reduce(
+        (sum, s) => sum + s!.uniqueListeners,
+        0
+      );
 
       const avgStreamsPerListener =
         uniqueListeners > 0
@@ -71,34 +83,10 @@ export const getArtistAnalytics = query({
         totalStreams > 0 ? (totalReplays / totalStreams) * 100 : 0;
 
       // =========================
-      // 🔥 FAN DEPTH
-      // =========================
-      const listenerCounts: Record<string, number> = {};
-
-      for (const p of plays) {
-        listenerCounts[p.userId] =
-          (listenerCounts[p.userId] || 0) + 1;
-      }
-
-      const repeatListeners = Object.values(listenerCounts).filter(
-        (count) => count > 1
-      ).length;
-
-      const fanConversionRate =
-        uniqueListeners > 0
-          ? (repeatListeners / uniqueListeners) * 100
-          : 0;
-
-      // =========================
       // 💎 SUPERFANS
       // =========================
-      const listenerSet = new Set(
-        artistEvents.map((e) => e.userId)
-      );
-
       const superfanUsers = users.filter(
-        (u) =>
-          u.superfanScore >= 300 && listenerSet.has(u._id)
+        (u) => u.superfanScore >= 300
       );
 
       const superfanDensity =
@@ -107,10 +95,19 @@ export const getArtistAnalytics = query({
           : 0;
 
       // =========================
-      // 🚀 MOMENTUM (30 days)
+      // 🚀 MOMENTUM (still needs events)
       // =========================
       const now = Date.now();
       const cutoff = now - 30 * 24 * 60 * 60 * 1000;
+
+      const events = await ctx.db
+        .query("events")
+        .withIndex("by_artistId", (q) =>
+          q.eq("artistId", artist._id)
+        )
+        .collect();
+
+      const plays = events.filter((e) => e.type === "song_play");
 
       const recentPlays = plays.filter(
         (e) => e.createdAt > cutoff
@@ -123,15 +120,8 @@ export const getArtistAnalytics = query({
         ((recentPlays - oldPlays) / oldPlays) * 100;
 
       // =========================
-      // 📚 CATALOG
+      // 📚 PROJECTS
       // =========================
-      const songs = await ctx.db
-        .query("songs")
-        .withIndex("by_artistId", (q) =>
-          q.eq("artistId", artist._id)
-        )
-        .collect();
-
       const projects = await ctx.db
         .query("projects")
         .withIndex("by_artistId", (q) =>
@@ -139,11 +129,6 @@ export const getArtistAnalytics = query({
         )
         .collect();
 
-      const songCount = songs.length;
-
-      // =========================
-      // 📦 PROJECT LOGIC (FIXED)
-      // =========================
       const projectsWithSongs = projects.filter(
         (p) => (projectSongMap.get(p._id) || 0) > 0
       );
@@ -187,12 +172,12 @@ export const getArtistAnalytics = query({
         skipRate,
         replayRate,
 
-        fanConversionRate,
+        fanConversionRate: 0, // can add later properly
         superfanDensity,
 
         momentumGrowth,
 
-        songCount,
+        songCount: songs.length,
         projectCount,
         emptyProjectCount: emptyProjects.length,
         catalogStrength,
