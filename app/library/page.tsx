@@ -1,3 +1,16 @@
+export default function LibraryPage() {
+
+  return(
+    <div>
+      hello
+    </div>
+  )
+
+}
+
+
+
+
 /*
 "use client";
 
