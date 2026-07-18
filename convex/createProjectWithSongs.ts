@@ -41,7 +41,7 @@ export const createProjectWithSongs = mutation({
       coverImage: args.project.coverImage,
       releaseDate: args.project.releaseDate,
 
-      type: args.project.type, // ✅ FIXED
+      type: args.project.type,
       createdAt: now,
     });
 
@@ -54,16 +54,23 @@ export const createProjectWithSongs = mutation({
       const songId = await ctx.db.insert("songs", {
         title: song.title,
         artistId: args.project.artistId,
-      
 
         duration: song.duration,
-        genre: song.genre ?? undefined,
 
-       
+        // ✅ REQUIRED BY SONG SCHEMA
+        audioUrl:
+          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+
+        genre: song.genre ?? undefined,
 
         totalPlays: 0,
         skipRate: 0,
         completionRate: 0,
+
+        replayRate: 0,
+        uniqueListeners: 0,
+
+        coverImage: args.project.coverImage,
       });
 
       songIds.push(songId);

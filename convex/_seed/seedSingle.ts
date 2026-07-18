@@ -27,6 +27,11 @@ export const createSingleSeed = mutation({
       artistId: args.artistId,
 
       duration: 200,
+
+      // required by schema
+      audioUrl:
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+
       genre: "test",
 
       totalPlays: 0,
@@ -35,6 +40,8 @@ export const createSingleSeed = mutation({
 
       uniqueListeners: 0,
       replayRate: 0,
+
+      coverImage: undefined,
     });
 
     // 3. Link to project

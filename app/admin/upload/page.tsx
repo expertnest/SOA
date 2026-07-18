@@ -263,7 +263,26 @@ export default function ReleasesPage() {
 
       }
 
+      let coverUrl="";
 
+
+      if(coverFile){
+      
+       const buffer =
+       await coverFile.arrayBuffer();
+      
+      
+       const uploaded =
+       await uploadImage({
+         file:buffer,
+         fileName:coverFile.name,
+         contentType:coverFile.type,
+       });
+      
+      
+       coverUrl=uploaded.url;
+      
+      }
 
       // 🔥 CREATE PROJECT
 
