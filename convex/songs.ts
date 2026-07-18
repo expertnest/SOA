@@ -1,6 +1,9 @@
-import { audio } from "framer-motion/client";
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
+import { v } from "convex/values";
 
+// ==============================
+// 🎧 GET SONGS (FEED)
+// ==============================
 export const getSongsForFeed = query({
   handler: async (ctx) => {
     const songs = await ctx.db.query("songs").collect();
@@ -26,5 +29,67 @@ export const getSongsForFeed = query({
         replayRate: stat?.replayRate ?? 0,
       };
     });
+  },
+});
+
+// ==============================
+// 🚀 CREATE SONG (UPDATED FOR PROJECTS)
+// ==============================
+export const createSong = mutation({
+  args: {
+    title: v.string(),
+    artistId: v.id("artists"),
+    genre: v.optional(v.string()),
+    audioUrl: v.string(),
+    coverImage: v.optional(v.string()),
+    duration: v.number(),
+
+    // 🔥 ADD THESE
+    projectId: v.optional(v.id("projects")),
+    trackNumber: v.optional(v.number()),
+  },
+
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const songId = await ctx.db.insert("songs", {
+      title: args.title,
+      artistId: args.artistId,
+      genre: args.genre,
+      audioUrl: args.audioUrl,
+      coverImage: args.coverImage,
+      duration: args.duration,
+
+      totalPlays: 0,
+      skipRate: 0,
+      completionRate: 0,
+      uniqueListeners: 0,
+      replayRate: 0,
+    });
+
+    // 🔥 CREATE SONG STATS (UNCHANGED)
+    await ctx.db.insert("song_stats", {
+      songId,
+      totalPlays: 0,
+      totalSkips: 0,
+      uniqueListeners: 0,
+      completionRate: 0,
+      skipRate: 0,
+      replayRate: 0,
+      updatedAt: now,
+    });
+
+    // ==============================
+    // 🔗 LINK TO PROJECT (NEW)
+    // ==============================
+    if (args.projectId) {
+      await ctx.db.insert("projectSongs", {
+        projectId: args.projectId,
+        songId: songId,
+        trackNumber: args.trackNumber ?? 1,
+      });
+    }
+
+    return songId;
   },
 });

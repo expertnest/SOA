@@ -7,7 +7,7 @@ export default defineSchema({
   // ======================
   users: defineTable({
     clerkId: v.string(),
-    
+    userId: v.optional(v.string()),
     username: v.string(),
     displayName: v.string(),
     email: v.optional(v.string()),
@@ -159,7 +159,9 @@ songs: defineTable({
   // ⚡ EVENTS (UPDATED)
   // ======================
   events: defineTable({
-    userId: v.id("users"),
+    userId: v.union(v.id("users"), v.string()),
+
+    isAnonymous: v.optional(v.boolean()), // 👈 ADD THIS
 
     type: v.union(
       v.literal("song_play"),

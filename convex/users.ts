@@ -160,3 +160,24 @@ export const deleteFromClerk = internalMutation({
     await ctx.db.delete(user._id);
   },
 });
+
+// ==============================
+// GET CURRENT USER (Clerk → Convex _id)
+// ==============================
+export const getCurrentUser = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+
+    // not logged in
+    if (!identity) return null;
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) =>
+        q.eq("clerkId", identity.subject)
+      )
+      .unique();
+
+    return user ?? null;
+  },
+});

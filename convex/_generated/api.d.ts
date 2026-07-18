@@ -12,6 +12,7 @@ import type * as _seed_seedSingle from "../_seed/seedSingle.js";
 import type * as admin from "../admin.js";
 import type * as artistAnalytics from "../artistAnalytics.js";
 import type * as artistComparison from "../artistComparison.js";
+import type * as artists from "../artists.js";
 import type * as createProjectWithSongs from "../createProjectWithSongs.js";
 import type * as createSong from "../createSong.js";
 import type * as events from "../events.js";
@@ -24,12 +25,14 @@ import type * as mutations_events_songLike from "../mutations/events/songLike.js
 import type * as mutations_events_songPlay from "../mutations/events/songPlay.js";
 import type * as mutations_events_songReplay from "../mutations/events/songReplay.js";
 import type * as mutations_events_songSkip from "../mutations/events/songSkip.js";
+import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
 import type * as seedMoreSongs from "../seedMoreSongs.js";
 import type * as songAnalytics from "../songAnalytics.js";
 import type * as songStats from "../songStats.js";
 import type * as songs from "../songs.js";
 import type * as stats from "../stats.js";
+import type * as storage from "../storage.js";
 import type * as users from "../users.js";
 
 import type {
@@ -43,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   artistAnalytics: typeof artistAnalytics;
   artistComparison: typeof artistComparison;
+  artists: typeof artists;
   createProjectWithSongs: typeof createProjectWithSongs;
   createSong: typeof createSong;
   events: typeof events;
@@ -55,12 +59,14 @@ declare const fullApi: ApiFromModules<{
   "mutations/events/songPlay": typeof mutations_events_songPlay;
   "mutations/events/songReplay": typeof mutations_events_songReplay;
   "mutations/events/songSkip": typeof mutations_events_songSkip;
+  projects: typeof projects;
   seed: typeof seed;
   seedMoreSongs: typeof seedMoreSongs;
   songAnalytics: typeof songAnalytics;
   songStats: typeof songStats;
   songs: typeof songs;
   stats: typeof stats;
+  storage: typeof storage;
   users: typeof users;
 }>;
 

@@ -30,7 +30,7 @@ export default function Home() {
     <div className="w-full overflow-x-hidden">
 
       {/* HERO */}
-      <div className="relative w-full h-[35vh] min-h-[140px] flex items-center">
+      <div className="relative w-full sm:h-[35vh] md:h-[65vh] min-h-[140px] flex items-center">
         <img
           src="/headerLogo.png"
           className="absolute inset-0 w-full h-full object-cover"
@@ -42,11 +42,11 @@ export default function Home() {
         <div className="relative z-10 w-full px-4 sm:px-6 md:px-12 flex items-center justify-between gap-4">
           <div className="text-white max-w-[85%] sm:max-w-md">
             <h1 className="text-lg sm:text-xl md:text-3xl font-bold">
-              Welcome to Nox
+              Welcome to SOA Music
             </h1>
 
             <p className="mt-1 text-white/70 text-xs sm:text-sm">
-              Dark electronic energy meets cinematic sound.
+             Experience new music, videos, and exclusive content from your favorite SOA artists
             </p>
 
             <div className="flex flex-wrap gap-2 sm:gap-3 mt-3">

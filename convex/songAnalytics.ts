@@ -10,6 +10,9 @@ export const getSongAnalytics = query({
     const projects = await ctx.db.query("projects").collect();
     const projectSongs = await ctx.db.query("projectSongs").collect();
 
+    // 🔥 NEW: GET EVENTS (ADDED)
+    const events = await ctx.db.query("events").collect();
+
     // ======================
     // MAPS
     // ======================
@@ -33,6 +36,27 @@ export const getSongAnalytics = query({
       ])
     );
 
+    // 🔥 NEW: BUILD UNIQUE LISTENER MAP (ADDED)
+    const listenerMap = new Map<string, Set<string>>();
+
+    events.forEach((event) => {
+      if (
+        event.type === "song_play" &&
+        event.songId &&
+        event.userId
+      ) {
+        const key = event.songId;
+
+        if (!listenerMap.has(key)) {
+          listenerMap.set(key, new Set());
+        }
+
+        // OPTIONAL: filter garbage clicks
+        if ((event.duration ?? 0) < 5) return;
+
+        listenerMap.get(key)!.add(event.userId);
+      }
+    });
 
     // ======================
     // BUILD ANALYTICS
@@ -91,6 +115,9 @@ export const getSongAnalytics = query({
       const retentionStrength =
         replays - skips;
 
+      // 🔥 FIXED (ONLY LINE CHANGED)
+      const uniqueListeners =
+        listenerMap.get(stat.songId)?.size ?? 0;
 
       return {
 
@@ -132,8 +159,7 @@ export const getSongAnalytics = query({
 
         plays,
 
-        uniqueListeners:
-          stat.uniqueListeners,
+        uniqueListeners, // 🔥 NOW CORRECT
 
 
         skips,

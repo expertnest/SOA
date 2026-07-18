@@ -1,10 +1,14 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 
 const PLAY_COOLDOWN = 30 * 1000;
 
 export const trackEvent = mutation({
   args: {
+    userId: v.union(v.id("users"), v.string()),
+    isAnonymous: v.boolean(),
+
     type: v.union(
       v.literal("song_play"),
       v.literal("song_skip"),
@@ -33,25 +37,38 @@ export const trackEvent = mutation({
     const now = Date.now();
 
     // ======================
-    // 🔥 0. AUTH
+    // 0. USER RESOLUTION
     // ======================
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) =>
-        q.eq("clerkId", identity.subject)
-      )
-      .unique();
+    let realUserId: Id<"users"> | null = null;
+    let eventUserId: Id<"users"> | string = args.userId;
 
-    if (!user) throw new Error("User not found");
+    if (!args.isAnonymous) {
+      const identity = await ctx.auth.getUserIdentity();
 
-    const userId = user._id;
+      if (!identity) {
+        throw new Error("Not authenticated");
+      }
+
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerkId", (q) =>
+          q.eq("clerkId", identity.subject)
+        )
+        .unique();
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      realUserId = user._id;
+      eventUserId = user._id;
+    }
 
     // ======================
     // 1. VALIDATION
     // ======================
+
     const songEvents = new Set([
       "song_play",
       "song_skip",
@@ -64,65 +81,105 @@ export const trackEvent = mutation({
       throw new Error(`${args.type} requires songId`);
     }
 
+    // 🔥 SAFER: don't hard crash if duration missing
     if (args.type === "song_play" && args.duration === undefined) {
-      throw new Error("song_play requires duration");
+      console.warn("song_play missing duration — continuing");
     }
 
     // ======================
-    // 2. ANTI-SPAM
+    // 2. CHECK EXISTING LISTENER
     // ======================
+
+    let alreadyListener = false;
+
+    if (args.songId && args.type === "song_play") {
+      const previousPlay = await ctx.db
+        .query("events")
+        .filter((q) =>
+          q.and(
+            q.eq(q.field("songId"), args.songId),
+            q.eq(q.field("type"), "song_play"),
+            q.eq(q.field("userId"), eventUserId)
+          )
+        )
+        .first();
+
+      alreadyListener = !!previousPlay;
+    }
+
+    // ======================
+    // 3. ANTI-SPAM REAL USERS
+    // ======================
+
     let history = null;
 
-    if (args.songId) {
+    if (args.songId && realUserId) {
       history = await ctx.db
         .query("listening_history")
         .withIndex("by_user_song", (q) =>
-          q.eq("userId", userId).eq("songId", args.songId!)
+          q
+            .eq("userId", realUserId)
+            .eq("songId", args.songId!)
         )
         .unique();
 
-      if (history && now - history.lastPlayedAt < PLAY_COOLDOWN) {
+      if (
+        history &&
+        now - history.lastPlayedAt < PLAY_COOLDOWN
+      ) {
         return { ignored: true };
       }
     }
 
     // ======================
-    // 3. WRITE EVENT
+    // 4. WRITE EVENT
     // ======================
+
     await ctx.db.insert("events", {
       ...args,
-      userId,
+      userId: eventUserId,
+      isAnonymous: args.isAnonymous,
       createdAt: now,
     });
 
     // ======================
-    // 4. USER STATS
+    // 5. USER STATS
     // ======================
-    const userUpdate: any = {
-      lastActiveAt: now,
-    };
 
-    if (args.type === "song_play") {
-      userUpdate.totalPlays = user.totalPlays + 1;
-      userUpdate.totalListeningTime =
-        user.totalListeningTime + (args.duration ?? 0);
+    if (realUserId) {
+      const user = await ctx.db.get(realUserId);
+
+      if (user) {
+        const userUpdate: any = {
+          lastActiveAt: now,
+        };
+
+        if (args.type === "song_play") {
+          userUpdate.totalPlays = user.totalPlays + 1;
+
+          userUpdate.totalListeningTime =
+            user.totalListeningTime +
+            (args.duration ?? 0);
+        }
+
+        if (args.type === "song_skip") {
+          userUpdate.totalSkips = user.totalSkips + 1;
+        }
+
+        if (args.type === "song_replay") {
+          userUpdate.totalReplays = user.totalReplays + 1;
+        }
+
+        await ctx.db.patch(realUserId, userUpdate);
+      }
     }
 
-    if (args.type === "song_skip") {
-      userUpdate.totalSkips = user.totalSkips + 1;
-    }
-
-    if (args.type === "song_replay") {
-      userUpdate.totalReplays = user.totalReplays + 1;
-    }
-
-    await ctx.db.patch(userId, userUpdate);
-
     // ======================
-    // 5. SONG STATS (FIXED CLEAN)
+    // 6. SONG STATS (FIXED)
     // ======================
+
     if (args.songId) {
-      const songId = args.songId; // ✅ FIX TYPE ONCE
+      const songId = args.songId;
 
       let stat = await ctx.db
         .query("song_stats")
@@ -146,54 +203,80 @@ export const trackEvent = mutation({
         stat = await ctx.db.get(id);
       }
 
-      const isNewListener = !history;
-
-      // 🔥 BASE COUNTERS
       let totalPlays = stat!.totalPlays;
       let totalSkips = stat!.totalSkips;
 
-      if (args.type === "song_play") totalPlays += 1;
-      if (args.type === "song_skip") totalSkips += 1;
+      if (args.type === "song_play") {
+        totalPlays++;
+      }
 
-      // 🔥 DERIVED METRICS
-      const skipRate = totalPlays > 0 ? totalSkips / totalPlays : 0;
+      if (args.type === "song_skip") {
+        totalSkips++;
+      }
 
-      // simple replay logic (can improve later)
-      const replayRate =
-        args.type === "song_replay"
-          ? stat!.replayRate + 0.01
-          : stat!.replayRate;
+      // 🔥 NEW: completion rate
+      let completionRate = stat!.completionRate;
+
+      if (args.type === "song_end") {
+        completionRate =
+          totalPlays > 0
+            ? (stat!.completionRate * totalPlays + 1) /
+              totalPlays
+            : 0;
+      }
+
+      // 🔥 NEW: real replay rate
+      let replayRate = stat!.replayRate;
+
+      if (args.type === "song_replay") {
+        replayRate =
+          totalPlays > 0
+            ? (stat!.replayRate * totalPlays + 1) /
+              totalPlays
+            : 0;
+      }
 
       const updates: any = {
         totalPlays,
         totalSkips,
-        skipRate,
+        skipRate:
+          totalPlays > 0
+            ? totalSkips / totalPlays
+            : 0,
+
         replayRate,
+        completionRate, // 🔥 FIXED
+
         updatedAt: now,
       };
 
+      // 🔥 FIXED UNIQUE LISTENER COUNT
       if (args.type === "song_play") {
         updates.uniqueListeners =
-          stat!.uniqueListeners + (isNewListener ? 1 : 0);
+          stat!.uniqueListeners +
+          (alreadyListener ? 0 : 1);
       }
 
       await ctx.db.patch(stat!._id, updates);
 
       // ======================
-      // 6. LISTENING HISTORY
+      // 7. LISTENING HISTORY
       // ======================
-      if (history) {
-        await ctx.db.patch(history._id, {
-          playCount: history.playCount + 1,
-          lastPlayedAt: now,
-        });
-      } else {
-        await ctx.db.insert("listening_history", {
-          userId,
-          songId,
-          playCount: 1,
-          lastPlayedAt: now,
-        });
+
+      if (realUserId) {
+        if (history) {
+          await ctx.db.patch(history._id, {
+            playCount: history.playCount + 1,
+            lastPlayedAt: now,
+          });
+        } else {
+          await ctx.db.insert("listening_history", {
+            userId: realUserId,
+            songId,
+            playCount: 1,
+            lastPlayedAt: now,
+          });
+        }
       }
     }
 
