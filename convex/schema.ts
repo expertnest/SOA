@@ -311,18 +311,19 @@ songs: defineTable({
   // ======================
   song_stats: defineTable({
     songId: v.id("songs"),
-
-    
+  
     totalPlays: v.number(),
     totalSkips: v.number(),
+    totalReplays: v.optional(v.number()),
     uniqueListeners: v.number(),
+  
     completionRate: v.number(),
     skipRate: v.number(),
     replayRate: v.number(),
-
+  
     updatedAt: v.number(),
   })
-    .index("by_songId", ["songId"]),
+  .index("by_songId", ["songId"]),
 
   // ======================
   // 📊 ARTIST STATS
@@ -343,16 +344,45 @@ songs: defineTable({
   // ======================
   // 👤 LISTENING HISTORY (UPDATED)
   // ======================
-  listening_history: defineTable({
-    userId: v.id("users"),
-    songId: v.id("songs"),
+  // ======================
+// 👤 LISTENING HISTORY (AUTH USERS)
+// ======================
+listening_history: defineTable({
+  userId: v.id("users"),
+  songId: v.id("songs"),
 
-    lastPlayedAt: v.number(),
-    playCount: v.number(),
-  })
-    .index("by_userId", ["userId"])
-    .index("by_songId", ["songId"])
+  lastPlayedAt: v.number(),
+  playCount: v.number(),
+})
+  .index("by_userId", ["userId"])
+  .index("by_songId", ["songId"])
+  .index("by_user_song", ["userId", "songId"]),
 
-    // 🔥 ADDED
-    .index("by_user_song", ["userId", "songId"]),
+
+// ======================
+// 👤 ANONYMOUS LISTENING HISTORY
+// ======================
+anonymous_listening_history: defineTable({
+  anonId: v.string(),
+  songId: v.id("songs"),
+
+  lastPlayedAt: v.number(),
+  playCount: v.number(),
+})
+  .index("by_anon_song", ["anonId", "songId"]),
 });
+
+// ======================
+// 👤 ANONYMOUS LISTENING HISTORY
+// ======================
+anonymous_listening_history: defineTable({
+  anonId: v.string(),
+  songId: v.id("songs"),
+
+  lastPlayedAt: v.number(),
+  playCount: v.number(),
+})
+.index(
+  "by_anon_song",
+  ["anonId", "songId"]
+)
