@@ -10,7 +10,6 @@ export const getSongAnalytics = query({
     const projects = await ctx.db.query("projects").collect();
     const projectSongs = await ctx.db.query("projectSongs").collect();
 
-    // 🔥 NEW: GET EVENTS (ADDED)
     const events = await ctx.db.query("events").collect();
 
     // ======================
@@ -36,8 +35,18 @@ export const getSongAnalytics = query({
       ])
     );
 
-    // 🔥 NEW: BUILD UNIQUE LISTENER MAP (ADDED)
+    // ======================
+    // 🔥 UNIQUE LISTENERS
+    // ======================
+
     const listenerMap = new Map<string, Set<string>>();
+
+    // ======================
+    // 🔥 DEEP ANALYTICS MAPS (NEW)
+    // ======================
+
+    const durationBuckets = new Map<string, number[]>();
+    const sessionMap = new Map<string, Set<string>>();
 
     events.forEach((event) => {
       if (
@@ -51,10 +60,29 @@ export const getSongAnalytics = query({
           listenerMap.set(key, new Set());
         }
 
-        // OPTIONAL: filter garbage clicks
         if ((event.duration ?? 0) < 5) return;
 
         listenerMap.get(key)!.add(event.userId);
+
+        // 🔥 track durations
+        if (!durationBuckets.has(key)) {
+          durationBuckets.set(key, []);
+        }
+
+        durationBuckets.get(key)!.push(
+          event.duration ?? 0
+        );
+
+        // 🔥 track sessions
+        if (event.sessionId) {
+          if (!sessionMap.has(key)) {
+            sessionMap.set(key, new Set());
+          }
+
+          sessionMap
+            .get(key)!
+            .add(event.sessionId);
+        }
       }
     });
 
@@ -70,7 +98,6 @@ export const getSongAnalytics = query({
         ? artistMap.get(song.artistId)
         : null;
 
-
       const projectId = songToProjectMap.get(
         stat.songId
       );
@@ -79,124 +106,141 @@ export const getSongAnalytics = query({
         ? projectMap.get(projectId)
         : null;
 
-
       const plays = stat.totalPlays;
       const skips = stat.totalSkips;
 
       const replays =
-        Math.round(stat.replayRate * plays);
-
+        Math.round((stat.replayRate ?? 0) * plays);
 
       const likes = 0;
 
-
       const skipRate =
-        plays > 0
-          ? skips / plays
-          : 0;
-
+        plays > 0 ? skips / plays : 0;
 
       const replayRate =
         stat.replayRate ?? 0;
 
-
       const likeRate =
-        plays > 0
-          ? likes / plays
-          : 0;
-
+        plays > 0 ? likes / plays : 0;
 
       const engagementScore =
         plays +
         replays * 2 -
         skips * 2;
 
-
       const retentionStrength =
         replays - skips;
 
-      // 🔥 FIXED (ONLY LINE CHANGED)
       const uniqueListeners =
         listenerMap.get(stat.songId)?.size ?? 0;
 
-      return {
+      // ======================
+      // 🔥 NEW: DEEP METRICS
+      // ======================
 
+      const durations =
+        durationBuckets.get(stat.songId) ?? [];
+
+      const avgDuration =
+        durations.length > 0
+          ? durations.reduce((a, b) => a + b, 0) /
+            durations.length
+          : 0;
+
+      const shortPlays =
+        durations.filter((d) => d < 5).length;
+
+      const fullPlays =
+        durations.filter(
+          (d) =>
+            song?.duration &&
+            d >= song.duration * 0.9
+        ).length;
+
+      const completionRate =
+        plays > 0
+          ? fullPlays / plays
+          : 0;
+
+      const sessions =
+        sessionMap.get(stat.songId)?.size ?? 0;
+
+      // ======================
+      // 🔥 RETENTION CURVE (SIMPLIFIED)
+      // ======================
+
+      const retentionCurve = [
+        100,
+        Math.max(100 - skipRate * 100 * 0.5, 0),
+        Math.max(100 - skipRate * 100, 0),
+        Math.max(100 - skipRate * 150, 0),
+      ];
+
+      return {
         songId: stat.songId,
 
-
-        // SONG
-
         title:
-          song?.title ??
-          "Unknown",
-
-
-        // ARTIST
+          song?.title ?? "Unknown",
 
         artistId:
           song?.artistId,
-
 
         artistName:
           artist?.name ??
           "Unknown Artist",
 
-
-        // PROJECT
-
         projectId:
-          project?._id ??
-          null,
-
+          project?._id ?? null,
 
         projectName:
           project?.name ??
           "No Project",
 
-
-
-        // METRICS
+        // ======================
+        // CORE METRICS
+        // ======================
 
         plays,
-
-        uniqueListeners, // 🔥 NOW CORRECT
-
-
+        uniqueListeners,
         skips,
-
         replays,
-
         likes,
 
-
-
+        // ======================
         // RATES
+        // ======================
 
         skipRate,
-
         replayRate,
-
         likeRate,
 
-
-
+        // ======================
         // SCORES
+        // ======================
 
         engagementScore,
-
         retentionStrength,
 
+        // ======================
+        // 🔥 NEW DEEP METRICS
+        // ======================
 
+        avgDuration,
+        shortPlays,
+        fullPlays,
+        completionRate,
+        sessions,
+        retentionCurve,
 
+        // ======================
         // FLAGS
+        // ======================
 
         isDropOff:
           skipRate > 0.5,
 
-
         isSticky:
           replayRate > 0.3,
-
 
         isBreakout:
           plays > 5 &&
@@ -204,9 +248,8 @@ export const getSongAnalytics = query({
       };
     });
 
-
     return analytics.sort(
-      (a,b) =>
+      (a, b) =>
         b.engagementScore -
         a.engagementScore
     );

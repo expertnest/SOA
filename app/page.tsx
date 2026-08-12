@@ -30,6 +30,7 @@ export default function Home() {
     <div className="w-full overflow-x-hidden">
 
       {/* HERO */}
+     
       <div className="relative w-full sm:h-[35vh] md:h-[65vh] min-h-[140px] flex items-center">
         <img
           src="/headerLogo.png"
@@ -61,7 +62,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
       {/* MAIN */}
 <div className="px-4 sm:px-6 md:px-12 py-8 space-y-10">
 

@@ -13,7 +13,8 @@ import {
   Youtube,
   Shuffle,
   Repeat,
-} from "lucide-react";
+  ChevronsLeft, ChevronsRight
+} from "lucide-react";  
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -167,26 +168,51 @@ export default function LeftSidebar() {
   if (!mounted || !isLoaded) return null;
 
   return (
-    <aside
-      className={`bg-black/60 backdrop-blur-lg text-white border-r border-gray-800 p-3 md:p-4 flex flex-col transition-all duration-300 ${
-        leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-[245px]"
-      } flex-shrink-0 shadow-lg`}
-    >
+ <aside
+  className={`
+    relative
+    bg-neutral-950/80
+    text-white
+    p-3 md:p-4
+    flex flex-col
+    transition-all duration-300
+    ${leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-[350px]"}
+    flex-shrink-0
+
+    backdrop-blur-lg
+
+    /* floating depth */
+    shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_20px_40px_rgba(0,0,0,0.6)]
+
+    /* subtle inner lighting */
+    before:absolute before:inset-0
+    before:bg-gradient-to-b before:from-white/[0.04] before:to-transparent
+    before:pointer-events-none
+  `}
+>
       <button
         onClick={() => setLeftCollapsed(!leftCollapsed)}
         className="mb-1 self-end hover:text-white/70"
       >
-        <ChevronLeft size={20} className={leftCollapsed ? "rotate-180" : ""} />
+     
+
+<ChevronsLeft
+  size={20}
+  className={`transition-transform duration-200 ${
+    leftCollapsed ? "rotate-180" : ""
+  }`}
+/>
       </button>
 
       {!leftCollapsed && (
         <>
-          <div className="flex justify-center -mt-2 mb-2">
+       
+          <div className="flex    mb-2">
             <Image
               src="/assets/soalogo.png"
               alt="SOA Logo"
-              width={180}
-              height={180}
+              width={100}
+              height={100}
             />
           </div>
 
@@ -380,6 +406,6 @@ export default function LeftSidebar() {
           </div>
         </>
       )}
-    </aside>
+    </aside>            
   );
 }

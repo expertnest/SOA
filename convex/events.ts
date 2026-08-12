@@ -15,6 +15,7 @@ export const trackEvent = mutation({
       v.literal("song_replay"),
       v.literal("song_like"),
       v.literal("song_end"),
+      v.literal("song_progress"), // ✅ now fully supported
       v.literal("project_view"),
       v.literal("artist_follow"),
       v.literal("playlist_create"),
@@ -29,7 +30,11 @@ export const trackEvent = mutation({
     streamId: v.optional(v.id("streams")),
 
     source: v.optional(v.string()),
-    duration: v.optional(v.number()),
+
+    duration: v.optional(v.number()), // total song length
+    playedDuration: v.optional(v.number()), // how long user listened
+    position: v.optional(v.number()), // 10 / 25 / 50 / 75 / 90
+
     deviceType: v.optional(v.string()),
   },
 
@@ -46,9 +51,7 @@ export const trackEvent = mutation({
     if (!args.isAnonymous) {
       const identity = await ctx.auth.getUserIdentity();
 
-      if (!identity) {
-        throw new Error("Not authenticated");
-      }
+      if (!identity) throw new Error("Not authenticated");
 
       const user = await ctx.db
         .query("users")
@@ -57,9 +60,7 @@ export const trackEvent = mutation({
         )
         .unique();
 
-      if (!user) {
-        throw new Error("User not found");
-      }
+      if (!user) throw new Error("User not found");
 
       realUserId = user._id;
       eventUserId = user._id;
@@ -75,19 +76,19 @@ export const trackEvent = mutation({
       "song_replay",
       "song_like",
       "song_end",
+      "song_progress",
     ]);
 
     if (songEvents.has(args.type) && !args.songId) {
       throw new Error(`${args.type} requires songId`);
     }
 
-    // 🔥 SAFER: don't hard crash if duration missing
-    if (args.type === "song_play" && args.duration === undefined) {
-      console.warn("song_play missing duration — continuing");
+    if (args.type === "song_progress" && args.position === undefined) {
+      throw new Error("song_progress requires position");
     }
 
     // ======================
-    // 2. CHECK EXISTING LISTENER
+    // 2. UNIQUE LISTENER CHECK
     // ======================
 
     let alreadyListener = false;
@@ -99,7 +100,9 @@ export const trackEvent = mutation({
           q.and(
             q.eq(q.field("songId"), args.songId),
             q.eq(q.field("type"), "song_play"),
-            q.eq(q.field("userId"), eventUserId)
+            args.isAnonymous
+              ? q.eq(q.field("userId"), args.userId as string)
+              : q.eq(q.field("userId"), realUserId!)
           )
         )
         .first();
@@ -108,26 +111,43 @@ export const trackEvent = mutation({
     }
 
     // ======================
-    // 3. ANTI-SPAM REAL USERS
+    // 3. COOLDOWN (ANTI-SPAM)
     // ======================
 
-    let history = null;
+    let history: any = null;
+    let anonymousHistory: any = null;
 
-    if (args.songId && realUserId) {
-      history = await ctx.db
-        .query("listening_history")
-        .withIndex("by_user_song", (q) =>
-          q
-            .eq("userId", realUserId)
-            .eq("songId", args.songId!)
-        )
-        .unique();
+    if (args.songId && args.type === "song_play") {
+      if (realUserId) {
+       history = await ctx.db
+  .query("listening_history")
+  .withIndex("by_user_song", (q) =>
+    q.eq("userId", realUserId).eq("songId", args.songId!)
+  )
+  .first();
 
-      if (
-        history &&
-        now - history.lastPlayedAt < PLAY_COOLDOWN
-      ) {
-        return { ignored: true };
+        if (
+          history &&
+          now - history.lastPlayedAt < PLAY_COOLDOWN
+        ) {
+          return { ignored: true };
+        }
+      }
+
+      if (args.isAnonymous && typeof args.userId === "string") {
+        anonymousHistory = await ctx.db
+          .query("anonymous_listening_history")
+          .withIndex("by_anon_song", (q) =>
+            q.eq("anonId", args.userId).eq("songId", args.songId!)
+          )
+          .unique();
+
+        if (
+          anonymousHistory &&
+          now - anonymousHistory.lastPlayedAt < PLAY_COOLDOWN
+        ) {
+          return { ignored: true };
+        }
       }
     }
 
@@ -155,19 +175,19 @@ export const trackEvent = mutation({
         };
 
         if (args.type === "song_play") {
-          userUpdate.totalPlays = user.totalPlays + 1;
+          userUpdate.totalPlays = (user.totalPlays ?? 0) + 1;
 
           userUpdate.totalListeningTime =
-            user.totalListeningTime +
-            (args.duration ?? 0);
+            (user.totalListeningTime ?? 0) +
+            (args.playedDuration ?? 0);
         }
 
         if (args.type === "song_skip") {
-          userUpdate.totalSkips = user.totalSkips + 1;
+          userUpdate.totalSkips = (user.totalSkips ?? 0) + 1;
         }
 
         if (args.type === "song_replay") {
-          userUpdate.totalReplays = user.totalReplays + 1;
+          userUpdate.totalReplays = (user.totalReplays ?? 0) + 1;
         }
 
         await ctx.db.patch(realUserId, userUpdate);
@@ -175,7 +195,7 @@ export const trackEvent = mutation({
     }
 
     // ======================
-    // 6. SONG STATS (FIXED)
+    // 6. SONG STATS
     // ======================
 
     if (args.songId) {
@@ -193,6 +213,7 @@ export const trackEvent = mutation({
           songId,
           totalPlays: 0,
           totalSkips: 0,
+          totalReplays: 0,
           uniqueListeners: 0,
           completionRate: 0,
           skipRate: 0,
@@ -205,56 +226,48 @@ export const trackEvent = mutation({
 
       let totalPlays = stat!.totalPlays;
       let totalSkips = stat!.totalSkips;
+      let totalReplays = stat!.totalReplays;
 
-      if (args.type === "song_play") {
-        totalPlays++;
-      }
+      if (args.type === "song_play") totalPlays++;
+      if (args.type === "song_skip") totalSkips++;
+      if (args.type === "song_replay") totalReplays++;
 
-      if (args.type === "song_skip") {
-        totalSkips++;
-      }
+      // ======================
+      // RATES
+      // ======================
 
-      // 🔥 NEW: completion rate
       let completionRate = stat!.completionRate;
+      let replayRate = stat!.replayRate;
 
       if (args.type === "song_end") {
         completionRate =
           totalPlays > 0
-            ? (stat!.completionRate * totalPlays + 1) /
-              totalPlays
+            ? (stat!.completionRate * totalPlays + 1) / totalPlays
             : 0;
       }
-
-      // 🔥 NEW: real replay rate
-      let replayRate = stat!.replayRate;
 
       if (args.type === "song_replay") {
         replayRate =
           totalPlays > 0
-            ? (stat!.replayRate * totalPlays + 1) /
-              totalPlays
+            ? totalReplays / totalPlays
             : 0;
       }
 
       const updates: any = {
         totalPlays,
         totalSkips,
-        skipRate:
-          totalPlays > 0
-            ? totalSkips / totalPlays
-            : 0,
+        totalReplays,
 
+        skipRate: totalPlays > 0 ? totalSkips / totalPlays : 0,
         replayRate,
-        completionRate, // 🔥 FIXED
+        completionRate,
 
         updatedAt: now,
       };
 
-      // 🔥 FIXED UNIQUE LISTENER COUNT
       if (args.type === "song_play") {
         updates.uniqueListeners =
-          stat!.uniqueListeners +
-          (alreadyListener ? 0 : 1);
+          stat!.uniqueListeners + (alreadyListener ? 0 : 1);
       }
 
       await ctx.db.patch(stat!._id, updates);
@@ -272,6 +285,22 @@ export const trackEvent = mutation({
         } else {
           await ctx.db.insert("listening_history", {
             userId: realUserId,
+            songId,
+            playCount: 1,
+            lastPlayedAt: now,
+          });
+        }
+      }
+
+      if (args.isAnonymous && typeof args.userId === "string") {
+        if (anonymousHistory) {
+          await ctx.db.patch(anonymousHistory._id, {
+            playCount: anonymousHistory.playCount + 1,
+            lastPlayedAt: now,
+          });
+        } else {
+          await ctx.db.insert("anonymous_listening_history", {
+            anonId: args.userId,
             songId,
             playCount: 1,
             lastPlayedAt: now,

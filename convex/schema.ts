@@ -169,6 +169,7 @@ songs: defineTable({
       v.literal("song_replay"),
       v.literal("song_like"),
       v.literal("song_end"),
+      v.literal("song_progress"), // ADD
       v.literal("project_view"),
       v.literal("artist_follow"),
       v.literal("playlist_create"),
@@ -179,6 +180,9 @@ songs: defineTable({
     songId: v.optional(v.id("songs")),
     projectId: v.optional(v.id("projects")),
     artistId: v.optional(v.id("artists")),
+
+    playedDuration: v.optional(v.number()),
+    position: v.optional(v.number()),
 
     sessionId: v.optional(v.id("sessions")),
     streamId: v.optional(v.id("streams")),
@@ -314,7 +318,7 @@ songs: defineTable({
   
     totalPlays: v.number(),
     totalSkips: v.number(),
-    totalReplays: v.optional(v.number()),
+    totalReplays:v.number(),
     uniqueListeners: v.number(),
   
     completionRate: v.number(),
@@ -372,17 +376,4 @@ anonymous_listening_history: defineTable({
   .index("by_anon_song", ["anonId", "songId"]),
 });
 
-// ======================
-// 👤 ANONYMOUS LISTENING HISTORY
-// ======================
-anonymous_listening_history: defineTable({
-  anonId: v.string(),
-  songId: v.id("songs"),
-
-  lastPlayedAt: v.number(),
-  playCount: v.number(),
-})
-.index(
-  "by_anon_song",
-  ["anonId", "songId"]
-)
+ 

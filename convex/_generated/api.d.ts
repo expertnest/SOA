@@ -9,12 +9,14 @@
  */
 
 import type * as _seed_seedSingle from "../_seed/seedSingle.js";
+import type * as addTotalReplays from "../addTotalReplays.js";
 import type * as admin from "../admin.js";
 import type * as artistAnalytics from "../artistAnalytics.js";
 import type * as artistComparison from "../artistComparison.js";
 import type * as artists from "../artists.js";
 import type * as createProjectWithSongs from "../createProjectWithSongs.js";
 import type * as createSong from "../createSong.js";
+import type * as deepAnalytics from "../deepAnalytics.js";
 import type * as events from "../events.js";
 import type * as feed from "../feed.js";
 import type * as fixSongs from "../fixSongs.js";
@@ -40,12 +42,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "_seed/seedSingle": typeof _seed_seedSingle;
+  addTotalReplays: typeof addTotalReplays;
   admin: typeof admin;
   artistAnalytics: typeof artistAnalytics;
   artistComparison: typeof artistComparison;
   artists: typeof artists;
   createProjectWithSongs: typeof createProjectWithSongs;
   createSong: typeof createSong;
+  deepAnalytics: typeof deepAnalytics;
   events: typeof events;
   feed: typeof feed;
   fixSongs: typeof fixSongs;

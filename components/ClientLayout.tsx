@@ -66,6 +66,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   const mobileMainNav = ["HOME", "MUSIC", "VIDEOS", "TOUR"];
   const mobileMoreNav = ["SHOP", "ABOUT", "LIVE", "CONTACT"];
+  const [rightOpen, setRightOpen] = useState(true);
 
   return (
     <MusicProvider>
@@ -76,44 +77,43 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           <div className="flex-1 flex flex-col min-h-0 bg-black">
             {/* DESKTOP TOP NAV */}
             {!hideSidebars && (
-              <div className="w-full flex justify-center px-6 py-4 border-b border-gray-800 shrink-0">
-                <div className="w-full max-w-[1400px] flex justify-center">
-                  <div className="flex items-center justify-between w-full px-8 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl">
-                    <div className="text-xs tracking-[0.35em] text-white font-semibold">
-                      SOA
-                    </div>
-
-                    <div className="flex items-center gap-8">
-                      {navItems.map((item) => (
-                        <Link
-                          key={item}
-                          href={navLinks[item]}
-                          className="text-[11px] tracking-[0.28em] text-white/50 hover:text-white transition"
-                        >
-                          {item}
-                        </Link>
-                      ))}
-                    </div>
-
-                    {/* ✅ CLERK DESKTOP AUTH */}
-                    <div className="flex items-center gap-4 pl-6 border-l border-white/10">
-                      {!isSignedIn ? (
-                        <SignInButton mode="modal">
-                          <button className="text-xs text-white/60 hover:text-white transition">
-                            LOGIN
-                          </button>
-                        </SignInButton>
-                      ) : (
-                        <UserButton />
-                      )}
-
-<Link href="/profile" className="cursor-pointer hover:opacity-80">
-  <User className="w-5 h-5 text-white" />
-</Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="w-full flex justify-center px-6 py-4 border-b border-gray-800 shrink-0">
+        <div className="w-full max-w-[1400px]">
+          <div className="relative flex items-center justify-center px-8 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl">
+      
+            {/* CENTER NAV */}
+            <div className="flex items-center gap-8">
+              {navItems.map((item) => (
+                <Link
+                  key={item}
+                  href={navLinks[item]}
+                  className="text-[11px] tracking-[0.28em] text-white/50 hover:text-white transition"
+                >
+                  {item}
+                </Link>
+              ))}
+            </div>
+      
+            {/* RIGHT AUTH */}
+            <div className="absolute right-8 flex items-center gap-4 pl-6 border-l border-white/10">
+              {!isSignedIn ? (
+                <SignInButton mode="modal">
+                  <button className="text-xs text-white/60 hover:text-white transition">
+                    LOGIN
+                  </button>
+                </SignInButton>
+              ) : (
+                <UserButton />
+              )}
+      
+              <Link href="/profile" className="cursor-pointer hover:opacity-80">
+                <User className="w-5 h-5 text-white" />
+              </Link>
+            </div>
+      
+          </div>
+        </div>
+      </div>
             )}
 
             <div className="flex flex-1 min-h-0">
@@ -125,52 +125,83 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               </main>
 
               {!hideSidebars && (
-                <div className="w-[270px] flex flex-col border-l border-gray-800">
-                  {!isSignedIn ? (
-                    <RightSidebar />
-                  ) : (
-                    <div className="flex flex-col h-full bg-black/40">
-                      <div className="p-3 border-b border-white/10 text-xs tracking-[0.3em]">
-                        LIVE CHAT
-                      </div>
+  <div
+    className={`relative flex flex-col border-l border-gray-800 transition-all duration-300 ${
+      rightOpen ? "w-[270px]" : "w-[60px]"
+    }`}
+  >
+    {/* TOGGLE BUTTON */}
+    <button
+      onClick={() => setRightOpen((prev) => !prev)}
+      className="absolute -left-3 top-4 z-10 w-6 h-6 rounded-full bg-black border border-white/10 flex items-center justify-center text-xs hover:bg-white/10 transition"
+    >
+      {rightOpen ? ">" : "<"}
+    </button>
 
-                      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                        {messages.map((msg, i) => (
-                          <div
-                            key={i}
-                            className={`text-xs ${
-                              msg.user === "you"
-                                ? "text-indigo-300 text-right"
-                                : "text-white/70"
-                            }`}
-                          >
-                            <span className="opacity-50 mr-1">
-                              {msg.user}:
-                            </span>
-                            {msg.text}
-                          </div>
-                        ))}
-                      </div>
+    {/* ================= COLLAPSED STATE ================= */}
+    {!rightOpen && (
+      <div className="flex flex-col items-center py-4 gap-4">
+        {/* icons / quick actions */}
+        <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center text-xs">
+          💬
+        </div>
+        <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center text-xs">
+          🔥
+        </div>
+        <div className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center text-xs">
+          🎧
+        </div>
+      </div>
+    )}
 
-                      <div className="p-3 border-t border-white/10 flex gap-2">
-                        <input
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                          className="flex-1 bg-black/50 text-xs p-2 rounded-md border border-white/10"
-                          placeholder="Say something..."
-                        />
-                        <button
-                          onClick={sendMessage}
-                          className="text-xs px-3 py-2 bg-indigo-500/20 rounded-md"
-                        >
-                          SEND
-                        </button>
-                      </div>
-                    </div>
-                  )}
+    {/* ================= FULL STATE ================= */}
+    {rightOpen && (
+      <>
+        {!isSignedIn ? (
+          <RightSidebar />
+        ) : (
+          <div className="flex flex-col h-full bg-black/40">
+            <div className="p-3 border-b border-white/10 text-xs tracking-[0.3em] flex justify-between items-center">
+              LIVE CHAT
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`text-xs ${
+                    msg.user === "you"
+                      ? "text-indigo-300 text-right"
+                      : "text-white/70"
+                  }`}
+                >
+                  <span className="opacity-50 mr-1">{msg.user}:</span>
+                  {msg.text}
                 </div>
-              )}
+              ))}
+            </div>
+
+            <div className="p-3 border-t border-white/10 flex gap-2">
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                className="flex-1 bg-black/50 text-xs p-2 rounded-md border border-white/10"
+                placeholder="Say something..."
+              />
+              <button
+                onClick={sendMessage}
+                className="text-xs px-3 py-2 bg-indigo-500/20 rounded-md"
+              >
+                SEND
+              </button>
+            </div>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
             </div>
           </div>
         </div>

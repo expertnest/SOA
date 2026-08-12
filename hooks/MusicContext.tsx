@@ -8,27 +8,26 @@ import {
   useEffect,
 } from "react";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 import type { Id } from "@/convex/_generated/dataModel";
 
+
 /* =========================
    LOCAL PLAYER TYPE
    ========================= */
+
 export type Song = {
   songId: Id<"songs">;
 
-  // compatibility id for UI
   id?: string;
 
   title: string;
 
-  // old + new artist support
   artistName: string;
   artist?: string;
 
-  // artwork support
   coverImage?: string;
   image?: string;
 
@@ -38,10 +37,8 @@ export type Song = {
   skipRate: number;
   replayRate: number;
 
-  // frontend audio
   src: string;
 
-  // Convex compatibility
   audioUrl?: string;
 
   genre?: string;
@@ -49,41 +46,57 @@ export type Song = {
 };
 
 
+
 type MusicContextType = {
   isPlaying: boolean;
+
   togglePlay: () => void;
+
   handleNext: () => void;
+
   handlePrev: () => void;
+
 
   currentSong: Song | null;
 
+
   progress: number;
-  seek: (value: number) => void;
 
-  volume: number;
-  setVolume: (v: number) => void;
+  seek: (value:number)=>void;
 
-  playSong: (song: Song) => void;
 
-  setCurrentSongIndex: React.Dispatch<
-    React.SetStateAction<number>
-  >;
+  volume:number;
 
-  duration: number;
+  setVolume:(v:number)=>void;
+
+
+  playSong:(song:Song)=>void;
+
+
+  setCurrentSongIndex:
+    React.Dispatch<
+      React.SetStateAction<number>
+    >;
+
+
+  duration:number;
 };
 
 
+
 const MusicContext =
-  createContext<MusicContextType | undefined>(
-    undefined
-  );
+  createContext<
+    MusicContextType | undefined
+  >(undefined);
+
 
 
 export function MusicProvider({
   children,
-}: {
-  children: React.ReactNode;
+}:{
+  children:React.ReactNode;
 }) {
+
 
 
   // ======================
@@ -91,123 +104,196 @@ export function MusicProvider({
   // ======================
 
   const rawSongs =
-    useQuery(api.songs.getSongsForFeed) ?? [];
+    useQuery(
+      api.songs.getSongsForFeed
+    ) ?? [];
+
 
 
 
   // ======================
-  // 🔥 MAP CONVEX → PLAYER SONGS
+  // 📊 ANALYTICS MUTATION
   // ======================
 
-  const songs: Song[] =
-    rawSongs.map((s: any) => ({
-
-      songId: s.songId,
-
-
-      // compatibility
-      id: s.songId,
-
-
-      title: s.title,
-
-
-      artistName:
-        s.artistName ||
-        "Unknown Artist",
-
-
-      artist:
-        s.artistName ||
-        "Unknown Artist",
+  const trackEvent =
+    useMutation(
+      api.events.trackEvent
+    );
 
 
 
-      coverImage:
-        s.coverImage ||
-        "/assets/soalogo.png",
+  // ======================
+  // 👤 ANONYMOUS ID
+  // ======================
 
-
-      image:
-        s.coverImage &&
-        s.coverImage.startsWith("http")
-          ? s.coverImage
-          : "/assets/soalogo.png",
+  const anonymousId =
+    useRef<string | null>(null);
 
 
 
-      duration:
-        s.duration || 0,
+  useEffect(()=>{
 
 
-      totalPlays:
-        s.totalPlays || 0,
-
-
-      skipRate:
-        s.skipRate || 0,
-
-
-      replayRate:
-        s.replayRate || 0,
+    if(
+      typeof window === "undefined"
+    )
+      return;
 
 
 
-      // compatibility
-      audioUrl:
-        s.audioUrl,
-
-
-      src:
-        s.audioUrl ||
-        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    let id =
+      localStorage.getItem(
+        "soa_anonymous_id"
+      );
 
 
 
-      genre:
-        s.genre ||
-        "Music",
+    if(!id){
+
+      id =
+        crypto.randomUUID();
 
 
-      category:
-        s.genre ||
-        "Music",
+      localStorage.setItem(
+        "soa_anonymous_id",
+        id
+      );
 
-    }));
+    }
+
+
+    anonymousId.current = id;
+
+
+  },[]);
 
 
 
-  const defaultIndex = 0;
+
+
+  // ======================
+  // 🔥 MAP CONVEX → PLAYER
+  // ======================
+
+  const songs:Song[] =
+    rawSongs.map(
+      (s:any)=>({
+
+        songId:s.songId,
+
+
+        id:s.songId,
+
+
+        title:s.title,
+
+
+        artistName:
+          s.artistName ??
+          "Unknown Artist",
+
+
+        artist:
+          s.artistName ??
+          "Unknown Artist",
+
+
+
+        coverImage:
+          s.coverImage ??
+          "/assets/soalogo.png",
+
+
+        image:
+          s.coverImage &&
+          s.coverImage.startsWith("http")
+            ? s.coverImage
+            : "/assets/soalogo.png",
+
+
+
+        duration:
+          s.duration ?? 0,
+
+
+
+        totalPlays:
+          s.totalPlays ?? 0,
+
+
+        skipRate:
+          s.skipRate ?? 0,
+
+
+        replayRate:
+          s.replayRate ?? 0,
+
+
+
+        audioUrl:
+          s.audioUrl,
+
+
+
+        src:
+          s.audioUrl ??
+          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+
+
+
+        genre:
+          s.genre ??
+          "Music",
+
+
+
+        category:
+          s.genre ??
+          "Music",
+
+      })
+    );
+
+
 
 
   const [
     isPlaying,
-    setIsPlaying,
-  ] = useState(false);
+    setIsPlaying
+  ] =
+  useState(false);
+
 
 
   const [
     currentSongIndex,
-    setCurrentSongIndex,
-  ] = useState(defaultIndex);
+    setCurrentSongIndex
+  ] =
+  useState(0);
+
 
 
   const [
     progress,
-    setProgress,
-  ] = useState(0);
+    setProgress
+  ] =
+  useState(0);
+
 
 
   const [
     volume,
-    setVolume,
-  ] = useState(1);
+    setVolume
+  ] =
+  useState(1);
+
 
 
   const [
     duration,
-    setDuration,
-  ] = useState(0);
+    setDuration
+  ] =
+  useState(0);
 
 
 
@@ -219,22 +305,65 @@ export function MusicProvider({
 
 
   const currentSong =
-    songs[currentSongIndex] || null;
+    songs[currentSongIndex] ?? null;
+
 
 
 
   // ======================
-  // 🎧 INIT AUDIO
+  // 📈 RETENTION TRACKING
   // ======================
 
-  useEffect(() => {
 
-    if (!currentSong)
+  const trackedMilestones =
+    useRef<
+      Set<number>
+    >(new Set());
+
+
+
+    const sendEvent = (
+      type:
+        | "song_play"
+        | "song_end"
+        | "song_skip",
+      song: Song
+    )=>{
+      if(!anonymousId.current) return;
+    
+      trackEvent({
+        userId: anonymousId.current,
+        isAnonymous:true,
+        type,
+        songId:song.songId,
+        playedDuration:
+          audioRef.current?.currentTime ?? 0,
+        duration:
+          audioRef.current?.duration ?? song.duration,
+        source:"music_player",
+        deviceType:"web",
+      });
+    };
+
+
+  // ======================
+  // 🎧 INIT AUDIO ENGINE
+  // ======================
+
+
+  useEffect(()=>{
+
+
+    if(!currentSong)
       return;
 
 
 
-    if (!audioRef.current) {
+    trackedMilestones.current.clear();
+
+
+
+    if(!audioRef.current){
 
       audioRef.current =
         new Audio(
@@ -250,43 +379,153 @@ export function MusicProvider({
 
 
 
-    const updateProgress = () => {
-
-      if (audio.duration) {
-
-        setProgress(
-          (audio.currentTime /
-            audio.duration) *
-            100
-        );
+    audio.src =
+      currentSong.src;
 
 
-        setDuration(
+
+    audio.volume =
+      volume;
+
+
+
+    const updateProgress = ()=>{
+
+
+      if(!audio.duration)
+        return;
+
+
+
+      const percent =
+        (
+          audio.currentTime /
           audio.duration
+        ) * 100;
+
+
+
+      setProgress(percent);
+
+
+
+      setDuration(
+        audio.duration
+      );
+
+
+
+      // ======================
+      // 📈 RETENTION EVENTS
+      // ======================
+
+
+      const milestones = [
+        10,
+        25,
+        50,
+        75,
+        90,
+      ];
+
+
+
+      milestones.forEach(
+        async(point)=>{
+
+
+          if(
+            percent >= point &&
+            !trackedMilestones.current.has(point)
+          ){
+
+
+            trackedMilestones.current.add(
+              point
+            );
+
+
+
+            if(
+              anonymousId.current
+            ){
+
+
+              await trackEvent({
+
+                userId:
+                  anonymousId.current,
+
+
+                isAnonymous:true,
+
+
+                type:
+                  "song_play",
+
+
+                songId:
+                  currentSong.songId,
+
+
+                duration:
+                  audio.currentTime,
+
+
+                source:
+                  `retention_${point}%`,
+
+
+                deviceType:
+                  "web",
+
+              });
+
+
+            }
+
+
+          }
+
+
+        }
+      );
+
+
+    };
+
+
+
+
+
+    const handleEnded =
+      async()=>{
+
+
+        await sendEvent(
+          "song_end",
+          currentSong
         );
 
-      }
-
-    };
 
 
+        if(
+          currentSongIndex <
+          songs.length - 1
+        ){
 
-    const handleEnded = () => {
+          handleNext();
 
-      if (
-        currentSongIndex <
-        songs.length - 1
-      ) {
+        }
+        else{
 
-        handleNext();
+          setIsPlaying(false);
 
-      } else {
+        }
 
-        setIsPlaying(false);
 
-      }
+      };
 
-    };
 
 
 
@@ -296,6 +535,7 @@ export function MusicProvider({
     );
 
 
+
     audio.addEventListener(
       "ended",
       handleEnded
@@ -303,7 +543,8 @@ export function MusicProvider({
 
 
 
-    return () => {
+    return()=>{
+
 
       audio.removeEventListener(
         "timeupdate",
@@ -311,19 +552,22 @@ export function MusicProvider({
       );
 
 
+
       audio.removeEventListener(
         "ended",
         handleEnded
       );
 
+
     };
 
 
-  }, [
-    currentSongIndex,
+
+  },[
     currentSong?.src,
-    songs,
+    currentSongIndex,
   ]);
+
 
 
 
@@ -332,13 +576,16 @@ export function MusicProvider({
   // ▶️ PLAY / PAUSE
   // ======================
 
-  const togglePlay = () => {
+
+  const togglePlay = ()=>{
+
 
     const audio =
       audioRef.current;
 
 
-    if (
+
+    if(
       !audio ||
       !currentSong
     )
@@ -346,11 +593,26 @@ export function MusicProvider({
 
 
 
-    if (isPlaying)
+    if(isPlaying){
+
       audio.pause();
 
-    else
+
+    }
+    else{
+
+
       audio.play();
+
+
+
+      sendEvent(
+        "song_play",
+        currentSong
+      );
+
+
+    }
 
 
 
@@ -358,7 +620,9 @@ export function MusicProvider({
       !isPlaying
     );
 
+
   };
+
 
 
 
@@ -367,13 +631,29 @@ export function MusicProvider({
   // ⏭ NEXT
   // ======================
 
-  const handleNext = () => {
 
-    if (
+  const handleNext = async()=>{
+
+
+    if(
+      currentSong
+    ){
+
+      await sendEvent(
+        "song_skip",
+        currentSong
+      );
+
+    }
+
+
+
+    if(
       currentSongIndex >=
       songs.length - 1
     )
       return;
+
 
 
 
@@ -388,33 +668,45 @@ export function MusicProvider({
 
 
 
-    if (
+    setProgress(0);
+
+
+
+    if(
       audioRef.current &&
       songs[nextIndex]
-    ) {
+    ){
+
 
       audioRef.current.src =
         songs[nextIndex].src;
 
 
 
-      if (isPlaying)
+      if(isPlaying)
         audioRef.current.play();
 
+
     }
+
+
 
   };
 
 
 
 
+
+
   // ======================
-  // ⏮ PREV
+  // ⏮ PREVIOUS
   // ======================
 
-  const handlePrev = () => {
 
-    if (
+  const handlePrev = ()=>{
+
+
+    if(
       currentSongIndex <= 0
     )
       return;
@@ -432,22 +724,31 @@ export function MusicProvider({
 
 
 
-    if (
+    setProgress(0);
+
+
+
+    if(
       audioRef.current &&
       songs[prevIndex]
-    ) {
+    ){
+
 
       audioRef.current.src =
         songs[prevIndex].src;
 
 
 
-      if (isPlaying)
+      if(isPlaying)
         audioRef.current.play();
+
 
     }
 
+
   };
+
+
 
 
 
@@ -456,25 +757,37 @@ export function MusicProvider({
   // 🎯 SEEK
   // ======================
 
+
   const seek = (
     value:number
-  ) => {
+  )=>{
 
-    if (
+
+    if(
       audioRef.current &&
       audioRef.current.duration
-    ) {
+    ){
+
 
       audioRef.current.currentTime =
-        (value / 100) *
+        (
+          value / 100
+        ) *
         audioRef.current.duration;
 
 
-      setProgress(value);
+
+      setProgress(
+        value
+      );
+
 
     }
 
+
   };
+
+
 
 
 
@@ -483,116 +796,169 @@ export function MusicProvider({
   // 🎵 PLAY SPECIFIC SONG
   // ======================
 
+
   const playSong = (
     song:Song
-  ) => {
+  )=>{
 
 
     const index =
       songs.findIndex(
-        (s) =>
+        (s)=>
           s.songId ===
           song.songId
       );
 
 
 
-    if (
-      index !== -1 &&
-      audioRef.current
-    ) {
+    if(
+      index === -1 ||
+      !audioRef.current
+    )
+      return;
 
 
-      setCurrentSongIndex(
-        index
-      );
 
 
-      audioRef.current.src =
-        song.src;
+    setCurrentSongIndex(
+      index
+    );
 
 
-      audioRef.current.play();
+
+    trackedMilestones.current.clear();
 
 
-      setIsPlaying(
-        true
-      );
 
-    }
+    audioRef.current.src =
+      song.src;
+
+
+
+    audioRef.current.play();
+
+
+
+    setIsPlaying(
+      true
+    );
+
+
+
+    sendEvent(
+      "song_play",
+      song
+    );
+
 
   };
 
 
 
 
+
+
   // ======================
-  // 🔊 VOLUME
+  // 🔊 VOLUME SYNC
   // ======================
 
-  useEffect(() => {
 
-    if(audioRef.current){
+  useEffect(()=>{
+
+
+    if(
+      audioRef.current
+    ){
 
       audioRef.current.volume =
         volume;
 
     }
 
-  },[volume]);
+
+  },[
+    volume
+  ]);
 
 
+
+
+
+
+  // ======================
+  // PROVIDER
+  // ======================
 
 
   return (
+
     <MusicContext.Provider
 
       value={{
 
         isPlaying,
 
+
         togglePlay,
+
 
         handleNext,
 
+
         handlePrev,
+
 
 
         currentSong,
 
 
+
         progress,
+
 
         seek,
 
 
+
         volume,
 
+
         setVolume,
+
 
 
         playSong,
 
 
+
         setCurrentSongIndex,
 
 
+
         duration,
+
 
       }}
 
     >
 
+
       {children}
 
+
     </MusicContext.Provider>
+
   );
+
 
 }
 
 
 
+
+
 export function useMusic(){
+
 
   const ctx =
     useContext(
@@ -600,12 +966,16 @@ export function useMusic(){
     );
 
 
+
   if(!ctx)
+
     throw new Error(
       "useMusic must be used within MusicProvider"
     );
 
 
+
   return ctx;
+
 
 }
