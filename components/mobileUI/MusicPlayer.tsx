@@ -419,12 +419,12 @@ const MusicPlayer = () => {
       <AnimatePresence>
         {showQueue && (
           <motion.div
-            key="queue"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "tween", duration: 0.3 }}
-            className="fixed inset-0 text-white z-30 flex flex-col"
+          key="queue"
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "tween", duration: 0.3 }}
+          className="fixed inset-0 text-white z-50 flex flex-col"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.4}
@@ -622,7 +622,7 @@ const MusicPlayer = () => {
         {showFullScreen && (
           <motion.div
             key="fullScreenPlayer"
-            className="fixed inset-0 text-white z-40 flex flex-col"
+  className="fixed inset-0 text-white z-[60] flex flex-col"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}

@@ -207,151 +207,214 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* ================= MOBILE UI ================= */}
-        {hideSidebars && (
-          <>
-            {/* MOBILE BOTTOM NAV */}
-            <div className="fixed bottom-[70px] left-0 right-0 z-40 flex justify-center">
-              <div className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl mx-3 px-2 py-2 flex justify-between">
-                {mobileMainNav.map((item) => {
-                  const href = navLinks[item];
-                  const active = isActive(href);
+        {
+  hideSidebars && (
+    <>
+      {/* ===================================================== */}
+      {/* MOBILE BOTTOM NAV */}
+      {/* ===================================================== */}
 
-                  return (
-                    <Link
-                      key={item}
-                      href={href}
-                      className={`text-[10px] tracking-[0.25em] px-2 py-1 rounded-md transition ${
-                        active
-                          ? "text-white bg-white/10"
-                          : "text-white/50 hover:text-white"
-                      }`}
-                    >
-                      {item}
-                    </Link>
-                  );
-                })}
+      {/* z-20
+          Music player is z-30, so when expanded it sits
+          above this navigation.
+      */}
+      <div className="fixed bottom-[70px] left-0 right-0 z-20 flex justify-center">
+        <div className="w-full max-w-md bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl mx-3 px-2 py-2 flex justify-between">
+          {mobileMainNav.map((item) => {
+            const href = navLinks[item];
+            const active = isActive(href);
 
-                <button
-                  onClick={() => setMobileMoreOpen(true)}
-                  className="text-[10px] tracking-[0.25em] px-2 py-1 rounded-md text-white/50 hover:text-white transition"
-                >
-                  MORE
-                </button>
-              </div>
-            </div>
-
-            {/* MORE POPUP */}
-            {mobileMoreOpen && (
-              <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
-                <div className="w-full max-w-md bg-black border-t border-white/10 rounded-t-2xl p-4">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="text-[10px] tracking-[0.3em] text-white/60">
-                      MENU
-                    </div>
-                    <button onClick={() => setMobileMoreOpen(false)}>
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {mobileMoreNav.map((item) => {
-                      const href = navLinks[item];
-
-                      return (
-                        <Link
-                          key={item}
-                          href={href}
-                          onClick={() => setMobileMoreOpen(false)}
-                          className="flex items-center justify-center text-[10px] tracking-[0.2em] text-white/60 hover:text-white transition bg-white/5 border border-white/10 rounded-lg py-3 active:scale-[0.98]"
-                        >
-                          {item}
-                        </Link>
-                      );
-                    })}
-
-                    {/* ✅ MOBILE LOGIN */}
-                    {!isSignedIn ? (
-                      <SignInButton appearance={{elements:{logoBox: {display:"none", footer: {display:"none"}}}}} mode="modal">
-                        <button
-                          onClick={() => setMobileMoreOpen(false)}
-                          className="flex items-center justify-center text-[10px] tracking-[0.2em] text-indigo-300 hover:text-white transition bg-indigo-500/10 border border-indigo-500/20 rounded-lg py-3 active:scale-[0.98] col-span-2"
-                        >
-                          LOGIN
-                        </button>
-                      </SignInButton>
-                    ) : (
-                      <div className="col-span-2 flex justify-center">
-                        <UserButton />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* MOBILE CHAT BUTTON */}
-            {isSignedIn && (
-              <button
-                onClick={() => setMobileChatOpen(true)}
-                className="fixed bottom-28 right-4 z-50 w-12 h-12 rounded-full bg-indigo-500/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+            return (
+              <Link
+                key={item}
+                href={href}
+                className={`text-[10px] tracking-[0.25em] px-2 py-1 rounded-md transition ${
+                  active
+                    ? "text-white bg-white/10"
+                    : "text-white/50 hover:text-white"
+                }`}
               >
-                <User className="w-5 h-5 text-white" />
+                {item}
+              </Link>
+            );
+          })}
+
+          <button
+            onClick={() => setMobileMoreOpen(true)}
+            className="text-[10px] tracking-[0.25em] px-2 py-1 rounded-md text-white/50 hover:text-white transition"
+          >
+            MORE
+          </button>
+        </div>
+      </div>
+
+      {/* ===================================================== */}
+      {/* MORE POPUP */}
+      {/* ===================================================== */}
+
+      {/* z-50 keeps the menu above the music player */}
+      {mobileMoreOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
+          <div className="w-full max-w-md bg-black border-t border-white/10 rounded-t-2xl p-4">
+            <div className="flex justify-between items-center mb-3">
+              <div className="text-[10px] tracking-[0.3em] text-white/60">
+                MENU
+              </div>
+
+              <button
+                onClick={() => setMobileMoreOpen(false)}
+                className="text-white/70 hover:text-white transition"
+              >
+                <X className="w-4 h-4" />
               </button>
-            )}
-
-            {/* MOBILE CHAT PANEL */}
-            {mobileChatOpen && (
-              <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
-                <div className="w-full max-w-md h-[70%] bg-black border-t border-white/10 rounded-t-2xl flex flex-col">
-                  <div className="p-3 flex justify-between items-center border-b border-white/10">
-                    <div className="text-[10px] tracking-[0.3em]">
-                      LIVE CHAT
-                    </div>
-                    <button onClick={() => setMobileChatOpen(false)}>
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                    {messages.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={`text-xs ${
-                          msg.user === "you"
-                            ? "text-indigo-300 text-right"
-                            : "text-white/70"
-                        }`}
-                      >
-                        <span className="opacity-50 mr-1">{msg.user}:</span>
-                        {msg.text}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="p-3 border-t border-white/10 flex gap-2">
-                    <input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                      className="flex-1 bg-black/50 text-xs p-2 rounded-md border border-white/10"
-                      placeholder="Say something..."
-                    />
-                    <button className="text-xs px-3 py-2 bg-indigo-500/20 rounded-md">
-                      SEND
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* MOBILE MUSIC PLAYER */}
-            <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center">
-              <div className="w-full max-w-5xl">
-                <MusicPlayer />
-              </div>
             </div>
-          </>
-        )}
+
+            <div className="grid grid-cols-2 gap-2">
+              {mobileMoreNav.map((item) => {
+                const href = navLinks[item];
+
+                return (
+                  <Link
+                    key={item}
+                    href={href}
+                    onClick={() => setMobileMoreOpen(false)}
+                    className="flex items-center justify-center text-[10px] tracking-[0.2em] text-white/60 hover:text-white transition bg-white/5 border border-white/10 rounded-lg py-3 active:scale-[0.98]"
+                  >
+                    {item}
+                  </Link>
+                );
+              })}
+
+              {/* MOBILE LOGIN */}
+              {!isSignedIn ? (
+                <SignInButton
+                  appearance={{
+                    elements: {
+                      logoBox: {
+                        display: "none",
+                      },
+                      footer: {
+                        display: "none",
+                      },
+                    },
+                  }}
+                  mode="modal"
+                >
+                  <button
+                    onClick={() => setMobileMoreOpen(false)}
+                    className="flex items-center justify-center text-[10px] tracking-[0.2em] text-indigo-300 hover:text-white transition bg-indigo-500/10 border border-indigo-500/20 rounded-lg py-3 active:scale-[0.98] col-span-2"
+                  >
+                    LOGIN
+                  </button>
+                </SignInButton>
+              ) : (
+                <div className="col-span-2 flex justify-center">
+                  <UserButton />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================== */}
+      {/* MOBILE CHAT BUTTON */}
+      {/* ===================================================== */}
+
+      {/* z-50 keeps this above the player */}
+      {isSignedIn && (
+        <button
+          onClick={() => setMobileChatOpen(true)}
+          className="fixed bottom-28 right-4 z-50 w-12 h-12 rounded-full bg-indigo-500/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+        >
+          <User className="w-5 h-5 text-white" />
+        </button>
+      )}
+
+      {/* ===================================================== */}
+      {/* MOBILE CHAT PANEL */}
+      {/* ===================================================== */}
+
+      {/* z-50 keeps the chat panel above the player */}
+      {mobileChatOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-end justify-center">
+          <div className="w-full max-w-md h-[70%] bg-black border-t border-white/10 rounded-t-2xl flex flex-col">
+            {/* HEADER */}
+            <div className="p-3 flex justify-between items-center border-b border-white/10">
+              <div className="text-[10px] tracking-[0.3em]">
+                LIVE CHAT
+              </div>
+
+              <button
+                onClick={() => setMobileChatOpen(false)}
+                className="text-white/70 hover:text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* MESSAGES */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`text-xs ${
+                    msg.user === "you"
+                      ? "text-indigo-300 text-right"
+                      : "text-white/70"
+                  }`}
+                >
+                  <span className="opacity-50 mr-1">
+                    {msg.user}:
+                  </span>
+
+                  {msg.text}
+                </div>
+              ))}
+            </div>
+
+            {/* INPUT */}
+            <div className="p-3 border-t border-white/10 flex gap-2">
+              <input
+                value={chatInput}
+                onChange={(e) =>
+                  setChatInput(e.target.value)
+                }
+                onKeyDown={(e) =>
+                  e.key === "Enter" && sendMessage()
+                }
+                className="flex-1 bg-black/50 text-xs p-2 rounded-md border border-white/10 outline-none"
+                placeholder="Say something..."
+              />
+
+              <button
+                onClick={sendMessage}
+                className="text-xs px-3 py-2 bg-indigo-500/20 rounded-md hover:bg-indigo-500/30 transition"
+              >
+                SEND
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================== */}
+      {/* MOBILE MUSIC PLAYER */}
+      {/* ===================================================== */}
+
+      {/* z-30
+          This is intentionally ABOVE the mobile nav (z-20).
+          When MusicPlayer expands to fullscreen/queue,
+          its internal z-50 / z-[60] layers sit above everything.
+      */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center">
+        <div className="w-full max-w-5xl">
+          <MusicPlayer />
+        </div>
+      </div>
+    </>
+  )
+}
       </div>
     </MusicProvider>
   );

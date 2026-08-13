@@ -17,7 +17,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="flex items-center justify-around bg-black border-b border-gray-800 p-2 text-white shadow-md">
+    <nav className="relative z-10 flex items-center justify-around bg-black border-b border-gray-800 p-2 text-white shadow-md">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
