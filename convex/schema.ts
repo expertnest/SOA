@@ -67,11 +67,14 @@ export default defineSchema({
   artists: defineTable({
     name: v.string(),
     image: v.optional(v.string()),
-
+    bio: v.optional(v.string()),
+  
+    isActive: v.boolean(),
+  
     followerCount: v.number(),
     totalStreams: v.number(),
     superfanCount: v.number(),
-
+  
     totalRevenue: v.optional(v.number()),
     monthlyListeners: v.optional(v.number()),
   }),
@@ -82,10 +85,12 @@ export default defineSchema({
   projects: defineTable({
     name: v.string(),
     artistId: v.id("artists"),
-
+  
+    isActive: v.optional(v.boolean()),
+  
     description: v.optional(v.string()),
     coverImage: v.optional(v.string()),
-
+  
     type: v.optional(
       v.union(
         v.literal("single"),
@@ -95,10 +100,10 @@ export default defineSchema({
         v.literal("draft")
       )
     ),
-
+  
     releaseDate: v.optional(v.number()),
     createdAt: v.number(),
-
+  
     totalPlays: v.optional(v.number()),
   })
     .index("by_artistId", ["artistId"])
@@ -107,23 +112,25 @@ export default defineSchema({
   // ======================
   // 🎧 SONGS
   // ======================
-songs: defineTable({
-  title: v.string(),
-  artistId: v.id("artists"),
-
-  audioUrl: v.string(), // ✅ ADD HERE (Cloudflare / R2 link)
-
-  duration: v.number(),
-  genre: v.optional(v.string()),
-  coverImage: v.optional(v.string()),
-
-  totalPlays: v.number(),
-  skipRate: v.number(),
-  completionRate: v.number(),
-
-  uniqueListeners: v.optional(v.number()),
-  replayRate: v.optional(v.number()),
-})
+  songs: defineTable({
+    title: v.string(),
+    artistId: v.id("artists"),
+  
+    audioUrl: v.string(),
+  
+    isActive: v.optional(v.boolean()),
+  
+    duration: v.number(),
+    genre: v.optional(v.string()),
+    coverImage: v.optional(v.string()),
+  
+    totalPlays: v.number(),
+    skipRate: v.number(),
+    completionRate: v.number(),
+  
+    uniqueListeners: v.optional(v.number()),
+    replayRate: v.optional(v.number()),
+  })
 .index("by_artistId", ["artistId"]),
 
   // ======================

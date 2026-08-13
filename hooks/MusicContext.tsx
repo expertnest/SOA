@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import {
@@ -8,15 +9,18 @@ import {
   useEffect,
 } from "react";
 
-import { useQuery, useMutation } from "convex/react";
+import {
+  useQuery,
+  useMutation,
+} from "convex/react";
+
 import { api } from "@/convex/_generated/api";
 
 import type { Id } from "@/convex/_generated/dataModel";
 
-
 /* =========================
    LOCAL PLAYER TYPE
-   ========================= */
+========================= */
 
 export type Song = {
   songId: Id<"songs">;
@@ -45,8 +49,6 @@ export type Song = {
   category?: string;
 };
 
-
-
 type MusicContextType = {
   isPlaying: boolean;
 
@@ -56,51 +58,41 @@ type MusicContextType = {
 
   handlePrev: () => void;
 
-
   currentSong: Song | null;
-
 
   progress: number;
 
-  seek: (value:number)=>void;
+  seek: (value: number) => void;
 
+  volume: number;
 
-  volume:number;
+  setVolume: (v: number) => void;
 
-  setVolume:(v:number)=>void;
+  playSong: (song: Song) => void;
 
+  setCurrentSongIndex: React.Dispatch<
+    React.SetStateAction<number>
+  >;
 
-  playSong:(song:Song)=>void;
-
-
-  setCurrentSongIndex:
-    React.Dispatch<
-      React.SetStateAction<number>
-    >;
-
-
-  duration:number;
+  duration: number;
 };
-
-
 
 const MusicContext =
   createContext<
     MusicContextType | undefined
   >(undefined);
 
-
+/* =========================
+   PROVIDER
+========================= */
 
 export function MusicProvider({
   children,
-}:{
-  children:React.ReactNode;
+}: {
+  children: React.ReactNode;
 }) {
-
-
-
   // ======================
-  // 🎧 RAW CONVEX SONGS
+  // RAW CONVEX SONGS
   // ======================
 
   const rawSongs =
@@ -108,11 +100,8 @@ export function MusicProvider({
       api.songs.getSongsForFeed
     ) ?? [];
 
-
-
-
   // ======================
-  // 📊 ANALYTICS MUTATION
+  // ANALYTICS
   // ======================
 
   const trackEvent =
@@ -120,862 +109,993 @@ export function MusicProvider({
       api.events.trackEvent
     );
 
-
-
   // ======================
-  // 👤 ANONYMOUS ID
+  // ANONYMOUS ID
   // ======================
 
   const anonymousId =
     useRef<string | null>(null);
 
-
-
-  useEffect(()=>{
-
-
-    if(
+  useEffect(() => {
+    if (
       typeof window === "undefined"
-    )
+    ) {
       return;
-
-
+    }
 
     let id =
       localStorage.getItem(
         "soa_anonymous_id"
       );
 
-
-
-    if(!id){
-
-      id =
-        crypto.randomUUID();
-
+    if (!id) {
+      id = crypto.randomUUID();
 
       localStorage.setItem(
         "soa_anonymous_id",
         id
       );
-
     }
 
-
     anonymousId.current = id;
-
-
-  },[]);
-
-
-
-
+  }, []);
 
   // ======================
-  // 🔥 MAP CONVEX → PLAYER
+  // MAP SONGS
   // ======================
 
-  const songs:Song[] =
-    rawSongs.map(
-      (s:any)=>({
+  const songs: Song[] =
+    rawSongs.map((s: any) => ({
+      songId: s.songId,
 
-        songId:s.songId,
+      id: s.songId,
 
+      title: s.title,
 
-        id:s.songId,
+      artistName:
+        s.artistName ??
+        "Unknown Artist",
 
+      artist:
+        s.artistName ??
+        "Unknown Artist",
 
-        title:s.title,
+      coverImage:
+        s.coverImage ??
+        "/assets/soalogo.png",
 
+      image:
+        s.coverImage &&
+        s.coverImage.startsWith("http")
+          ? s.coverImage
+          : "/assets/soalogo.png",
 
-        artistName:
-          s.artistName ??
-          "Unknown Artist",
+      duration:
+        s.duration ?? 0,
 
+      totalPlays:
+        s.totalPlays ?? 0,
 
-        artist:
-          s.artistName ??
-          "Unknown Artist",
+      skipRate:
+        s.skipRate ?? 0,
 
+      replayRate:
+        s.replayRate ?? 0,
 
+      audioUrl:
+        s.audioUrl,
 
-        coverImage:
-          s.coverImage ??
-          "/assets/soalogo.png",
+      src:
+        s.audioUrl ??
+        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 
+      genre:
+        s.genre ?? "Music",
 
-        image:
-          s.coverImage &&
-          s.coverImage.startsWith("http")
-            ? s.coverImage
-            : "/assets/soalogo.png",
+      category:
+        s.genre ?? "Music",
+    }));
 
-
-
-        duration:
-          s.duration ?? 0,
-
-
-
-        totalPlays:
-          s.totalPlays ?? 0,
-
-
-        skipRate:
-          s.skipRate ?? 0,
-
-
-        replayRate:
-          s.replayRate ?? 0,
-
-
-
-        audioUrl:
-          s.audioUrl,
-
-
-
-        src:
-          s.audioUrl ??
-          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-
-
-
-        genre:
-          s.genre ??
-          "Music",
-
-
-
-        category:
-          s.genre ??
-          "Music",
-
-      })
-    );
-
-
-
+  // ======================
+  // STATE
+  // ======================
 
   const [
     isPlaying,
-    setIsPlaying
-  ] =
-  useState(false);
-
-
+    setIsPlaying,
+  ] = useState(false);
 
   const [
     currentSongIndex,
-    setCurrentSongIndex
-  ] =
-  useState(0);
-
-
+    setCurrentSongIndex,
+  ] = useState(0);
 
   const [
     progress,
-    setProgress
-  ] =
-  useState(0);
-
-
+    setProgress,
+  ] = useState(0);
 
   const [
     volume,
-    setVolume
-  ] =
-  useState(1);
-
-
+    setVolume,
+  ] = useState(1);
 
   const [
     duration,
-    setDuration
-  ] =
-  useState(0);
+    setDuration,
+  ] = useState(0);
 
-
+  // ======================
+  // AUDIO
+  // ======================
 
   const audioRef =
     useRef<HTMLAudioElement | null>(
       null
     );
 
+  const playRequestRef =
+    useRef(0);
 
+  const shouldPlayRef =
+    useRef(false);
 
   const currentSong =
-    songs[currentSongIndex] ?? null;
-
-
-
+    songs[currentSongIndex] ??
+    null;
 
   // ======================
-  // 📈 RETENTION TRACKING
+  // RETENTION
   // ======================
-
 
   const trackedMilestones =
-    useRef<
-      Set<number>
-    >(new Set());
-
-
-
-    const sendEvent = (
-      type:
-        | "song_play"
-        | "song_end"
-        | "song_skip",
-      song: Song
-    )=>{
-      if(!anonymousId.current) return;
-    
-      trackEvent({
-        userId: anonymousId.current,
-        isAnonymous:true,
-        type,
-        songId:song.songId,
-        playedDuration:
-          audioRef.current?.currentTime ?? 0,
-        duration:
-          audioRef.current?.duration ?? song.duration,
-        source:"music_player",
-        deviceType:"web",
-      });
-    };
-
+    useRef<Set<number>>(
+      new Set()
+    );
 
   // ======================
-  // 🎧 INIT AUDIO ENGINE
+  // SAFE PLAY
   // ======================
 
+  const safelyPlay = async (
+    audio: HTMLAudioElement
+  ) => {
+    const requestId =
+      ++playRequestRef.current;
 
-  useEffect(()=>{
+    try {
+      /*
+       * Wait until the browser has enough
+       * information to begin playback.
+       */
 
+      if (
+        audio.readyState <
+        HTMLMediaElement.HAVE_FUTURE_DATA
+      ) {
+        await new Promise<void>(
+          (resolve) => {
+            const handleCanPlay =
+              () => {
+                audio.removeEventListener(
+                  "canplay",
+                  handleCanPlay
+                );
 
-    if(!currentSong)
-      return;
+                resolve();
+              };
 
-
-
-    trackedMilestones.current.clear();
-
-
-
-    if(!audioRef.current){
-
-      audioRef.current =
-        new Audio(
-          currentSong.src
+            audio.addEventListener(
+              "canplay",
+              handleCanPlay,
+              {
+                once: true,
+              }
+            );
+          }
         );
+      }
 
+      /*
+       * A newer request may have happened
+       * while we were waiting.
+       */
+
+      if (
+        requestId !==
+        playRequestRef.current
+      ) {
+        return;
+      }
+
+      if (
+        !shouldPlayRef.current
+      ) {
+        return;
+      }
+
+      await audio.play();
+
+      /*
+       * Only mark the player as playing
+       * if this request is still current.
+       */
+
+      if (
+        requestId ===
+        playRequestRef.current
+      ) {
+        setIsPlaying(true);
+      }
+    } catch (error: any) {
+      /*
+       * AbortError is normal when another
+       * source/load/play request replaces
+       * this one.
+       */
+
+      if (
+        error?.name ===
+        "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "Audio playback failed:",
+        error
+      );
+
+      setIsPlaying(false);
+    }
+  };
+
+  // ======================
+  // SAFE SOURCE LOADING
+  // ======================
+
+  const loadSong = (
+    song: Song,
+    autoPlay: boolean
+  ) => {
+    const audio =
+      audioRef.current;
+
+    if (!audio) {
+      return;
     }
 
+    shouldPlayRef.current =
+      autoPlay;
 
+    playRequestRef.current++;
+
+    /*
+     * Stop any existing playback
+     * before replacing src.
+     */
+
+    audio.pause();
+
+    setIsPlaying(false);
+
+    /*
+     * Reset playback state.
+     */
+
+    setProgress(0);
+
+    setDuration(
+      song.duration ?? 0
+    );
+
+    /*
+     * Set source ONCE.
+     */
+
+    if (
+      audio.src !== song.src
+    ) {
+      audio.src = song.src;
+    }
+
+    /*
+     * Tell Safari/Chrome that the source
+     * has changed.
+     */
+
+    audio.load();
+
+    if (autoPlay) {
+      void safelyPlay(audio);
+    }
+  };
+
+  // ======================
+  // ANALYTICS
+  // ======================
+
+  const sendEvent = async (
+    type:
+      | "song_play"
+      | "song_end"
+      | "song_skip"
+      | "song_replay",
+    song: Song
+  ) => {
+    if (
+      !anonymousId.current
+    ) {
+      return;
+    }
+
+    try {
+      await trackEvent({
+        userId:
+          anonymousId.current,
+
+        isAnonymous: true,
+
+        type,
+
+        songId:
+          song.songId,
+
+        playedDuration:
+          audioRef.current
+            ?.currentTime ?? 0,
+
+        duration:
+          audioRef.current
+            ?.duration ??
+          song.duration,
+
+        source:
+          "music_player",
+
+        deviceType:
+          "web",
+      });
+    } catch (error) {
+      /*
+       * Analytics should NEVER break
+       * music playback.
+       */
+
+      console.error(
+        "Analytics event failed:",
+        error
+      );
+    }
+  };
+
+  // ======================
+  // CREATE AUDIO
+  // ======================
+
+  useEffect(() => {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    const audio =
+      new Audio();
+
+    audio.preload = "auto";
+
+    audio.volume = volume;
+
+    audioRef.current =
+      audio;
+
+    return () => {
+      shouldPlayRef.current =
+        false;
+
+      playRequestRef.current++;
+
+      audio.pause();
+
+      audio.src = "";
+
+      audio.load();
+
+      audioRef.current =
+        null;
+    };
+  }, []);
+
+  // ======================
+  // LOAD CURRENT SONG
+  // ======================
+
+  useEffect(() => {
+    if (!currentSong) {
+      return;
+    }
 
     const audio =
       audioRef.current;
 
+    if (!audio) {
+      return;
+    }
 
+    trackedMilestones.current.clear();
 
-    audio.src =
-      currentSong.src;
+    /*
+     * Loading a song here does NOT
+     * automatically play it.
+     *
+     * playSong() controls autoPlay.
+     */
 
+    const currentSrc =
+      audio.getAttribute("src");
 
+    if (
+      currentSrc !==
+      currentSong.src
+    ) {
+      audio.pause();
 
-    audio.volume =
-      volume;
+      playRequestRef.current++;
 
+      audio.src =
+        currentSong.src;
 
+      audio.load();
 
-    const updateProgress = ()=>{
-
-
-      if(!audio.duration)
-        return;
-
-
-
-      const percent =
-        (
-          audio.currentTime /
-          audio.duration
-        ) * 100;
-
-
-
-      setProgress(percent);
-
-
+      setProgress(0);
 
       setDuration(
-        audio.duration
+        currentSong.duration ?? 0
       );
+    }
+  }, [
+    currentSong?.songId,
+  ]);
 
+  // ======================
+  // AUDIO EVENTS
+  // ======================
 
+  useEffect(() => {
+    const audio =
+      audioRef.current;
 
-      // ======================
-      // 📈 RETENTION EVENTS
-      // ======================
+    if (!audio) {
+      return;
+    }
 
-
-      const milestones = [
-        10,
-        25,
-        50,
-        75,
-        90,
-      ];
-
-
-
-      milestones.forEach(
-        async(point)=>{
-
-
-          if(
-            percent >= point &&
-            !trackedMilestones.current.has(point)
-          ){
-
-
-            trackedMilestones.current.add(
-              point
-            );
-
-
-
-            if(
-              anonymousId.current
-            ){
-
-
-              await trackEvent({
-
-                userId:
-                  anonymousId.current,
-
-
-                isAnonymous:true,
-
-
-                type:
-                  "song_play",
-
-
-                songId:
-                  currentSong.songId,
-
-
-                duration:
-                  audio.currentTime,
-
-
-                source:
-                  `retention_${point}%`,
-
-
-                deviceType:
-                  "web",
-
-              });
-
-
-            }
-
-
-          }
-
-
+    const updateProgress =
+      () => {
+        if (
+          !Number.isFinite(
+            audio.duration
+          ) ||
+          audio.duration <= 0
+        ) {
+          return;
         }
-      );
 
+        const percent =
+          (
+            audio.currentTime /
+            audio.duration
+          ) * 100;
 
-    };
+        setProgress(
+          Math.min(
+            100,
+            Math.max(
+              0,
+              percent
+            )
+          )
+        );
 
+        setDuration(
+          audio.duration
+        );
 
+        // ======================
+        // RETENTION
+        // ======================
 
+        const milestones = [
+          10,
+          25,
+          50,
+          75,
+          90,
+        ];
 
+        milestones.forEach(
+          (point) => {
+            if (
+              percent >= point &&
+              !trackedMilestones.current.has(
+                point
+              )
+            ) {
+              trackedMilestones.current.add(
+                point
+              );
+
+              if (
+                anonymousId.current &&
+                currentSong
+              ) {
+                void trackEvent({
+                  userId:
+                    anonymousId.current,
+
+                  isAnonymous: true,
+
+                  type:
+                    "song_progress",
+
+                  songId:
+                    currentSong.songId,
+
+                  position:
+                    point,
+
+                  playedDuration:
+                    audio.currentTime,
+
+                  duration:
+                    audio.duration,
+
+                  source:
+                    "retention",
+
+                  deviceType:
+                    "web",
+                }).catch(
+                  (error) => {
+                    console.error(
+                      "Retention event failed:",
+                      error
+                    );
+                  }
+                );
+              }
+            }
+          }
+        );
+      };
+
+    const handlePlay =
+      () => {
+        setIsPlaying(true);
+      };
+
+    const handlePause =
+      () => {
+        /*
+         * Do not force false during
+         * source transitions if a new
+         * play request is pending.
+         */
+
+        if (
+          !shouldPlayRef.current
+        ) {
+          setIsPlaying(false);
+        }
+      };
 
     const handleEnded =
-      async()=>{
+      async () => {
+        if (!currentSong) {
+          return;
+        }
 
+        shouldPlayRef.current =
+          false;
+
+        setIsPlaying(false);
 
         await sendEvent(
           "song_end",
           currentSong
         );
 
-
-
-        if(
+        if (
           currentSongIndex <
           songs.length - 1
-        ){
+        ) {
+          const nextIndex =
+            currentSongIndex + 1;
 
-          handleNext();
+          setCurrentSongIndex(
+            nextIndex
+          );
 
+          setProgress(0);
+
+          /*
+           * Automatically continue
+           * if the playlist has another song.
+           */
+
+          shouldPlayRef.current =
+            true;
         }
-        else{
-
-          setIsPlaying(false);
-
-        }
-
-
       };
-
-
-
 
     audio.addEventListener(
       "timeupdate",
       updateProgress
     );
 
+    audio.addEventListener(
+      "play",
+      handlePlay
+    );
 
+    audio.addEventListener(
+      "pause",
+      handlePause
+    );
 
     audio.addEventListener(
       "ended",
       handleEnded
     );
 
-
-
-    return()=>{
-
-
+    return () => {
       audio.removeEventListener(
         "timeupdate",
         updateProgress
       );
 
+      audio.removeEventListener(
+        "play",
+        handlePlay
+      );
 
+      audio.removeEventListener(
+        "pause",
+        handlePause
+      );
 
       audio.removeEventListener(
         "ended",
         handleEnded
       );
-
-
     };
-
-
-
-  },[
-    currentSong?.src,
+  }, [
+    currentSong?.songId,
     currentSongIndex,
+    songs.length,
   ]);
 
-
-
-
-
   // ======================
-  // ▶️ PLAY / PAUSE
+  // AUTO PLAY NEXT SONG
   // ======================
 
-
-  const togglePlay = ()=>{
-
+  useEffect(() => {
+    if (
+      !currentSong ||
+      !shouldPlayRef.current
+    ) {
+      return;
+    }
 
     const audio =
       audioRef.current;
 
-
-
-    if(
-      !audio ||
-      !currentSong
-    )
+    if (!audio) {
       return;
-
-
-
-    if(isPlaying){
-
-      audio.pause();
-
-
     }
-    else{
 
+    /*
+     * The ended event changed the index.
+     * Now safely load the new source.
+     */
 
-      audio.play();
+    trackedMilestones.current.clear();
 
+    loadSong(
+      currentSong,
+      true
+    );
 
+    void sendEvent(
+      "song_play",
+      currentSong
+    );
+  }, [
+    currentSong?.songId,
+  ]);
 
-      sendEvent(
+  // ======================
+  // PLAY / PAUSE
+  // ======================
+
+  const togglePlay =
+    () => {
+      const audio =
+        audioRef.current;
+
+      if (
+        !audio ||
+        !currentSong
+      ) {
+        return;
+      }
+
+      if (
+        !audio.paused
+      ) {
+        shouldPlayRef.current =
+          false;
+
+        playRequestRef.current++;
+
+        audio.pause();
+
+        setIsPlaying(false);
+
+        return;
+      }
+
+      shouldPlayRef.current =
+        true;
+
+      void safelyPlay(
+        audio
+      );
+
+      void sendEvent(
         "song_play",
         currentSong
       );
-
-
-    }
-
-
-
-    setIsPlaying(
-      !isPlaying
-    );
-
-
-  };
-
-
-
-
+    };
 
   // ======================
-  // ⏭ NEXT
+  // NEXT
   // ======================
 
-
-  const handleNext = async()=>{
-
-
-    if(
-      currentSong
-    ){
+  const handleNext =
+    async () => {
+      if (
+        !currentSong
+      ) {
+        return;
+      }
 
       await sendEvent(
         "song_skip",
         currentSong
       );
 
-    }
+      if (
+        currentSongIndex >=
+        songs.length - 1
+      ) {
+        shouldPlayRef.current =
+          false;
 
+        setIsPlaying(false);
 
+        return;
+      }
 
-    if(
-      currentSongIndex >=
-      songs.length - 1
-    )
-      return;
+      const nextIndex =
+        currentSongIndex + 1;
 
+      const wasPlaying =
+        !audioRef.current
+          ?.paused;
 
+      shouldPlayRef.current =
+        wasPlaying;
 
+      playRequestRef.current++;
 
-    const nextIndex =
-      currentSongIndex + 1;
+      audioRef.current?.pause();
 
+      setIsPlaying(false);
 
-
-    setCurrentSongIndex(
-      nextIndex
-    );
-
-
-
-    setProgress(0);
-
-
-
-    if(
-      audioRef.current &&
-      songs[nextIndex]
-    ){
-
-
-      audioRef.current.src =
-        songs[nextIndex].src;
-
-
-
-      if(isPlaying)
-        audioRef.current.play();
-
-
-    }
-
-
-
-  };
-
-
-
-
-
-
-  // ======================
-  // ⏮ PREVIOUS
-  // ======================
-
-
-  const handlePrev = ()=>{
-
-
-    if(
-      currentSongIndex <= 0
-    )
-      return;
-
-
-
-    const prevIndex =
-      currentSongIndex - 1;
-
-
-
-    setCurrentSongIndex(
-      prevIndex
-    );
-
-
-
-    setProgress(0);
-
-
-
-    if(
-      audioRef.current &&
-      songs[prevIndex]
-    ){
-
-
-      audioRef.current.src =
-        songs[prevIndex].src;
-
-
-
-      if(isPlaying)
-        audioRef.current.play();
-
-
-    }
-
-
-  };
-
-
-
-
-
-
-  // ======================
-  // 🎯 SEEK
-  // ======================
-
-
-  const seek = (
-    value:number
-  )=>{
-
-
-    if(
-      audioRef.current &&
-      audioRef.current.duration
-    ){
-
-
-      audioRef.current.currentTime =
-        (
-          value / 100
-        ) *
-        audioRef.current.duration;
-
-
-
-      setProgress(
-        value
+      setCurrentSongIndex(
+        nextIndex
       );
 
+      setProgress(0);
+    };
 
+  // ======================
+  // PREVIOUS
+  // ======================
+
+  const handlePrev =
+    () => {
+      if (
+        currentSongIndex <= 0
+      ) {
+        return;
+      }
+
+      const prevIndex =
+        currentSongIndex - 1;
+
+      const wasPlaying =
+        !audioRef.current
+          ?.paused;
+
+      shouldPlayRef.current =
+        wasPlaying;
+
+      playRequestRef.current++;
+
+      audioRef.current?.pause();
+
+      setIsPlaying(false);
+
+      setCurrentSongIndex(
+        prevIndex
+      );
+
+      setProgress(0);
+    };
+
+  // ======================
+  // SEEK
+  // ======================
+
+  const seek = (
+    value: number
+  ) => {
+    const audio =
+      audioRef.current;
+
+    if (
+      !audio ||
+      !Number.isFinite(
+        audio.duration
+      ) ||
+      audio.duration <= 0
+    ) {
+      return;
     }
 
+    const clamped =
+      Math.min(
+        100,
+        Math.max(
+          0,
+          value
+        )
+      );
 
+    audio.currentTime =
+      (
+        clamped / 100
+      ) *
+      audio.duration;
+
+    setProgress(
+      clamped
+    );
   };
 
-
-
-
-
-
   // ======================
-  // 🎵 PLAY SPECIFIC SONG
+  // PLAY SPECIFIC SONG
   // ======================
-
 
   const playSong = (
-    song:Song
-  )=>{
-
-
+    song: Song
+  ) => {
     const index =
       songs.findIndex(
-        (s)=>
+        (s) =>
           s.songId ===
           song.songId
       );
 
-
-
-    if(
-      index === -1 ||
-      !audioRef.current
-    )
+    if (
+      index === -1
+    ) {
       return;
+    }
 
+    trackedMilestones.current.clear();
 
+    shouldPlayRef.current =
+      true;
 
+    playRequestRef.current++;
+
+    /*
+     * Do NOT manually set src + play here.
+     *
+     * We only change the index.
+     * The effect will safely load
+     * the new source and play it.
+     */
 
     setCurrentSongIndex(
       index
     );
 
-
-
-    trackedMilestones.current.clear();
-
-
-
-    audioRef.current.src =
-      song.src;
-
-
-
-    audioRef.current.play();
-
-
-
-    setIsPlaying(
-      true
-    );
-
-
-
-    sendEvent(
-      "song_play",
-      song
-    );
-
-
+    setProgress(0);
   };
 
-
-
-
-
-
   // ======================
-  // 🔊 VOLUME SYNC
+  // VOLUME
   // ======================
 
-
-  useEffect(()=>{
-
-
-    if(
+  useEffect(() => {
+    if (
       audioRef.current
-    ){
-
+    ) {
       audioRef.current.volume =
         volume;
-
     }
-
-
-  },[
-    volume
+  }, [
+    volume,
   ]);
-
-
-
-
-
 
   // ======================
   // PROVIDER
   // ======================
 
-
   return (
-
     <MusicContext.Provider
-
       value={{
-
         isPlaying,
-
 
         togglePlay,
 
-
         handleNext,
-
 
         handlePrev,
 
-
-
         currentSong,
-
-
 
         progress,
 
-
         seek,
-
-
 
         volume,
 
-
         setVolume,
-
-
 
         playSong,
 
-
-
         setCurrentSongIndex,
 
-
-
         duration,
-
-
       }}
-
     >
-
-
       {children}
-
-
     </MusicContext.Provider>
-
   );
-
-
 }
 
+// ======================
+// HOOK
+// ======================
 
-
-
-
-export function useMusic(){
-
-
+export function useMusic() {
   const ctx =
     useContext(
       MusicContext
     );
 
-
-
-  if(!ctx)
-
+  if (!ctx) {
     throw new Error(
       "useMusic must be used within MusicProvider"
     );
-
-
+  }
 
   return ctx;
-
-
 }
+ 

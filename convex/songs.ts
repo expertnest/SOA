@@ -72,6 +72,7 @@ export const createSong = mutation({
       songId,
       totalPlays: 0,
       totalSkips: 0,
+      totalReplays: 0,
       uniqueListeners: 0,
       completionRate: 0,
       skipRate: 0,

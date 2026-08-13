@@ -13,8 +13,8 @@ import {
   Youtube,
   Shuffle,
   Repeat,
-  ChevronsLeft, ChevronsRight
-} from "lucide-react";  
+  ChevronsLeft,
+} from "lucide-react";
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -34,11 +34,12 @@ export default function LeftSidebar() {
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(false);
 
+  // Dynamic Audio Duration state
+  const [duration, setDuration] = useState<number>(0);
+
   const {
     isPlaying,
     togglePlay,
-    handleNext,
-    handlePrev,
     progress,
     seek,
     volume,
@@ -47,7 +48,6 @@ export default function LeftSidebar() {
     currentSong,
   } = useMusic();
 
-  // 🔥 FIXED: correct mutation path
   const trackEvent = useMutation(api.events.trackEvent);
 
   const { user, isLoaded } = useUser();
@@ -85,7 +85,40 @@ export default function LeftSidebar() {
     }
   }, [songs]);
 
-  // 🔥 FIXED + DEBUG
+  // Safely extract audio duration from song object or calculate via lightweight Audio instance
+  useEffect(() => {
+    if (!currentSong) {
+      setDuration(0);
+      return;
+    }
+
+    // 1. Check if duration already exists on the song payload
+    if (currentSong.duration && currentSong.duration > 0) {
+      setDuration(Math.floor(currentSong.duration));
+      return;
+    }
+
+    // 2. Fallback: inspect actual audio file metadata
+    const audioUrl = currentSong.src || currentSong.audioUrl;
+    if (!audioUrl) return;
+
+    const audio = new Audio();
+    audio.src = audioUrl;
+
+    const handleMetaData = () => {
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        setDuration(Math.floor(audio.duration));
+      }
+    };
+
+    audio.addEventListener("loadedmetadata", handleMetaData);
+    audio.load();
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", handleMetaData);
+    };
+  }, [currentSong]);
+
   const fireEvent = async (
     type: "song_play" | "song_skip" | "song_replay" | "song_end"
   ) => {
@@ -94,25 +127,82 @@ export default function LeftSidebar() {
     const isAnonymous = !user;
 
     if (isAnonymous && !anonId) return;
-    if (!isAnonymous && !convexUser?._id) return; // ✅ safer
-
-    console.log("🔥 firing event", type, currentSong.songId);
+    if (!isAnonymous && !convexUser?._id) return;
 
     try {
       await trackEvent({
         type,
         songId: currentSong.songId,
-        duration: Math.floor((progress / 100) * 180),
+        duration: Math.floor((progress / 100) * (duration || 0)),
         userId: isAnonymous ? anonId! : convexUser!._id,
         isAnonymous,
       });
-
-      console.log("✅ event sent");
     } catch (err) {
       console.error("❌ event failed", err);
     }
   };
 
+  const artists = ["All", "MacPhantom", "Qmilly"];
+
+  const filteredSongs =
+    selectedCategory === "All"
+      ? songs
+      : songs.filter(
+          (song) =>
+            song.artistName?.toLowerCase() ===
+            selectedCategory.toLowerCase()
+        );
+
+  // NEXT TRACK (HANDLES SHUFFLE & SEQUENTIAL)
+  const handleNextTrack = async () => {
+    if (filteredSongs.length === 0) return;
+
+    await fireEvent("song_skip");
+
+    if (shuffle) {
+      let randomIndex = Math.floor(Math.random() * filteredSongs.length);
+      if (filteredSongs.length > 1 && currentSong) {
+        const currentIndex = filteredSongs.findIndex(
+          (s) => s.songId === currentSong.songId
+        );
+        while (randomIndex === currentIndex) {
+          randomIndex = Math.floor(Math.random() * filteredSongs.length);
+        }
+      }
+      playSong(filteredSongs[randomIndex]);
+    } else {
+      const currentIndex = filteredSongs.findIndex(
+        (s) => s.songId === currentSong?.songId
+      );
+      const nextIndex =
+        currentIndex >= 0 ? (currentIndex + 1) % filteredSongs.length : 0;
+      playSong(filteredSongs[nextIndex]);
+    }
+  };
+
+  // PREVIOUS TRACK (HANDLES SHUFFLE & REWIND)
+  const handlePrevTrack = () => {
+    if (filteredSongs.length === 0) return;
+
+    if (progress > 3) {
+      seek(0);
+      return;
+    }
+
+    if (shuffle) {
+      const randomIndex = Math.floor(Math.random() * filteredSongs.length);
+      playSong(filteredSongs[randomIndex]);
+    } else {
+      const currentIndex = filteredSongs.findIndex(
+        (s) => s.songId === currentSong?.songId
+      );
+      const prevIndex =
+        currentIndex > 0 ? currentIndex - 1 : filteredSongs.length - 1;
+      playSong(filteredSongs[prevIndex]);
+    }
+  };
+
+  // TRACK END / REPEAT / AUTO ADVANCE LISTENER
   useEffect(() => {
     if (!currentSong) return;
 
@@ -127,20 +217,15 @@ export default function LeftSidebar() {
 
       if (repeat) {
         fireEvent("song_replay");
+        seek(0);
+        setTimeout(() => {
+          hasEndedRef.current = false;
+        }, 1000);
+      } else {
+        handleNextTrack();
       }
     }
-  }, [progress, currentSong, repeat]);
-
-  const artists = ["All", "MacPhantom", "Qmilly"];
-
-  const filteredSongs =
-    selectedCategory === "All"
-      ? songs
-      : songs.filter(
-          (song) =>
-            song.artistName?.toLowerCase() ===
-            selectedCategory.toLowerCase()
-        );
+  }, [progress, currentSong, repeat, shuffle, filteredSongs]);
 
   const grouped = filteredSongs.reduce((acc: any, song: any) => {
     const key = song.projectName || "Singles";
@@ -156,58 +241,51 @@ export default function LeftSidebar() {
       artistName: "",
     };
 
-  const duration = 180;
-  const currentTime = Math.floor((progress / 100) * duration);
+  // Synchronize elapsed current time using percentage progress and calculated duration
+  const currentTime = duration ? Math.floor((progress / 100) * duration) : 0;
 
   const formatTime = (t: number) => {
+    if (isNaN(t) || t < 0 || !isFinite(t)) return "0:00";
     const m = Math.floor(t / 60);
-    const s = String(t % 60).padStart(2, "0");
+    const s = String(Math.floor(t % 60)).padStart(2, "0");
     return `${m}:${s}`;
   };
 
   if (!mounted || !isLoaded) return null;
 
   return (
- <aside
-  className={`
-    relative
-    bg-neutral-950/80
-    text-white
-    p-3 md:p-4
-    flex flex-col
-    transition-all duration-300
-    ${leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-[350px]"}
-    flex-shrink-0
-
-    backdrop-blur-lg
-
-    /* floating depth */
-    shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_20px_40px_rgba(0,0,0,0.6)]
-
-    /* subtle inner lighting */
-    before:absolute before:inset-0
-    before:bg-gradient-to-b before:from-white/[0.04] before:to-transparent
-    before:pointer-events-none
-  `}
->
+    <aside
+      className={`
+        relative
+        bg-neutral-950/80
+        text-white
+        p-3 md:p-4
+        flex flex-col
+        transition-all duration-300
+        ${leftCollapsed ? "w-12 md:w-12" : "w-64 md:w-[350px]"}
+        flex-shrink-0
+        backdrop-blur-lg
+        shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_20px_40px_rgba(0,0,0,0.6)]
+        before:absolute before:inset-0
+        before:bg-gradient-to-b before:from-white/[0.04] before:to-transparent
+        before:pointer-events-none
+      `}
+    >
       <button
         onClick={() => setLeftCollapsed(!leftCollapsed)}
         className="mb-1 self-end hover:text-white/70"
       >
-     
-
-<ChevronsLeft
-  size={20}
-  className={`transition-transform duration-200 ${
-    leftCollapsed ? "rotate-180" : ""
-  }`}
-/>
+        <ChevronsLeft
+          size={20}
+          className={`transition-transform duration-200 ${
+            leftCollapsed ? "rotate-180" : ""
+          }`}
+        />
       </button>
 
       {!leftCollapsed && (
         <>
-       
-          <div className="flex    mb-2">
+          <div className="flex mb-2">
             <Image
               src="/assets/soalogo.png"
               alt="SOA Logo"
@@ -218,77 +296,109 @@ export default function LeftSidebar() {
 
           <div className="w-full h-px bg-white/10 mb-4" />
 
-          {/* 🔥 FIXED IMAGE BLOCK */}
-          <div className="relative mb-4 rounded-xl overflow-hidden h-56">
-            <Image
-              src={displaySong.coverImage || "/assets/soalogo.png"}
-              alt="Now Playing"
-              fill
-              sizes="300px"
-              className="object-cover"
-              unoptimized // ✅ important for external URLs
-            />
-            <div className="absolute top-2 left-3 text-xs bg-black/50 px-2 py-1 rounded">
-              NOW PLAYING
-            </div>
-          </div>
+          {/* COVER IMAGE */}
+          <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-black/20">
+  <Image
+    src={displaySong.coverImage || "/assets/soalogo.png"}
+    alt="Now Playing"
+    fill
+    sizes="300px"
+    className="object-contain"
+    unoptimized
+  />
+
+  <div className="absolute left-3 top-2 rounded bg-black/50 px-2 py-1 text-xs">
+    NOW PLAYING
+  </div>
+</div>
 
           {currentSong && (
             <div className="mb-5">
-              <p className="text-sm font-semibold truncate">{currentSong.title}</p>
-              <p className="text-xs text-white/50 truncate mb-3">{currentSong.artistName}</p>
+              <p className="text-sm font-semibold truncate">
+                {currentSong.title}
+              </p>
+              <p className="text-xs text-white/50 truncate mb-3">
+                {currentSong.artistName}
+              </p>
 
-              {/* controls unchanged */}
+              {/* CONTROLS */}
               <div className="flex items-center justify-between mb-2">
-                <button onClick={() => setShuffle(!shuffle)}>
+                {/* SHUFFLE BUTTON */}
+                <button
+                  onClick={() => setShuffle(!shuffle)}
+                  className={`p-1.5 rounded-lg transition ${
+                    shuffle
+                      ? "text-emerald-400 bg-emerald-500/10"
+                      : "text-white/50 hover:text-white"
+                  }`}
+                  title={shuffle ? "Shuffle ON" : "Shuffle OFF"}
+                >
                   <Shuffle size={16} />
                 </button>
 
-                <button onClick={handlePrev}>
+                {/* PREVIOUS BUTTON */}
+                <button
+                  onClick={handlePrevTrack}
+                  className="text-white/70 hover:text-white transition"
+                >
                   <SkipBack size={18} />
                 </button>
 
+                {/* PLAY/PAUSE BUTTON */}
                 <button
                   onClick={async () => {
                     if (progress > 95) await fireEvent("song_replay");
                     else await fireEvent("song_play");
                     togglePlay();
                   }}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black"
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition"
                 >
                   {isPlaying ? <Pause size={18} /> : <Play size={18} />}
                 </button>
 
+                {/* NEXT BUTTON */}
                 <button
-                  onClick={async () => {
-                    await fireEvent("song_skip");
-                    handleNext();
-                  }}
+                  onClick={handleNextTrack}
+                  className="text-white/70 hover:text-white transition"
                 >
                   <SkipForward size={18} />
                 </button>
 
+                {/* REPEAT BUTTON */}
                 <button
                   onClick={async () => {
-                    setRepeat(!repeat);
-                    if (!repeat) await fireEvent("song_replay");
+                    const nextRepeatState = !repeat;
+                    setRepeat(nextRepeatState);
+                    if (nextRepeatState) await fireEvent("song_replay");
                   }}
+                  className={`p-1.5 rounded-lg transition ${
+                    repeat
+                      ? "text-emerald-400 bg-emerald-500/10"
+                      : "text-white/50 hover:text-white"
+                  }`}
+                  title={repeat ? "Repeat ON" : "Repeat OFF"}
                 >
                   <Repeat size={16} />
                 </button>
               </div>
 
+              {/* PROGRESS BAR */}
               <div
                 className="h-1 bg-white/20 rounded cursor-pointer relative"
                 onClick={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
-                  const percent = ((e.clientX - rect.left) / rect.width) * 100;
+                  const percent =
+                    ((e.clientX - rect.left) / rect.width) * 100;
                   seek(percent);
                 }}
               >
-                <div className="h-1 bg-white absolute top-0 left-0" style={{ width: `${progress}%` }} />
+                <div
+                  className="h-1 bg-white absolute top-0 left-0 rounded"
+                  style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+                />
               </div>
 
+              {/* TIME DISPLAY */}
               <div className="flex justify-between text-xs text-white/50 mt-1">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
@@ -296,59 +406,55 @@ export default function LeftSidebar() {
             </div>
           )}
 
-          {/* ✅ DROPDOWN */}
- {/* ✅ IMPROVED DROPDOWN */}
-<div className="mb-4">
-  {/* Label */}
-  <p className="text-[10px] tracking-widest text-white/40 mb-1 px-1">
-    CHOOSE ARTIST
-  </p>
+          {/* ARTIST DROPDOWN */}
+          <div className="mb-4">
+            <p className="text-[10px] tracking-widest text-white/40 mb-1 px-1">
+              CHOOSE ARTIST
+            </p>
 
-  {/* Trigger */}
-  <button
-    onClick={() => setArtistDropdownOpen(!artistDropdownOpen)}
-    className="w-full flex items-center justify-between bg-white/5 px-3 py-2.5 rounded-lg hover:bg-white/10 transition border border-white/10"
-  >
-    <span className="text-sm font-semibold">
-      {selectedCategory}
-    </span>
+            <button
+              onClick={() => setArtistDropdownOpen(!artistDropdownOpen)}
+              className="w-full flex items-center justify-between bg-white/5 px-3 py-2.5 rounded-lg hover:bg-white/10 transition border border-white/10"
+            >
+              <span className="text-sm font-semibold">
+                {selectedCategory}
+              </span>
 
-    <ChevronDown
-      size={16}
-      className={`transition-transform duration-300 ${
-        artistDropdownOpen ? "rotate-180" : ""
-      }`}
-    />
-  </button>
+              <ChevronDown
+                size={16}
+                className={`transition-transform duration-300 ${
+                  artistDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
 
-  {/* Dropdown */}
-  <div
-    className={`overflow-hidden transition-all duration-300 ${
-      artistDropdownOpen ? "max-h-48 mt-2" : "max-h-0"
-    }`}
-  >
-    <div className="bg-black/40 rounded-lg border border-white/10 p-1">
-      {artists.map((artist) => (
-        <div
-          key={artist}
-          onClick={() => {
-            setSelectedCategory(artist);
-            setArtistDropdownOpen(false);
-          }}
-          className={`px-3 py-2 text-sm rounded cursor-pointer transition ${
-            selectedCategory === artist
-              ? "bg-white text-black"
-              : "hover:bg-white/5"
-          }`}
-        >
-          {artist}
-        </div>
-      ))}
-    </div>
-  </div>
-</div>
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                artistDropdownOpen ? "max-h-48 mt-2" : "max-h-0"
+              }`}
+            >
+              <div className="bg-black/40 rounded-lg border border-white/10 p-1">
+                {artists.map((artist) => (
+                  <div
+                    key={artist}
+                    onClick={() => {
+                      setSelectedCategory(artist);
+                      setArtistDropdownOpen(false);
+                    }}
+                    className={`px-3 py-2 text-sm rounded cursor-pointer transition ${
+                      selectedCategory === artist
+                        ? "bg-white text-black"
+                        : "hover:bg-white/5"
+                    }`}
+                  >
+                    {artist}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-          {/* ✅ PROJECT + SONG GROUPING */}
+          {/* PROJECT + SONG GROUPING */}
           <div className="overflow-y-auto text-sm space-y-4 flex-1 mb-4">
             {Object.entries(grouped).map(([project, songs]: any) => (
               <div key={project} className="transition-all duration-300">
@@ -362,7 +468,7 @@ export default function LeftSidebar() {
                       <div
                         key={song.songId}
                         onClick={() => playSong(song)}
-                        className="p-3 rounded-lg flex justify-between items-center bg-white/5 hover:bg-white/10 transition"
+                        className="p-3 rounded-lg flex justify-between items-center bg-white/5 hover:bg-white/10 cursor-pointer transition"
                       >
                         <div>
                           <p>{song.title}</p>
@@ -386,6 +492,7 @@ export default function LeftSidebar() {
             ))}
           </div>
 
+          {/* VOLUME CONTROL */}
           <div className="mb-4 flex items-center gap-2">
             <Volume2 size={16} />
             <input
@@ -399,13 +506,14 @@ export default function LeftSidebar() {
             />
           </div>
 
-          <div className="flex justify-center gap-4 pt-2 border-t border-white/10">
-            <Instagram size={18} />
-            <Twitter size={18} />
-            <Youtube size={18} />
+          {/* FOOTER SOCIALS */}
+          <div className="flex justify-center gap-4 pt-2 border-t border-white/10 text-white/60">
+            <Instagram size={18} className="hover:text-white cursor-pointer transition" />
+            <Twitter size={18} className="hover:text-white cursor-pointer transition" />
+            <Youtube size={18} className="hover:text-white cursor-pointer transition" />
           </div>
         </>
       )}
-    </aside>            
+    </aside>
   );
-}
+} 
