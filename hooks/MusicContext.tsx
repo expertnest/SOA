@@ -308,6 +308,289 @@ export function MusicProvider({
     useRef(false);
 
   // ======================
+  // ACTUAL LISTENING
+  // ======================
+
+  /*
+   * Total time the listener has actually
+   * heard for the current song lifecycle.
+   *
+   * This is NOT the same as audio.currentTime.
+   *
+   * Example:
+   *
+   * Listen 0 -> 20 sec
+   * Seek 20 -> 60 sec
+   * Listen 60 -> 70 sec
+   *
+   * Actual listened time = 30 sec.
+   *
+   * The skipped 20 -> 60 sec is not counted.
+   */
+  const actualListenedMsRef =
+    useRef(0);
+
+  /*
+   * Stores portions of the track that
+   * were actually heard.
+   *
+   * Example:
+   *
+   * [
+   *   { start: 0, end: 20 },
+   *   { start: 60, end: 70 }
+   * ]
+   *
+   * This allows retention to determine
+   * whether a specific position was
+   * actually listened through.
+   */
+  const listenedRangesRef =
+    useRef<
+      Array<{
+        start: number;
+        end: number;
+      }>
+    >([]);
+
+  /*
+   * Last playback position used by
+   * the listened-time accumulator.
+   *
+   * We compare the current audio position
+   * against this value and only count
+   * normal forward playback.
+   */
+  const lastPlaybackPositionRef =
+    useRef<number | null>(null);
+
+  /*
+   * Used to reject large jumps that usually
+   * indicate a manual seek rather than
+   * genuine playback.
+   */
+  const MAX_TRACKED_DELTA_SECONDS =
+    5;
+
+  /*
+   * Resets actual-listening state
+   * whenever a new song begins.
+   */
+  const resetActualListening =
+    () => {
+      actualListenedMsRef.current =
+        0;
+
+      lastPlaybackPositionRef.current =
+        null;
+
+      listenedRangesRef.current = [];
+    };
+
+  /*
+   * Adds a genuinely listened interval
+   * to the retention range collection.
+   *
+   * Small gaps are merged because browser
+   * timeupdate events are not perfectly
+   * continuous.
+   */
+  const addListenedRange =
+    (
+      start: number,
+      end: number
+    ) => {
+      if (
+        !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        end <= start
+      ) {
+        return;
+      }
+
+      const RANGE_MERGE_GAP_SECONDS =
+        0.5;
+
+      const ranges =
+        listenedRangesRef.current;
+
+      let newStart =
+        Math.max(0, start);
+
+      let newEnd =
+        Math.max(
+          newStart,
+          end
+        );
+
+      const remaining: Array<{
+        start: number;
+        end: number;
+      }> = [];
+
+      ranges.forEach(
+        (range) => {
+          const overlaps =
+            range.end +
+              RANGE_MERGE_GAP_SECONDS >=
+              newStart &&
+            range.start -
+              RANGE_MERGE_GAP_SECONDS <=
+              newEnd;
+
+          if (overlaps) {
+            newStart =
+              Math.min(
+                newStart,
+                range.start
+              );
+
+            newEnd =
+              Math.max(
+                newEnd,
+                range.end
+              );
+          } else {
+            remaining.push(
+              range
+            );
+          }
+        }
+      );
+
+      remaining.push({
+        start: newStart,
+        end: newEnd,
+      });
+
+      remaining.sort(
+        (a, b) =>
+          a.start - b.start
+      );
+
+      listenedRangesRef.current =
+        remaining;
+    };
+
+  /*
+   * Adds only genuine forward playback
+   * to actual listened time and records
+   * the interval for retention.
+   */
+  const accumulateActualListening =
+    (
+      audio: HTMLAudioElement
+    ) => {
+      if (
+        audio.paused ||
+        seekingRef.current
+      ) {
+        return;
+      }
+
+      if (
+        !Number.isFinite(
+          audio.currentTime
+        )
+      ) {
+        return;
+      }
+
+      const currentTime =
+        audio.currentTime;
+
+      const previousTime =
+        lastPlaybackPositionRef.current;
+
+      /*
+       * First playback sample.
+       */
+      if (
+        previousTime === null
+      ) {
+        lastPlaybackPositionRef.current =
+          currentTime;
+
+        return;
+      }
+
+      const delta =
+        currentTime -
+        previousTime;
+
+      /*
+       * Normal forward playback.
+       *
+       * Small negative values can happen
+       * because of browser timing precision.
+       */
+      if (
+        delta > 0 &&
+        delta <=
+          MAX_TRACKED_DELTA_SECONDS
+      ) {
+        actualListenedMsRef.current +=
+          delta * 1000;
+
+        addListenedRange(
+          previousTime,
+          currentTime
+        );
+      }
+
+      /*
+       * Always move the tracking cursor
+       * forward to the current audio position.
+       *
+       * Large jumps are therefore ignored.
+       */
+      lastPlaybackPositionRef.current =
+        currentTime;
+    };
+
+  /*
+   * Returns true when the listener has
+   * actually played through the requested
+   * percentage of the song.
+   *
+   * This is intentionally based on the
+   * listened ranges, NOT audio.currentTime.
+   */
+  const hasActuallyListenedThrough =
+    (
+      point: number,
+      songDuration: number
+    ) => {
+      if (
+        !Number.isFinite(
+          songDuration
+        ) ||
+        songDuration <= 0
+      ) {
+        return false;
+      }
+
+      const targetTime =
+        (
+          point / 100
+        ) *
+        songDuration;
+
+      const PLAYBACK_POSITION_TOLERANCE =
+        0.15;
+
+      return listenedRangesRef.current.some(
+        (range) =>
+          range.start <=
+            targetTime +
+              PLAYBACK_POSITION_TOLERANCE &&
+          range.end >=
+            targetTime -
+              PLAYBACK_POSITION_TOLERANCE
+      );
+    };
+
+  // ======================
   // RETENTION
   // ======================
 
@@ -383,7 +666,8 @@ export function MusicProvider({
       | "song_end"
       | "song_skip"
       | "song_replay",
-    song: Song
+    song: Song,
+    listenedDurationOverrideMs?: number
   ) => {
     if (!song) {
       return;
@@ -408,16 +692,23 @@ export function MusicProvider({
       0;
 
     /*
-     * Never send NaN or Infinity.
+     * Use actual listened time when
+     * explicitly supplied.
+     *
+     * Otherwise preserve the existing
+     * current-position behavior for
+     * play / skip / replay events.
      */
-
     const playedDuration =
-      Number.isFinite(
-        rawCurrentTime
-      ) &&
-      rawCurrentTime >= 0
-        ? rawCurrentTime
-        : 0;
+      listenedDurationOverrideMs ??
+      (
+        Number.isFinite(
+          rawCurrentTime
+        ) &&
+        rawCurrentTime >= 0
+          ? rawCurrentTime
+          : 0
+      );
 
     const durationValue =
       Number.isFinite(
@@ -470,7 +761,8 @@ export function MusicProvider({
 
   const sendProgress = async (
     point: number,
-    song: Song
+    song: Song,
+    listenedDurationOverrideMs?: number
   ) => {
     if (!song) return;
 
@@ -490,13 +782,21 @@ export function MusicProvider({
       song.duration ??
       0;
 
+    /*
+     * Retention events now carry the
+     * actual amount listened rather than
+     * blindly using the playhead position.
+     */
     const playedDuration =
-      Number.isFinite(
-        rawCurrentTime
-      ) &&
-      rawCurrentTime >= 0
-        ? rawCurrentTime
-        : 0;
+      listenedDurationOverrideMs ??
+      (
+        Number.isFinite(
+          rawCurrentTime
+        ) &&
+        rawCurrentTime >= 0
+          ? rawCurrentTime
+          : 0
+      );
 
     const durationValue =
       Number.isFinite(
@@ -685,6 +985,13 @@ export function MusicProvider({
 
       setIsPlaying(true);
 
+      /*
+       * Start actual-listening tracking
+       * at the exact playback position.
+       */
+      lastPlaybackPositionRef.current =
+        audio.currentTime;
+
       const isReplay =
         replayRequestedRef.current;
 
@@ -759,6 +1066,12 @@ export function MusicProvider({
     setDuration(
       song.duration ?? 0
     );
+
+    /*
+     * Reset actual listening for
+     * the newly selected song.
+     */
+    resetActualListening();
 
     /*
      * A new song starts a new playback
@@ -851,6 +1164,12 @@ export function MusicProvider({
     trackedMilestones.current.clear();
 
     /*
+     * Reset actual listening whenever
+     * the selected song changes.
+     */
+    resetActualListening();
+
+    /*
      * A changed song gets a fresh
      * playback-event state.
      */
@@ -906,11 +1225,26 @@ export function MusicProvider({
     // ----------------------
 
     const handleSeeking = () => {
+      /*
+       * Any active playback interval
+       * ends when the listener seeks.
+       *
+       * Reset the playback cursor so the
+       * seek jump itself is never counted
+       * as listened audio.
+       */
+      accumulateActualListening(
+        audio
+      );
+
       seekingRef.current =
         true;
 
       lastSeekAt.current =
         Date.now();
+
+      lastPlaybackPositionRef.current =
+        null;
     };
 
     // ----------------------
@@ -923,6 +1257,13 @@ export function MusicProvider({
 
       seekingRef.current =
         false;
+
+      /*
+       * Begin a fresh listened interval
+       * from the new position.
+       */
+      lastPlaybackPositionRef.current =
+        audio.currentTime;
     };
 
     // ----------------------
@@ -939,6 +1280,14 @@ export function MusicProvider({
         ) {
           return;
         }
+
+        /*
+         * Accumulate only genuine playback
+         * time before doing any retention work.
+         */
+        accumulateActualListening(
+          audio
+        );
 
         const percent =
           (
@@ -981,8 +1330,6 @@ export function MusicProvider({
         milestones.forEach(
           (point) => {
             if (
-              safePercent <
-                point ||
               trackedMilestones.current.has(
                 point
               )
@@ -991,14 +1338,26 @@ export function MusicProvider({
             }
 
             /*
-             * Current seek protection:
+             * IMPORTANT:
              *
-             * don't immediately record a
-             * milestone after a manual jump.
+             * A milestone is now based on
+             * an actually listened range.
              *
-             * We will replace this with
-             * true listened-through tracking
-             * in the next phase.
+             * Merely dragging the playhead
+             * over the milestone does NOT count.
+             */
+            if (
+              !hasActuallyListenedThrough(
+                point,
+                audio.duration
+              )
+            ) {
+              return;
+            }
+
+            /*
+             * Keep the existing short
+             * post-seek protection.
              */
             if (
               lastSeekAt.current &&
@@ -1016,9 +1375,17 @@ export function MusicProvider({
             if (
               currentSong
             ) {
+              /*
+               * Only send an event when
+               * an actual retention milestone
+               * has been earned.
+               */
               void sendProgress(
                 point,
-                currentSong
+                currentSong,
+                Math.floor(
+                  actualListenedMsRef.current
+                )
               );
             }
           }
@@ -1032,6 +1399,13 @@ export function MusicProvider({
     const handlePlay =
       () => {
         setIsPlaying(true);
+
+        /*
+         * Resume actual-listening tracking
+         * from the current audio position.
+         */
+        lastPlaybackPositionRef.current =
+          audio.currentTime;
       };
 
     // ----------------------
@@ -1040,6 +1414,52 @@ export function MusicProvider({
 
     const handlePause =
       () => {
+        /*
+         * Capture the final small interval
+         * before the browser pauses.
+         */
+        accumulateActualListening(
+          audio
+        );
+
+        lastPlaybackPositionRef.current =
+          null;
+
+        /*
+         * Record a current retention
+         * checkpoint on pause so a short
+         * listening session is not lost.
+         */
+        if (
+          currentSong &&
+          actualListenedMsRef.current >
+            0 &&
+          Number.isFinite(
+            audio.duration
+          ) &&
+          audio.duration > 0
+        ) {
+          const safePercent =
+            Math.min(
+              100,
+              Math.max(
+                0,
+                (
+                  audio.currentTime /
+                  audio.duration
+                ) * 100
+              )
+            );
+
+          void sendProgress(
+            safePercent,
+            currentSong,
+            Math.floor(
+              actualListenedMsRef.current
+            )
+          );
+        }
+
         /*
          * A normal user pause should
          * not create another event.
@@ -1067,14 +1487,29 @@ export function MusicProvider({
           return;
         }
 
+        /*
+         * Capture the final portion
+         * of actual playback.
+         */
+        accumulateActualListening(
+          audio
+        );
+
         shouldPlayRef.current =
           false;
 
         setIsPlaying(false);
 
+        /*
+         * song_end now carries the
+         * actual amount listened.
+         */
         await sendEvent(
           "song_end",
-          currentSong
+          currentSong,
+          Math.floor(
+            actualListenedMsRef.current
+          )
         );
 
         /*
@@ -1084,6 +1519,8 @@ export function MusicProvider({
          */
         startedSongIdRef.current =
           null;
+
+        resetActualListening();
 
         if (
           currentSongIndex <
@@ -1411,15 +1848,15 @@ export function MusicProvider({
           replayRequestedRef.current =
             false;
 
-            console.log(
-              "🔥 REPLAY BUTTON FIRED",
-              songToReplay.songId
-            );
-            
-            await sendEvent(
-              "song_replay",
-              songToReplay
-            );
+          console.log(
+            "🔥 REPLAY BUTTON FIRED",
+            songToReplay.songId
+          );
+
+          await sendEvent(
+            "song_replay",
+            songToReplay
+          );
         } else {
           /*
            * If paused, remember that the
@@ -1491,6 +1928,14 @@ export function MusicProvider({
       return;
     }
 
+    /*
+     * Capture any genuine playback
+     * before changing position.
+     */
+    accumulateActualListening(
+      audio
+    );
+
     const clamped =
       Math.min(
         100,
@@ -1507,11 +1952,13 @@ export function MusicProvider({
     lastSeekAt.current =
       Date.now();
 
+    lastPlaybackPositionRef.current =
+      null;
+
     setProgress(
       clamped
     );
   };
-
 
   // ======================
   // PLAY SPECIFIC SONG
@@ -1593,8 +2040,6 @@ export function MusicProvider({
 
       setProgress(0);
     };
-
-
 
   // ======================
   // VOLUME
