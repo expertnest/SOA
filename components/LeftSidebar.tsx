@@ -156,26 +156,34 @@ export default function LeftSidebar() {
   // NEXT TRACK (HANDLES SHUFFLE & SEQUENTIAL)
   const handleNextTrack = async () => {
     if (filteredSongs.length === 0) return;
-
-    await fireEvent("song_skip");
-
+  
+    // ✅ only count skip if user is actually listening
+    if (isPlaying && currentSong) {
+      await fireEvent("song_skip");
+    }
+  
     if (shuffle) {
       let randomIndex = Math.floor(Math.random() * filteredSongs.length);
+  
       if (filteredSongs.length > 1 && currentSong) {
         const currentIndex = filteredSongs.findIndex(
           (s) => s.songId === currentSong.songId
         );
+  
         while (randomIndex === currentIndex) {
           randomIndex = Math.floor(Math.random() * filteredSongs.length);
         }
       }
+  
       playSong(filteredSongs[randomIndex]);
     } else {
       const currentIndex = filteredSongs.findIndex(
         (s) => s.songId === currentSong?.songId
       );
+  
       const nextIndex =
         currentIndex >= 0 ? (currentIndex + 1) % filteredSongs.length : 0;
+  
       playSong(filteredSongs[nextIndex]);
     }
   };
@@ -183,12 +191,17 @@ export default function LeftSidebar() {
   // PREVIOUS TRACK (HANDLES SHUFFLE & REWIND)
   const handlePrevTrack = () => {
     if (filteredSongs.length === 0) return;
-
+  
+    // ✅ track skip when going back (only if actually playing)
+    if (isPlaying && currentSong) {
+      fireEvent("song_skip");
+    }
+  
     if (progress > 3) {
       seek(0);
       return;
     }
-
+  
     if (shuffle) {
       const randomIndex = Math.floor(Math.random() * filteredSongs.length);
       playSong(filteredSongs[randomIndex]);
@@ -196,36 +209,16 @@ export default function LeftSidebar() {
       const currentIndex = filteredSongs.findIndex(
         (s) => s.songId === currentSong?.songId
       );
+  
       const prevIndex =
         currentIndex > 0 ? currentIndex - 1 : filteredSongs.length - 1;
+  
       playSong(filteredSongs[prevIndex]);
     }
   };
 
   // TRACK END / REPEAT / AUTO ADVANCE LISTENER
-  useEffect(() => {
-    if (!currentSong) return;
-
-    if (lastSongIdRef.current !== currentSong.songId) {
-      hasEndedRef.current = false;
-      lastSongIdRef.current = currentSong.songId;
-    }
-
-    if (progress >= 98 && !hasEndedRef.current) {
-      hasEndedRef.current = true;
-      fireEvent("song_end");
-
-      if (repeat) {
-        fireEvent("song_replay");
-        seek(0);
-        setTimeout(() => {
-          hasEndedRef.current = false;
-        }, 1000);
-      } else {
-        handleNextTrack();
-      }
-    }
-  }, [progress, currentSong, repeat, shuffle, filteredSongs]);
+  
 
   const grouped = filteredSongs.reduce((acc: any, song: any) => {
     const key = song.projectName || "Singles";
@@ -346,15 +339,11 @@ export default function LeftSidebar() {
 
                 {/* PLAY/PAUSE BUTTON */}
                 <button
-                  onClick={async () => {
-                    if (progress > 95) await fireEvent("song_replay");
-                    else await fireEvent("song_play");
-                    togglePlay();
-                  }}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition"
-                >
-                  {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-                </button>
+                    onClick={() => togglePlay()}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition"
+                  >
+                    {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                  </button>
 
                 {/* NEXT BUTTON */}
                 <button
@@ -366,10 +355,8 @@ export default function LeftSidebar() {
 
                 {/* REPEAT BUTTON */}
                 <button
-                  onClick={async () => {
-                    const nextRepeatState = !repeat;
-                    setRepeat(nextRepeatState);
-                    if (nextRepeatState) await fireEvent("song_replay");
+                  onClick={() => {
+                    setRepeat(!repeat);
                   }}
                   className={`p-1.5 rounded-lg transition ${
                     repeat

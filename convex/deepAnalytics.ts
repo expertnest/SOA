@@ -13,155 +13,161 @@ export const getDeepSongAnalytics = query({
 
     const events = await ctx.db
       .query("events")
-      .withIndex("by_songId", (q) => q.eq("songId", songId))
+      .withIndex("by_songId", (q) =>
+        q.eq("songId", songId)
+      )
       .collect();
 
     const song = await ctx.db.get(songId);
 
-    if (!song) throw new Error("Song not found");
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    const songDuration =
+      typeof song.duration === "number" && song.duration > 0
+        ? song.duration
+        : 100;
 
     // ======================
-    // CORE COUNTS (FIXED)
+    // EMPTY GUARD
     // ======================
 
-    const plays = events.filter(
-      (e) =>
-        e.type === "song_play" &&
-        !e.source?.includes("retention")
-    ).length;
+    if (!events || events.length === 0) {
+      return {
+        songId,
+        plays: 0,
+        uniqueListeners: 0,
+        skips: 0,
+        replays: 0,
+        skipRate: 0,
+        replayRate: 0,
+        completionRate: 0,
+        avgDuration: 0,
+        avgSessionDepth: 0,
+        fullPlays: 0,
+        shortPlays: 0,
+        listenerQuality: 0,
+        retention: {
+          start: 0,
+          tenPercent: 0,
+          twentyFivePercent: 0,
+          fiftyPercent: 0,
+          seventyFivePercent: 0,
+          ninetyPercent: 0,
+        },
+        engagementScore: 0,
+        retentionStrength: 0,
+        isDropOff: false,
+        isSticky: false,
+        isHit: false,
+      };
+    }
 
-    const skips = events.filter(
-      (e) => e.type === "song_skip"
-    ).length;
+    // ======================
+    // EVENT GROUPS
+    // ======================
 
-    const replays = events.filter(
-      (e) => e.type === "song_replay"
-    ).length;
+    const playEvents = events.filter(e => e.type === "song_play");
+    const skipEvents = events.filter(e => e.type === "song_skip");
+    const replayEvents = events.filter(e => e.type === "song_replay");
+    const progressEvents = events.filter(e => e.type === "song_progress");
+    const endEvents = events.filter(e => e.type === "song_end");
 
-    const ends = events.filter(
-      (e) => e.type === "song_end"
-    ).length;
+    // ======================
+    // CORE COUNTS
+    // ======================
+
+    const plays = playEvents.length;
+    const skips = skipEvents.length;
+    const replays = replayEvents.length;
 
     // ======================
     // UNIQUE LISTENERS
     // ======================
 
-    const listeners = new Set(
-      events
-        .filter(
-          (e) =>
-            e.type === "song_play" &&
-            !e.source?.includes("retention")
-        )
-        .map((e) => e.userId)
-    );
-
-    const uniqueListeners = listeners.size;
+    const uniqueListeners = new Set(
+      playEvents.map(e => e.userId).filter(Boolean)
+    ).size;
 
     // ======================
-    // DURATIONS
+    // FIXED DURATIONS (NO NaN EVER)
     // ======================
 
-    const durations = events
-      .filter(
-        (e) =>
-          e.type === "song_play" &&
-          !e.source?.includes("retention")
-      )
-      .map((e) => e.duration ?? 0);
+    const durations = playEvents
+      .map(e => Number(e.duration))
+      .filter(d => Number.isFinite(d) && d > 0);
 
     const avgDuration =
       durations.length > 0
-        ? durations.reduce((a, b) => a + b, 0) /
-          durations.length
+        ? durations.reduce((a, b) => a + b, 0) / durations.length
         : 0;
+
+    // ======================
+    // RETENTION (PROGRESS BASED)
+    // ======================
+
+    const getRetentionCount = (percent: number) => {
+      return progressEvents.filter((e) => {
+        const pos = e.position ?? 0;
+        return pos >= percent;
+      }).length;
+    };
+
+    const retention = {
+      start: plays,
+      tenPercent: getRetentionCount(10),
+      twentyFivePercent: getRetentionCount(25),
+      fiftyPercent: getRetentionCount(50),
+      seventyFivePercent: getRetentionCount(75),
+      ninetyPercent: getRetentionCount(90),
+    };
 
     // ======================
     // LISTENER QUALITY
     // ======================
 
-    const fullPlays = durations.filter(
-      (d) => d >= song.duration * 0.9
+    const fullPlays = progressEvents.filter(
+      e => (e.position ?? 0) >= 90
     ).length;
 
-    const shortPlays = durations.filter(
-      (d) => d < 5
-    ).length;
+    const shortPlays = durations.filter(d => d < 5).length;
 
     // ======================
-    // RETENTION (REAL EVENTS)
+    // SESSION DEPTH
     // ======================
 
-    const retention = {
-        start: plays,
-      
-        tenPercent:
-          durations.filter(
-            d => d >= song.duration * 0.10
-          ).length,
-      
-        twentyFivePercent:
-          durations.filter(
-            d => d >= song.duration * 0.25
-          ).length,
-      
-        fiftyPercent:
-          durations.filter(
-            d => d >= song.duration * 0.50
-          ).length,
-      
-        seventyFivePercent:
-          durations.filter(
-            d => d >= song.duration * 0.75
-          ).length,
-      
-        ninetyPercent:
-          durations.filter(
-            d => d >= song.duration * 0.90
-          ).length,
-      };
+    const sessionCounts = new Map<string, number>();
 
-    // ======================
-    // SESSION DEPTH (CLEAN)
-    // ======================
+    for (const e of playEvents) {
+      if (!e.sessionId) continue;
 
-    const sessions = new Map<string, number>();
-
-    events.forEach((e) => {
-      if (!e.sessionId) return;
-      if (e.type !== "song_play") return;
-      if (e.source?.includes("retention")) return;
-
-      const key = e.sessionId;
-      sessions.set(
-        key,
-        (sessions.get(key) ?? 0) + 1
+      sessionCounts.set(
+        e.sessionId,
+        (sessionCounts.get(e.sessionId) ?? 0) + 1
       );
-    });
+    }
 
     const avgSessionDepth =
-      sessions.size > 0
-        ? Array.from(sessions.values()).reduce(
+      sessionCounts.size > 0
+        ? Array.from(sessionCounts.values()).reduce(
             (a, b) => a + b,
             0
-          ) / sessions.size
+          ) / sessionCounts.size
         : 0;
 
     // ======================
     // RATES
     // ======================
 
-    const skipRate =
-      plays > 0 ? skips / plays : 0;
-
-    const replayRate =
-      plays > 0 ? replays / plays : 0;
+    const skipRate = plays > 0 ? skips / plays : 0;
+    const replayRate = plays > 0 ? replays / plays : 0;
 
     const completionRate =
-      plays > 0 ? ends / plays : 0;
+      plays > 0 ? fullPlays / plays : 0;
 
     // ======================
-    // ENGAGEMENT INTELLIGENCE
+    // INTELLIGENCE
     // ======================
 
     const engagementScore =
@@ -174,24 +180,30 @@ export const getDeepSongAnalytics = query({
       plays > 0 ? fullPlays / plays : 0;
 
     // ======================
+    // FLAGS
+    // ======================
+
+    const isDropOff = skipRate > 0.5;
+    const isSticky = replayRate > 0.3;
+    const isHit =
+      completionRate > 0.6 && replayRate > 0.2;
+
+    // ======================
     // RETURN
     // ======================
 
     return {
       songId,
 
-      // core
       plays,
       uniqueListeners,
       skips,
       replays,
 
-      // rates
       skipRate,
       replayRate,
       completionRate,
 
-      // deep metrics
       avgDuration,
       avgSessionDepth,
 
@@ -201,16 +213,12 @@ export const getDeepSongAnalytics = query({
 
       retention,
 
-      // intelligence
       engagementScore,
       retentionStrength,
 
-      // flags
-      isDropOff: skipRate > 0.5,
-      isSticky: replayRate > 0.3,
-      isHit:
-        completionRate > 0.6 &&
-        replayRate > 0.2,
+      isDropOff,
+      isSticky,
+      isHit,
     };
   },
 });

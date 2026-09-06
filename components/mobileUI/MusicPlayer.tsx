@@ -96,34 +96,7 @@ const MusicPlayer = () => {
 
 
 
-  useEffect(() => {
-
-    if (!currentSong)
-      return;
   
-  
-    const songId =
-      currentSong.songId ??
-      currentSong.id;
-  
-  
-    if (!songId)
-      return;
-  
-  
-    if (
-      lastTrackedSongRef.current === songId
-    )
-      return;
-  
-  
-    lastTrackedSongRef.current = songId;
-  
-  
-    fireEvent("song_play");
-  
-  
-  }, [currentSong]);
 
 
 
@@ -385,8 +358,7 @@ const MusicPlayer = () => {
               <Play
                 size={isIPad ? 28 : 32}
                 className="cursor-pointer"
-                onClick={async () => {
-                  await fireEvent("song_play");
+                onClick={() => {
                   togglePlay();
                 }}
               />

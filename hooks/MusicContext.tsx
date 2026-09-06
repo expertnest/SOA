@@ -47,6 +47,7 @@ export type Song = {
 
   genre?: string;
   category?: string;
+  
 };
 
 type MusicContextType = {
@@ -75,6 +76,8 @@ type MusicContextType = {
   >;
 
   duration: number;
+
+  audioRef: React.MutableRefObject<HTMLAudioElement | null>;
 };
 
 const MusicContext =
@@ -583,10 +586,9 @@ export function MusicProvider({
         }
 
         const percent =
-          (
-            audio.currentTime /
-            audio.duration
-          ) * 100;
+        audio.duration > 0
+          ? (audio.currentTime / audio.duration) * 100
+          : 0;
 
         setProgress(
           Math.min(
@@ -692,6 +694,8 @@ export function MusicProvider({
 
     const handleEnded =
       async () => {
+
+        if (!audioRef.current) return;
         if (!currentSong) {
           return;
         }
@@ -853,10 +857,11 @@ export function MusicProvider({
         audio
       );
 
-      void sendEvent(
-        "song_play",
-        currentSong
-      );
+      if (progress < 2) {
+        void sendEvent("song_play", currentSong);
+      } else if (progress > 90) {
+        void sendEvent("song_replay", currentSong);
+      }
     };
 
   // ======================
@@ -871,10 +876,9 @@ export function MusicProvider({
         return;
       }
 
-      await sendEvent(
-        "song_skip",
-        currentSong
-      );
+      if (audioRef.current && audioRef.current.currentTime > 3) {
+        await sendEvent("song_skip", currentSong);
+      }
 
       if (
         currentSongIndex >=
@@ -1073,6 +1077,8 @@ export function MusicProvider({
         setCurrentSongIndex,
 
         duration,
+
+        audioRef
       }}
     >
       {children}
