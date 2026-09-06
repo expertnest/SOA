@@ -46,6 +46,7 @@ export default function LeftSidebar() {
     setVolume,
     playSong,
     currentSong,
+    audioRef,
   } = useMusic();
 
   const trackEvent = useMutation(api.events.trackEvent);

@@ -1,4 +1,3 @@
- 
 "use client";
 
 import {
@@ -17,6 +16,8 @@ import {
 import { api } from "@/convex/_generated/api";
 
 import type { Id } from "@/convex/_generated/dataModel";
+
+import { useUser } from "@clerk/nextjs";
 
 /* =========================
    LOCAL PLAYER TYPE
@@ -47,7 +48,6 @@ export type Song = {
 
   genre?: string;
   category?: string;
-  
 };
 
 type MusicContextType = {
@@ -104,6 +104,15 @@ export function MusicProvider({
     ) ?? [];
 
   // ======================
+  // AUTHENTICATION
+  // ======================
+
+  const { user, isLoaded } = useUser();
+
+  const convexUser =
+    useQuery(api.users.getCurrentUser);
+
+  // ======================
   // ANALYTICS
   // ======================
 
@@ -126,13 +135,30 @@ export function MusicProvider({
       return;
     }
 
+    /*
+     * Canonical anonymous identity:
+     *
+     * soa_anonymous_id
+     *
+     * If an older anonId exists from the
+     * previous implementation, preserve it
+     * by migrating it into the canonical key.
+     */
+
     let id =
       localStorage.getItem(
         "soa_anonymous_id"
       );
 
     if (!id) {
-      id = crypto.randomUUID();
+      const legacyId =
+        localStorage.getItem(
+          "anonId"
+        );
+
+      id =
+        legacyId ??
+        crypto.randomUUID();
 
       localStorage.setItem(
         "soa_anonymous_id",
@@ -257,6 +283,252 @@ export function MusicProvider({
     );
 
   // ======================
+  // SEEK / IDENTITY / SESSION REFS
+  // ======================
+
+  // last time a seek started (ms since epoch) or a grace-until timestamp
+  const lastSeekAt = useRef<number | null>(null);
+  // whether the player is currently in a seeking state (browser firing seeking/seeked)
+  const seekingRef = useRef(false);
+
+  // track when we last started a 'song_play' session from client to avoid duplicates
+  const sessionStartedAtRef =
+    useRef<number | null>(null);
+
+  // minimum ms of actual playback required after a seek before we allow progress milestones
+  const MIN_PLAY_AFTER_SEEK_MS = 1200;
+
+  // ======================
+  // IDENTITY RESOLUTION
+  // ======================
+
+  const getAnalyticsIdentity =
+    () => {
+      /*
+       * Do not send analytics until Clerk
+       * has finished determining auth state.
+       */
+
+      if (!isLoaded) {
+        return null;
+      }
+
+      /*
+       * LOGGED-IN USER
+       *
+       * Use the Convex users._id as the
+       * canonical event userId.
+       */
+
+      if (user) {
+        if (!convexUser?._id) {
+          return null;
+        }
+
+        return {
+          userId: convexUser._id,
+          isAnonymous: false,
+        };
+      }
+
+      /*
+       * LOGGED-OUT USER
+       *
+       * Use one persistent anonymous ID.
+       */
+
+      if (!anonymousId.current) {
+        return null;
+      }
+
+      return {
+        userId: anonymousId.current,
+        isAnonymous: true,
+      };
+    };
+
+  // ======================
+  // HELPER: send a generic event (play/end/skip/replay)
+  // ======================
+
+  const sendEvent = async (
+    type:
+      | "song_play"
+      | "song_end"
+      | "song_skip"
+      | "song_replay",
+    song: Song
+  ) => {
+    if (!song) {
+      return;
+    }
+
+    const identity =
+      getAnalyticsIdentity();
+
+    /*
+     * Don't send an event until identity
+     * is fully resolved.
+     */
+
+    if (!identity) {
+      return;
+    }
+
+    const audio =
+      audioRef.current;
+
+    const rawCurrentTime =
+      audio?.currentTime ?? 0;
+
+    const rawDuration =
+      audio?.duration ??
+      song.duration ??
+      0;
+
+    /*
+     * Never send NaN or Infinity to Convex.
+     */
+
+    const playedDuration =
+      Number.isFinite(
+        rawCurrentTime
+      ) &&
+      rawCurrentTime >= 0
+        ? rawCurrentTime
+        : 0;
+
+    const durationValue =
+      Number.isFinite(
+        rawDuration
+      ) &&
+      rawDuration > 0
+        ? rawDuration
+        : 0;
+
+    try {
+      await trackEvent({
+        userId:
+          identity.userId,
+
+        isAnonymous:
+          identity.isAnonymous,
+
+        type,
+
+        songId:
+          song.songId,
+
+        playedDuration,
+
+        duration:
+          durationValue,
+
+        source:
+          "music_player",
+
+        deviceType:
+          "web",
+      });
+    } catch (error) {
+      /*
+       * Analytics should NEVER break
+       * music playback.
+       */
+
+      console.error(
+        "Analytics event failed:",
+        error
+      );
+    }
+  };
+
+  // ======================
+  // HELPER: send progress milestone
+  // ======================
+
+  const sendProgress = async (
+    point: number,
+    song: Song
+  ) => {
+    if (!song) return;
+
+    const identity =
+      getAnalyticsIdentity();
+
+    if (!identity) return;
+
+    const audio = audioRef.current;
+
+    const rawCurrentTime =
+      audio?.currentTime ?? 0;
+
+    const rawDuration =
+      audio?.duration ??
+      song.duration ??
+      0;
+
+    const playedDuration =
+      Number.isFinite(rawCurrentTime) &&
+      rawCurrentTime >= 0
+        ? rawCurrentTime
+        : 0;
+
+    const durationValue =
+      Number.isFinite(rawDuration) &&
+      rawDuration > 0
+        ? rawDuration
+        : 0;
+
+    try {
+      await trackEvent({
+        userId: identity.userId,
+        isAnonymous: identity.isAnonymous,
+        type: "song_progress",
+        songId: song.songId,
+        position: point,
+        playedDuration,
+        duration: durationValue,
+        source: "retention",
+        deviceType: "web",
+      });
+    } catch (err) {
+      console.error("Retention event failed:", err);
+    }
+  };
+
+  // ======================
+  // SINGLE START: ensure only one source of truth for starting a playback session
+  // ======================
+
+  const startPlaybackIfNeeded = async (song: Song | null) => {
+    if (!song) return;
+
+    const now = Date.now();
+    const PLAY_COOLDOWN_MS = 30 * 1000;
+
+    if (
+      sessionStartedAtRef.current &&
+      now - sessionStartedAtRef.current < PLAY_COOLDOWN_MS
+    ) {
+      // still cooling down — do not send another song_play
+      return;
+    }
+
+    sessionStartedAtRef.current = now;
+
+    // decide whether this should be a replay event or a play
+    // if the user clicks play when progress > 90% treat as replay
+    const isReplay = progress > 90;
+
+    if (isReplay) {
+      await sendEvent("song_replay", song);
+    } else {
+      await sendEvent("song_play", song);
+    }
+  };
+
+  // ======================
   // SAFE PLAY
   // ======================
 
@@ -329,6 +601,10 @@ export function MusicProvider({
         playRequestRef.current
       ) {
         setIsPlaying(true);
+        // only call startPlayback from the success path once playback actually began
+        if (shouldPlayRef.current) {
+          void startPlaybackIfNeeded(currentSong);
+        }
       }
     } catch (error: any) {
       /*
@@ -411,64 +687,6 @@ export function MusicProvider({
 
     if (autoPlay) {
       void safelyPlay(audio);
-    }
-  };
-
-  // ======================
-  // ANALYTICS
-  // ======================
-
-  const sendEvent = async (
-    type:
-      | "song_play"
-      | "song_end"
-      | "song_skip"
-      | "song_replay",
-    song: Song
-  ) => {
-    if (
-      !anonymousId.current
-    ) {
-      return;
-    }
-
-    try {
-      await trackEvent({
-        userId:
-          anonymousId.current,
-
-        isAnonymous: true,
-
-        type,
-
-        songId:
-          song.songId,
-
-        playedDuration:
-          audioRef.current
-            ?.currentTime ?? 0,
-
-        duration:
-          audioRef.current
-            ?.duration ??
-          song.duration,
-
-        source:
-          "music_player",
-
-        deviceType:
-          "web",
-      });
-    } catch (error) {
-      /*
-       * Analytics should NEVER break
-       * music playback.
-       */
-
-      console.error(
-        "Analytics event failed:",
-        error
-      );
     }
   };
 
@@ -574,6 +792,26 @@ export function MusicProvider({
       return;
     }
 
+    // ----------------------
+    // seeking handlers
+    // ----------------------
+    const handleSeeking = () => {
+      seekingRef.current = true;
+      lastSeekAt.current = Date.now();
+    };
+
+    const handleSeeked = () => {
+      // require a small grace period of real playback after a seek before firing milestones
+      lastSeekAt.current = Date.now();
+      seekingRef.current = false;
+    };
+
+    audio.addEventListener("seeking", handleSeeking);
+    audio.addEventListener("seeked", handleSeeked);
+
+    // ----------------------
+    // progress updater
+    // ----------------------
     const updateProgress =
       () => {
         if (
@@ -586,9 +824,9 @@ export function MusicProvider({
         }
 
         const percent =
-        audio.duration > 0
-          ? (audio.currentTime / audio.duration) * 100
-          : 0;
+          audio.duration > 0
+            ? (audio.currentTime / audio.duration) * 100
+            : 0;
 
         setProgress(
           Math.min(
@@ -616,56 +854,42 @@ export function MusicProvider({
           90,
         ];
 
+        const now = Date.now();
+
         milestones.forEach(
           (point) => {
             if (
-              percent >= point &&
+              (percent >= point) &&
               !trackedMilestones.current.has(
                 point
               )
             ) {
+              // gate milestone if user recently sought/jumped
+              if (lastSeekAt.current) {
+                // require that we've observed at least MIN_PLAY_AFTER_SEEK_MS of real play time (simple heuristic)
+                if (now - lastSeekAt.current < MIN_PLAY_AFTER_SEEK_MS) {
+                  // skip firing this milestone for now
+                  return;
+                }
+              }
+
               trackedMilestones.current.add(
                 point
               );
 
+              /*
+               * Resolve the same identity used
+               * by every other player event.
+               */
+
+              const identity =
+                getAnalyticsIdentity();
+
               if (
-                anonymousId.current &&
+                identity &&
                 currentSong
               ) {
-                void trackEvent({
-                  userId:
-                    anonymousId.current,
-
-                  isAnonymous: true,
-
-                  type:
-                    "song_progress",
-
-                  songId:
-                    currentSong.songId,
-
-                  position:
-                    point,
-
-                  playedDuration:
-                    audio.currentTime,
-
-                  duration:
-                    audio.duration,
-
-                  source:
-                    "retention",
-
-                  deviceType:
-                    "web",
-                }).catch(
-                  (error) => {
-                    console.error(
-                      "Retention event failed:",
-                      error
-                    );
-                  }
-                );
+                void sendProgress(point, currentSong);
               }
             }
           }
@@ -694,8 +918,10 @@ export function MusicProvider({
 
     const handleEnded =
       async () => {
+        if (!audioRef.current) {
+          return;
+        }
 
-        if (!audioRef.current) return;
         if (!currentSong) {
           return;
         }
@@ -755,6 +981,15 @@ export function MusicProvider({
 
     return () => {
       audio.removeEventListener(
+        "seeking",
+        handleSeeking
+      );
+      audio.removeEventListener(
+        "seeked",
+        handleSeeked
+      );
+
+      audio.removeEventListener(
         "timeupdate",
         updateProgress
       );
@@ -778,6 +1013,9 @@ export function MusicProvider({
     currentSong?.songId,
     currentSongIndex,
     songs.length,
+    isLoaded,
+    user,
+    convexUser?._id,
   ]);
 
   // ======================
@@ -811,12 +1049,13 @@ export function MusicProvider({
       true
     );
 
-    void sendEvent(
-      "song_play",
-      currentSong
-    );
+    // NOTE: do NOT call sendEvent("song_play") here.
+    // startPlaybackIfNeeded will be called after actual playback starts (in safelyPlay).
   }, [
     currentSong?.songId,
+    isLoaded,
+    user,
+    convexUser?._id,
   ]);
 
   // ======================
@@ -857,11 +1096,7 @@ export function MusicProvider({
         audio
       );
 
-      if (progress < 2) {
-        void sendEvent("song_play", currentSong);
-      } else if (progress > 90) {
-        void sendEvent("song_replay", currentSong);
-      }
+      // No direct sendEvent here — safelyPlay will call startPlaybackIfNeeded() once play actually begins.
     };
 
   // ======================
@@ -876,8 +1111,15 @@ export function MusicProvider({
         return;
       }
 
-      if (audioRef.current && audioRef.current.currentTime > 3) {
-        await sendEvent("song_skip", currentSong);
+      if (
+        audioRef.current &&
+        audioRef.current.currentTime >
+          3
+      ) {
+        await sendEvent(
+          "song_skip",
+          currentSong
+        );
       }
 
       if (
@@ -921,9 +1163,18 @@ export function MusicProvider({
 
   const handlePrev =
     () => {
-      if (
-        currentSongIndex <= 0
-      ) {
+      // If currentTime > 3s, rewind to start of same track
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+        setProgress(0);
+        // Do not immediately send song_replay here; startPlaybackIfNeeded will handle replay if they press play or playback resumes.
+        return;
+      }
+
+      if (currentSongIndex <= 0) {
         return;
       }
 
@@ -980,10 +1231,11 @@ export function MusicProvider({
       );
 
     audio.currentTime =
-      (
-        clamped / 100
-      ) *
+      (clamped / 100) *
       audio.duration;
+
+    // mark lastSeekAt so progress gating applies immediately
+    lastSeekAt.current = Date.now();
 
     setProgress(
       clamped
@@ -1078,7 +1330,7 @@ export function MusicProvider({
 
         duration,
 
-        audioRef
+        audioRef,
       }}
     >
       {children}
@@ -1104,4 +1356,3 @@ export function useMusic() {
 
   return ctx;
 }
- 
