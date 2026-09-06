@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import {
@@ -157,74 +158,122 @@ export default function LeftSidebar() {
   // NEXT TRACK (HANDLES SHUFFLE & SEQUENTIAL)
   const handleNextTrack = async () => {
     if (filteredSongs.length === 0) return;
-  
+
     // ✅ only count skip if user is actually listening
     if (isPlaying && currentSong) {
       await fireEvent("song_skip");
     }
-  
+
     if (shuffle) {
-      let randomIndex = Math.floor(Math.random() * filteredSongs.length);
-  
+      let randomIndex = Math.floor(
+        Math.random() * filteredSongs.length
+      );
+
       if (filteredSongs.length > 1 && currentSong) {
         const currentIndex = filteredSongs.findIndex(
           (s) => s.songId === currentSong.songId
         );
-  
+
         while (randomIndex === currentIndex) {
-          randomIndex = Math.floor(Math.random() * filteredSongs.length);
+          randomIndex = Math.floor(
+            Math.random() * filteredSongs.length
+          );
         }
       }
-  
+
       playSong(filteredSongs[randomIndex]);
     } else {
       const currentIndex = filteredSongs.findIndex(
         (s) => s.songId === currentSong?.songId
       );
-  
+
       const nextIndex =
-        currentIndex >= 0 ? (currentIndex + 1) % filteredSongs.length : 0;
-  
+        currentIndex >= 0
+          ? (currentIndex + 1) % filteredSongs.length
+          : 0;
+
       playSong(filteredSongs[nextIndex]);
     }
   };
 
   // PREVIOUS TRACK (HANDLES SHUFFLE & REWIND)
-  const handlePrevTrack = () => {
+  const handlePrevTrack = async () => {
     if (filteredSongs.length === 0) return;
-  
-    // ✅ track skip when going back (only if actually playing)
-    if (isPlaying && currentSong) {
-      fireEvent("song_skip");
-    }
-  
-    if (progress > 3) {
+
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    /*
+     * Use actual audio time here.
+     *
+     * > 3 seconds:
+     * restart the current song and record
+     * a replay.
+     *
+     * < 3 seconds:
+     * move to the previous track.
+     *
+     * Previous is never a skip.
+     */
+    if (audio.currentTime > 3) {
+      const songToReplay = currentSong;
+
+      if (!songToReplay) return;
+
+      /*
+       * Restart the current song.
+       *
+       * seek(0) updates both the audio
+       * position and the player progress.
+       */
       seek(0);
+
+      /*
+       * If the song is currently playing,
+       * record the replay immediately.
+       *
+       * Do NOT record song_skip.
+       */
+      if (!audio.paused) {
+        await fireEvent("song_replay");
+      }
+
       return;
     }
-  
+
+    /*
+     * Otherwise go to the previous track.
+     */
     if (shuffle) {
-      const randomIndex = Math.floor(Math.random() * filteredSongs.length);
+      const randomIndex = Math.floor(
+        Math.random() * filteredSongs.length
+      );
+
       playSong(filteredSongs[randomIndex]);
     } else {
       const currentIndex = filteredSongs.findIndex(
         (s) => s.songId === currentSong?.songId
       );
-  
+
       const prevIndex =
-        currentIndex > 0 ? currentIndex - 1 : filteredSongs.length - 1;
-  
+        currentIndex > 0
+          ? currentIndex - 1
+          : filteredSongs.length - 1;
+
       playSong(filteredSongs[prevIndex]);
     }
   };
 
   // TRACK END / REPEAT / AUTO ADVANCE LISTENER
-  
 
   const grouped = filteredSongs.reduce((acc: any, song: any) => {
     const key = song.projectName || "Singles";
+
     if (!acc[key]) acc[key] = [];
+
     acc[key].push(song);
+
     return acc;
   }, {});
 
@@ -236,12 +285,16 @@ export default function LeftSidebar() {
     };
 
   // Synchronize elapsed current time using percentage progress and calculated duration
-  const currentTime = duration ? Math.floor((progress / 100) * duration) : 0;
+  const currentTime = duration
+    ? Math.floor((progress / 100) * duration)
+    : 0;
 
   const formatTime = (t: number) => {
     if (isNaN(t) || t < 0 || !isFinite(t)) return "0:00";
+
     const m = Math.floor(t / 60);
     const s = String(Math.floor(t % 60)).padStart(2, "0");
+
     return `${m}:${s}`;
   };
 
@@ -292,25 +345,29 @@ export default function LeftSidebar() {
 
           {/* COVER IMAGE */}
           <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-black/20">
-  <Image
-    src={displaySong.coverImage || "/assets/soalogo.png"}
-    alt="Now Playing"
-    fill
-    sizes="300px"
-    className="object-contain"
-    unoptimized
-  />
+            <Image
+              src={
+                displaySong.coverImage ||
+                "/assets/soalogo.png"
+              }
+              alt="Now Playing"
+              fill
+              sizes="300px"
+              className="object-contain"
+              unoptimized
+            />
 
-  <div className="absolute left-3 top-2 rounded bg-black/50 px-2 py-1 text-xs">
-    NOW PLAYING
-  </div>
-</div>
+            <div className="absolute left-3 top-2 rounded bg-black/50 px-2 py-1 text-xs">
+              NOW PLAYING
+            </div>
+          </div>
 
           {currentSong && (
             <div className="mb-5">
               <p className="text-sm font-semibold truncate">
                 {currentSong.title}
               </p>
+
               <p className="text-xs text-white/50 truncate mb-3">
                 {currentSong.artistName}
               </p>
@@ -319,13 +376,19 @@ export default function LeftSidebar() {
               <div className="flex items-center justify-between mb-2">
                 {/* SHUFFLE BUTTON */}
                 <button
-                  onClick={() => setShuffle(!shuffle)}
+                  onClick={() =>
+                    setShuffle(!shuffle)
+                  }
                   className={`p-1.5 rounded-lg transition ${
                     shuffle
                       ? "text-emerald-400 bg-emerald-500/10"
                       : "text-white/50 hover:text-white"
                   }`}
-                  title={shuffle ? "Shuffle ON" : "Shuffle OFF"}
+                  title={
+                    shuffle
+                      ? "Shuffle ON"
+                      : "Shuffle OFF"
+                  }
                 >
                   <Shuffle size={16} />
                 </button>
@@ -340,11 +403,17 @@ export default function LeftSidebar() {
 
                 {/* PLAY/PAUSE BUTTON */}
                 <button
-                    onClick={() => togglePlay()}
-                    className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition"
-                  >
-                    {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-                  </button>
+                  onClick={() =>
+                    togglePlay()
+                  }
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition"
+                >
+                  {isPlaying ? (
+                    <Pause size={18} />
+                  ) : (
+                    <Play size={18} />
+                  )}
+                </button>
 
                 {/* NEXT BUTTON */}
                 <button
@@ -364,7 +433,11 @@ export default function LeftSidebar() {
                       ? "text-emerald-400 bg-emerald-500/10"
                       : "text-white/50 hover:text-white"
                   }`}
-                  title={repeat ? "Repeat ON" : "Repeat OFF"}
+                  title={
+                    repeat
+                      ? "Repeat ON"
+                      : "Repeat OFF"
+                  }
                 >
                   <Repeat size={16} />
                 </button>
@@ -374,22 +447,37 @@ export default function LeftSidebar() {
               <div
                 className="h-1 bg-white/20 rounded cursor-pointer relative"
                 onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
+                  const rect =
+                    e.currentTarget.getBoundingClientRect();
+
                   const percent =
-                    ((e.clientX - rect.left) / rect.width) * 100;
+                    ((e.clientX - rect.left) /
+                      rect.width) *
+                    100;
+
                   seek(percent);
                 }}
               >
                 <div
                   className="h-1 bg-white absolute top-0 left-0 rounded"
-                  style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+                  style={{
+                    width: `${Math.min(
+                      Math.max(progress, 0),
+                      100
+                    )}%`,
+                  }}
                 />
               </div>
 
               {/* TIME DISPLAY */}
               <div className="flex justify-between text-xs text-white/50 mt-1">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
+                <span>
+                  {formatTime(currentTime)}
+                </span>
+
+                <span>
+                  {formatTime(duration)}
+                </span>
               </div>
             </div>
           )}
@@ -401,7 +489,11 @@ export default function LeftSidebar() {
             </p>
 
             <button
-              onClick={() => setArtistDropdownOpen(!artistDropdownOpen)}
+              onClick={() =>
+                setArtistDropdownOpen(
+                  !artistDropdownOpen
+                )
+              }
               className="w-full flex items-center justify-between bg-white/5 px-3 py-2.5 rounded-lg hover:bg-white/10 transition border border-white/10"
             >
               <span className="text-sm font-semibold">
@@ -411,14 +503,18 @@ export default function LeftSidebar() {
               <ChevronDown
                 size={16}
                 className={`transition-transform duration-300 ${
-                  artistDropdownOpen ? "rotate-180" : ""
+                  artistDropdownOpen
+                    ? "rotate-180"
+                    : ""
                 }`}
               />
             </button>
 
             <div
               className={`overflow-hidden transition-all duration-300 ${
-                artistDropdownOpen ? "max-h-48 mt-2" : "max-h-0"
+                artistDropdownOpen
+                  ? "max-h-48 mt-2"
+                  : "max-h-0"
               }`}
             >
               <div className="bg-black/40 rounded-lg border border-white/10 p-1">
@@ -426,11 +522,16 @@ export default function LeftSidebar() {
                   <div
                     key={artist}
                     onClick={() => {
-                      setSelectedCategory(artist);
-                      setArtistDropdownOpen(false);
+                      setSelectedCategory(
+                        artist
+                      );
+                      setArtistDropdownOpen(
+                        false
+                      );
                     }}
                     className={`px-3 py-2 text-sm rounded cursor-pointer transition ${
-                      selectedCategory === artist
+                      selectedCategory ===
+                      artist
                         ? "bg-white text-black"
                         : "hover:bg-white/5"
                     }`}
@@ -444,64 +545,103 @@ export default function LeftSidebar() {
 
           {/* PROJECT + SONG GROUPING */}
           <div className="overflow-y-auto text-sm space-y-4 flex-1 mb-4">
-            {Object.entries(grouped).map(([project, songs]: any) => (
-              <div key={project} className="transition-all duration-300">
-                <p className="text-xs text-white/40 mb-1 px-1">{project}</p>
+            {Object.entries(grouped).map(
+              ([project, songs]: any) => (
+                <div
+                  key={project}
+                  className="transition-all duration-300"
+                >
+                  <p className="text-xs text-white/40 mb-1 px-1">
+                    {project}
+                  </p>
 
-                <div className="space-y-2">
-                  {songs.map((song: any) => {
-                    const isCurrent = currentSong?.songId === song.songId;
+                  <div className="space-y-2">
+                    {songs.map((song: any) => {
+                      const isCurrent =
+                        currentSong?.songId ===
+                        song.songId;
 
-                    return (
-                      <div
-                        key={song.songId}
-                        onClick={() => playSong(song)}
-                        className="p-3 rounded-lg flex justify-between items-center bg-white/5 hover:bg-white/10 cursor-pointer transition"
-                      >
-                        <div>
-                          <p>{song.title}</p>
-                          <p className="text-xs text-white/50">
-                            {song.artistName}
-                          </p>
+                      return (
+                        <div
+                          key={song.songId}
+                          onClick={() =>
+                            playSong(song)
+                          }
+                          className="p-3 rounded-lg flex justify-between items-center bg-white/5 hover:bg-white/10 cursor-pointer transition"
+                        >
+                          <div>
+                            <p>{song.title}</p>
+
+                            <p className="text-xs text-white/50">
+                              {song.artistName}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playSong(song);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            {isCurrent &&
+                            isPlaying ? (
+                              <Pause size={16} />
+                            ) : (
+                              <Play size={16} />
+                            )}
+                          </button>
                         </div>
-
-                        <button>
-                          {isCurrent && isPlaying ? (
-                            <Pause size={16} />
-                          ) : (
-                            <Play size={16} />
-                          )}
-                        </button>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
 
           {/* VOLUME CONTROL */}
           <div className="mb-4 flex items-center gap-2">
             <Volume2 size={16} />
+
             <input
               type="range"
               min="0"
               max="1"
               step="0.01"
               value={volume}
-              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              onChange={(e) =>
+                setVolume(
+                  parseFloat(
+                    e.target.value
+                  )
+                )
+              }
               className="w-full"
             />
           </div>
 
           {/* FOOTER SOCIALS */}
           <div className="flex justify-center gap-4 pt-2 border-t border-white/10 text-white/60">
-            <Instagram size={18} className="hover:text-white cursor-pointer transition" />
-            <Twitter size={18} className="hover:text-white cursor-pointer transition" />
-            <Youtube size={18} className="hover:text-white cursor-pointer transition" />
+            <Instagram
+              size={18}
+              className="hover:text-white cursor-pointer transition"
+            />
+
+            <Twitter
+              size={18}
+              className="hover:text-white cursor-pointer transition"
+            />
+
+            <Youtube
+              size={18}
+              className="hover:text-white cursor-pointer transition"
+            />
           </div>
         </>
       )}
     </aside>
   );
-} 
+}
+ 
