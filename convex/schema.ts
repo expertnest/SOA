@@ -1,3 +1,4 @@
+ 
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -353,34 +354,97 @@ export default defineSchema({
     .index("by_artistId", ["artistId"]),
 
   // ======================
-  // 👤 LISTENING HISTORY (UPDATED)
+  // 👤 LISTENING HISTORY (AUTH USERS)
   // ======================
+  listening_history: defineTable({
+    userId: v.id("users"),
+    songId: v.id("songs"),
+
+    lastPlayedAt: v.number(),
+    playCount: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_songId", ["songId"])
+    .index("by_user_song", ["userId", "songId"]),
+
   // ======================
-// 👤 LISTENING HISTORY (AUTH USERS)
-// ======================
-listening_history: defineTable({
-  userId: v.id("users"),
-  songId: v.id("songs"),
+  // 👤 ANONYMOUS LISTENING HISTORY
+  // ======================
+  anonymous_listening_history: defineTable({
+    anonId: v.string(),
+    songId: v.id("songs"),
 
-  lastPlayedAt: v.number(),
-  playCount: v.number(),
-})
-  .index("by_userId", ["userId"])
-  .index("by_songId", ["songId"])
-  .index("by_user_song", ["userId", "songId"]),
+    lastPlayedAt: v.number(),
+    playCount: v.number(),
+  })
+    .index("by_anon_song", ["anonId", "songId"]),
 
+  // ======================
+  // 🎧 LISTENING RANGES
+  // ======================
+  /*
+   * Stores the portions of a song that a
+   * listener actually played.
+   *
+   * This is separate from events because
+   * listening ranges are analytical state,
+   * not individual user actions.
+   */
+  listen_sessions: defineTable({
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    userId: v.optional(v.union(
+      v.id("users"),
+      v.string()
+    )),
 
-// ======================
-// 👤 ANONYMOUS LISTENING HISTORY
-// ======================
-anonymous_listening_history: defineTable({
-  anonId: v.string(),
-  songId: v.id("songs"),
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    isAnonymous: v.optional(v.boolean()),
 
-  lastPlayedAt: v.number(),
-  playCount: v.number(),
-})
-  .index("by_anon_song", ["anonId", "songId"]),
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    songId: v.optional(v.id("songs")),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    sessionKey: v.optional(v.string()),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    mergedRanges: v.optional(
+      v.array(
+        v.object({
+          startMs: v.number(),
+          endMs: v.number(),
+        })
+      )
+    ),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    totalListenedMs: v.optional(v.number()),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    uniqueListenedMs: v.optional(v.number()),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    lastPosition: v.optional(v.number()),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    updatedAt: v.optional(v.number()),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    createdAt: v.optional(v.number()),
+  })
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    .index(
+      "by_user_song_session",
+      [
+        "userId",
+        "songId",
+        "sessionKey",
+      ]
+    )
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    .index(
+      "by_songId",
+      ["songId"]
+    ),
 });
-
  

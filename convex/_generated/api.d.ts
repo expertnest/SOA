@@ -22,6 +22,7 @@ import type * as feed from "../feed.js";
 import type * as fixSongs from "../fixSongs.js";
 import type * as http from "../http.js";
 import type * as projects from "../projects.js";
+import type * as saveListenRanges from "../saveListenRanges.js";
 import type * as songAnalytics from "../songAnalytics.js";
 import type * as songStats from "../songStats.js";
 import type * as songs from "../songs.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   fixSongs: typeof fixSongs;
   http: typeof http;
   projects: typeof projects;
+  saveListenRanges: typeof saveListenRanges;
   songAnalytics: typeof songAnalytics;
   songStats: typeof songStats;
   songs: typeof songs;

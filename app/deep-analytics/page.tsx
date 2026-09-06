@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -164,10 +165,21 @@ export default function DeepAnalyticsPage() {
 
             {/* RETENTION */}
             <section>
-              <h3 className="text-gray-400 mb-4">
-                Listener Retention
-              </h3>
-              <RetentionGraph data={deepData.retention} />
+              <div className="flex flex-col gap-1 mb-4">
+                <h3 className="text-gray-400">
+                  Listener Retention
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Percentage of unique listeners who actually
+                  listened through each point of the song.
+                  Checkpoints are non-cumulative, so listeners
+                  can skip ahead.
+                </p>
+              </div>
+
+              <RetentionGraph
+                data={deepData.retention}
+              />
             </section>
 
             {/* RATES */}
@@ -266,7 +278,7 @@ export default function DeepAnalyticsPage() {
             <span className="text-white">Average Listen Duration</span> = total listening time ÷ total plays.
           </p>
           <p>
-            <span className="text-white">Completion Rate</span> = plays reaching 90% of song duration ÷ total plays × 100
+            <span className="text-white">Completion Rate</span> = plays reaching 90% of song duration ÷ total plays × 100.
           </p>
           <p>
             <span className="text-white">Skip Rate</span> = skips ÷ plays × 100.
@@ -278,25 +290,25 @@ export default function DeepAnalyticsPage() {
             <span className="text-white">Session Depth</span> = total song plays inside sessions ÷ total listening sessions.
           </p>
           <p>
-            <span className="text-white">10% Retention</span> = listeners who listened to at least 10% of the song duration.
+            <span className="text-white">10% Retention</span> = unique listeners who actually listened through the 10% point of the song.
           </p>
           <p>
-            <span className="text-white">25% Retention</span> = listeners who listened to at least 25% of the song duration.
+            <span className="text-white">25% Retention</span> = unique listeners who actually listened through the 25% point of the song.
           </p>
           <p>
-            <span className="text-white">50% Retention</span> = listeners who listened to at least 50% of the song duration.
+            <span className="text-white">50% Retention</span> = unique listeners who actually listened through the 50% point of the song.
           </p>
           <p>
-            <span className="text-white">75% Retention</span> = listeners who listened to at least 75% of the song duration.
+            <span className="text-white">75% Retention</span> = unique listeners who actually listened through the 75% point of the song.
           </p>
           <p>
-            <span className="text-white">90% Retention</span> = listeners who listened to at least 90% of the song duration.
+            <span className="text-white">90% Retention</span> = unique listeners who actually listened through the 90% point of the song.
           </p>
           <p>
-            <span className="text-white">Retention Percentage</span> = listeners reaching checkpoint ÷ total listeners × 100.
+            <span className="text-white">Retention Percentage</span> = listeners reaching a checkpoint ÷ total unique listeners × 100.
           </p>
           <p>
-            <span className="text-white">Listener Quality</span> = listeners who completed 90%+ of the song ÷ total listeners.
+            <span className="text-white">Listener Quality</span> = listeners who reached the 90% point ÷ total listeners.
           </p>
           <p>
             <span className="text-white">Engagement Score</span> = plays + (replays × 2) - (skips × 2).
@@ -327,33 +339,61 @@ function RetentionGraph({ data }: any) {
   const points = [
     { label: "Start", value: data.start },
     { label: "10% Checkpoint", value: data.tenPercent },
-    { label: "25% Checkpoint", value: data.twentyFivePercent },
-    { label: "50% Checkpoint", value: data.fiftyPercent },
-    { label: "75% Checkpoint", value: data.seventyFivePercent },
-    { label: "90% Checkpoint", value: data.ninetyPercent },
+    {
+      label: "25% Checkpoint",
+      value: data.twentyFivePercent,
+    },
+    {
+      label: "50% Checkpoint",
+      value: data.fiftyPercent,
+    },
+    {
+      label: "75% Checkpoint",
+      value: data.seventyFivePercent,
+    },
+    {
+      label: "90% Checkpoint",
+      value: data.ninetyPercent,
+    },
   ];
 
-  const max = data.start || 1;
+  const totalListeners = data.start || 0;
 
   return (
     <div className="space-y-5">
-      {points.map((p) => (
-        <div key={p.label}>
-          <div className="flex justify-between text-xs text-gray-400 mb-2">
-            <span>{p.label}</span>
-            <span>{p.value} listeners</span>
-          </div>
+      {points.map((p) => {
+        const percentage =
+          totalListeners > 0
+            ? (p.value / totalListeners) * 100
+            : 0;
 
-          <div className="h-4 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 transition-all duration-700"
-              style={{
-                width: `${(p.value / max) * 100}%`,
-              }}
-            />
+        return (
+          <div key={p.label}>
+            <div className="flex justify-between items-center text-xs text-gray-400 mb-2">
+              <span>{p.label}</span>
+
+              <span>
+                {p.value} / {totalListeners} listeners{" "}
+                <span className="text-gray-500">
+                  ({percentage.toFixed(1)}%)
+                </span>
+              </span>
+            </div>
+
+            <div className="h-4 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 transition-all duration-700"
+                style={{
+                  width: `${Math.min(
+                    percentage,
+                    100
+                  )}%`,
+                }}
+              />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -422,3 +462,4 @@ function Chip({ label, active, onClick }: any) {
     </button>
   );
 }
+ 

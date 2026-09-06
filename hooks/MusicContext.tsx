@@ -1,4 +1,3 @@
- 
 "use client";
 
 import {
@@ -120,6 +119,11 @@ export function MusicProvider({
   const trackEvent =
     useMutation(
       api.events.trackEvent
+    );
+
+  const saveListenRanges =
+    useMutation(
+      api.saveListenRanges.saveListenRanges
     );
 
   // ======================
@@ -354,6 +358,31 @@ export function MusicProvider({
     >([]);
 
   /*
+   * Stores listened ranges that have not
+   * yet been persisted to Convex.
+   *
+   * This is separate from listenedRangesRef
+   * because listenedRangesRef represents
+   * the complete current lifecycle, while
+   * this buffer represents only NEW listening
+   * since the last successful save.
+   */
+  const pendingListenRangesRef =
+    useRef<
+      Array<{
+        startMs: number;
+        endMs: number;
+      }>
+    >([]);
+
+  /*
+   * Each song playback lifecycle gets
+   * its own local persistence key.
+   */
+  const listenSessionKeyRef =
+    useRef<string | null>(null);
+
+  /*
    * Last playback position used by
    * the listened-time accumulator.
    *
@@ -375,9 +404,15 @@ export function MusicProvider({
   /*
    * Resets actual-listening state
    * whenever a new song begins.
+   *
+   * A new session key is created only
+   * when a genuinely new song lifecycle
+   * begins.
    */
   const resetActualListening =
-    () => {
+    (
+      createNewSession = false
+    ) => {
       actualListenedMsRef.current =
         0;
 
@@ -385,6 +420,99 @@ export function MusicProvider({
         null;
 
       listenedRangesRef.current = [];
+
+      pendingListenRangesRef.current =
+        [];
+
+      if (
+        createNewSession ||
+        !listenSessionKeyRef.current
+      ) {
+        listenSessionKeyRef.current =
+          crypto.randomUUID();
+      }
+    };
+
+  /*
+   * Adds a new interval to the pending
+   * persistence buffer.
+   *
+   * Pending ranges are merged with other
+   * ranges that have not yet been flushed.
+   *
+   * This avoids sending dozens of tiny
+   * timeupdate intervals to Convex.
+   *
+   * IMPORTANT:
+   *
+   * Once a buffer has been flushed, a later
+   * replayed interval remains a NEW pending
+   * range even if it overlaps an older range.
+   * That allows total listened time to include
+   * legitimate repeated listening.
+   */
+  const addPendingListenRange =
+    (
+      start: number,
+      end: number
+    ) => {
+      if (
+        !Number.isFinite(start) ||
+        !Number.isFinite(end) ||
+        end <= start
+      ) {
+        return;
+      }
+
+      const pending =
+        pendingListenRangesRef.current;
+
+      const RANGE_MERGE_GAP_MS =
+        500;
+
+      const startMs =
+        Math.floor(
+          start * 1000
+        );
+
+      const endMs =
+        Math.floor(
+          end * 1000
+        );
+
+      const last =
+        pending[
+          pending.length - 1
+        ];
+
+      /*
+       * Merge only with the immediately
+       * preceding unflushed range.
+       *
+       * We deliberately do NOT compare
+       * against the full historical range
+       * collection because that would erase
+       * legitimate replay time.
+       */
+      if (
+        last &&
+        startMs <=
+          last.endMs +
+            RANGE_MERGE_GAP_MS
+      ) {
+        last.endMs =
+          Math.max(
+            last.endMs,
+            endMs
+          );
+
+        return;
+      }
+
+      pending.push({
+        startMs,
+        endMs,
+      });
     };
 
   /*
@@ -536,6 +664,11 @@ export function MusicProvider({
           previousTime,
           currentTime
         );
+
+        addPendingListenRange(
+          previousTime,
+          currentTime
+        );
       }
 
       /*
@@ -654,6 +787,119 @@ export function MusicProvider({
         userId: anonymousId.current,
         isAnonymous: true,
       };
+    };
+
+  // ======================
+  // SAVE LISTEN RANGES
+  // ======================
+
+  const flushListenRanges =
+    async (
+      song: Song | null
+    ) => {
+      if (!song) {
+        return;
+      }
+
+      const identity =
+        getAnalyticsIdentity();
+
+      if (!identity) {
+        return;
+      }
+
+      if (
+        !listenSessionKeyRef.current
+      ) {
+        listenSessionKeyRef.current =
+          crypto.randomUUID();
+      }
+
+      const pending =
+        pendingListenRangesRef.current;
+
+      if (
+        pending.length === 0
+      ) {
+        return;
+      }
+
+      /*
+       * Take a snapshot and clear the
+       * pending buffer immediately.
+       *
+       * New playback can continue building
+       * a fresh pending buffer while this
+       * mutation is in flight.
+       */
+      const rangesToSave =
+        pending.map(
+          (range) => ({
+            startMs:
+              range.startMs,
+
+            endMs:
+              range.endMs,
+          })
+        );
+
+      pendingListenRangesRef.current =
+        [];
+
+      const audio =
+        audioRef.current;
+
+      const lastPosition =
+        audio &&
+        Number.isFinite(
+          audio.currentTime
+        )
+          ? audio.currentTime
+          : undefined;
+
+      try {
+        await saveListenRanges({
+          userId:
+            identity.userId,
+
+          isAnonymous:
+            identity.isAnonymous,
+
+          songId:
+            song.songId,
+
+          sessionKey:
+            listenSessionKeyRef.current,
+
+          ranges:
+            rangesToSave,
+
+          ...(lastPosition !==
+          undefined
+            ? {
+                lastPosition,
+              }
+            : {}),
+        });
+      } catch (error) {
+        /*
+         * Never let persistence failures
+         * break playback.
+         *
+         * Put the ranges back at the front
+         * so they can be retried later.
+         */
+        pendingListenRangesRef.current =
+          [
+            ...rangesToSave,
+            ...pendingListenRangesRef.current,
+          ];
+
+        console.error(
+          "Listen range save failed:",
+          error
+        );
+      }
     };
 
   // ======================
@@ -1071,7 +1317,9 @@ export function MusicProvider({
      * Reset actual listening for
      * the newly selected song.
      */
-    resetActualListening();
+    resetActualListening(
+      true
+    );
 
     /*
      * A new song starts a new playback
@@ -1164,22 +1412,23 @@ export function MusicProvider({
     trackedMilestones.current.clear();
 
     /*
-     * Reset actual listening whenever
-     * the selected song changes.
-     */
-    resetActualListening();
-
-    /*
      * A changed song gets a fresh
      * playback-event state.
      */
-
     if (
       startedSongIdRef.current !==
       currentSong.songId
     ) {
       startedSongIdRef.current =
         null;
+
+      /*
+       * The selected song changed before
+       * loadSong() handled it.
+       */
+      resetActualListening(
+        true
+      );
     }
 
     const currentSrc =
@@ -1226,16 +1475,24 @@ export function MusicProvider({
 
     const handleSeeking = () => {
       /*
-       * Any active playback interval
-       * ends when the listener seeks.
-       *
-       * Reset the playback cursor so the
-       * seek jump itself is never counted
-       * as listened audio.
+       * Capture any genuine playback
+       * before the seek.
        */
       accumulateActualListening(
         audio
       );
+
+      /*
+       * Persist the listening that happened
+       * before the seek.
+       */
+      if (
+        currentSong
+      ) {
+        void flushListenRanges(
+          currentSong
+        );
+      }
 
       seekingRef.current =
         true;
@@ -1426,6 +1683,18 @@ export function MusicProvider({
           null;
 
         /*
+         * Persist all newly listened ranges
+         * captured since the last save.
+         */
+        if (
+          currentSong
+        ) {
+          void flushListenRanges(
+            currentSong
+          );
+        }
+
+        /*
          * Record a current retention
          * checkpoint on pause so a short
          * listening session is not lost.
@@ -1495,6 +1764,14 @@ export function MusicProvider({
           audio
         );
 
+        /*
+         * Persist the final listening
+         * ranges before moving on.
+         */
+        await flushListenRanges(
+          currentSong
+        );
+
         shouldPlayRef.current =
           false;
 
@@ -1520,7 +1797,9 @@ export function MusicProvider({
         startedSongIdRef.current =
           null;
 
-        resetActualListening();
+        resetActualListening(
+          true
+        );
 
         if (
           currentSongIndex <
@@ -1719,6 +1998,14 @@ export function MusicProvider({
       }
 
       /*
+       * Persist newly listened ranges
+       * before changing songs.
+       */
+      await flushListenRanges(
+        currentSong
+      );
+
+      /*
        * Only count an explicit Next as
        * a skip when the current track has
        * actually been playing.
@@ -1826,6 +2113,14 @@ export function MusicProvider({
           return;
         }
 
+        /*
+         * Persist any listening that happened
+         * before the replay.
+         */
+        await flushListenRanges(
+          songToReplay
+        );
+
         audio.currentTime = 0;
 
         setProgress(0);
@@ -1885,6 +2180,14 @@ export function MusicProvider({
 
       const wasPlaying =
         !audio.paused;
+
+      /*
+       * Persist any listening from the
+       * current song before switching.
+       */
+      await flushListenRanges(
+        currentSong
+      );
 
       startedSongIdRef.current =
         null;
@@ -2113,4 +2416,3 @@ export function useMusic() {
 
   return ctx;
 }
- 
