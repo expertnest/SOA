@@ -1,3 +1,4 @@
+ 
 "use client";
 
 import {
@@ -400,6 +401,19 @@ export function MusicProvider({
    */
   const MAX_TRACKED_DELTA_SECONDS =
     5;
+
+  /*
+   * A Next action only counts as a skip
+   * when the listener leaves before this
+   * percentage of the song.
+   *
+   * At or above 90%, the listener is
+   * considered to have reached the
+   * near-end and Next is not classified
+   * as a meaningful skip.
+   */
+  const SKIP_MAX_PERCENT =
+    90;
 
   /*
    * Resets actual-listening state
@@ -913,7 +927,8 @@ export function MusicProvider({
       | "song_skip"
       | "song_replay",
     song: Song,
-    listenedDurationOverrideMs?: number
+    listenedDurationOverrideMs?: number,
+    isReplay = false
   ) => {
     if (!song) {
       return;
@@ -965,6 +980,13 @@ export function MusicProvider({
         : 0;
 
     try {
+      /*
+       * isReplay is only meaningful for
+       * song_play. It tells the backend that
+       * this is a legitimate replay start
+       * and may bypass the 30-second
+       * duplicate-play cooldown.
+       */
       await trackEvent({
         userId:
           identity.userId,
@@ -973,6 +995,13 @@ export function MusicProvider({
           identity.isAnonymous,
 
         type,
+
+        ...(type === "song_play" &&
+        isReplay
+          ? {
+              isReplay: true,
+            }
+          : {}),
 
         songId:
           song.songId,
@@ -1127,12 +1156,19 @@ export function MusicProvider({
 
       try {
         /*
-         * Every genuine new playback
-         * start records song_play.
+         * Every genuine playback start
+         * records song_play.
+         *
+         * Replay starts are also legitimate
+         * playback starts. The isReplay flag
+         * tells the backend not to treat this
+         * as an accidental duplicate.
          */
         await sendEvent(
           "song_play",
-          song
+          song,
+          undefined,
+          isReplay
         );
 
         /*
@@ -2007,38 +2043,49 @@ export function MusicProvider({
 
       /*
        * Only count an explicit Next as
-       * a skip when the current track has
-       * actually been playing.
+       * a skip when the listener exits
+       * before the near-end threshold.
        *
-       * We will refine the exact skip
-       * threshold later.
+       * This prevents a track that is already
+       * essentially complete from being counted
+       * as a meaningful skip.
        */
       if (
         audioRef.current &&
         !audioRef.current.paused &&
-        audioRef.current.currentTime >
-          3
+        Number.isFinite(
+          audioRef.current.duration
+        ) &&
+        audioRef.current.duration > 0
       ) {
-        await sendEvent(
-          "song_skip",
-          currentSong
-        );
+        const currentPercent =
+          (
+            audioRef.current.currentTime /
+            audioRef.current.duration
+          ) * 100;
+
+        if (
+          currentPercent <
+          SKIP_MAX_PERCENT
+        ) {
+          await sendEvent(
+            "song_skip",
+            currentSong
+          );
+        }
       }
 
-      if (
-        currentSongIndex >=
-        songs.length - 1
-      ) {
-        shouldPlayRef.current =
-          false;
-
-        setIsPlaying(false);
-
-        return;
-      }
-
+      /*
+       * Loop back to the first song
+       * after the last song.
+       */
       const nextIndex =
-        currentSongIndex + 1;
+        songs.length > 0
+          ? (
+              currentSongIndex + 1
+            ) %
+            songs.length
+          : 0;
 
       const wasPlaying =
         !audioRef.current
@@ -2075,25 +2122,14 @@ export function MusicProvider({
   // ======================
 
   const handlePrev =
-  async () => {
+    async () => {
+      const audio =
+        audioRef.current;
 
-    console.log(
-      "🔥 HANDLE PREV",
-      {
-        currentTime: audioRef.current?.currentTime,
-        paused: audioRef.current?.paused,
-        currentSong: currentSong?.title,
+      if (!audio) {
+        return;
       }
-    );
 
-    const audio =
-      audioRef.current;
-
-    if (!audio) {
-      return;
-    }
-
-    // rest of your function...
       /*
        * If we've already listened
        * beyond 3 seconds,
@@ -2101,7 +2137,7 @@ export function MusicProvider({
        *
        * "restart this same song"
        *
-       * not "skip this song".
+       * not "go to the previous track".
        */
       if (
         audio.currentTime > 3
@@ -2126,39 +2162,62 @@ export function MusicProvider({
         setProgress(0);
 
         /*
-         * If the song is currently playing,
-         * this is an immediate replay.
-         *
-         * Record the replay directly.
-         *
-         * IMPORTANT:
-         * We intentionally do NOT send a
-         * new song_play here because the
-         * backend has a 30-second song_play
-         * cooldown.
+         * Reset the local retention tracking
+         * for the new replay lifecycle.
          */
+        trackedMilestones.current.clear();
+
+        actualListenedMsRef.current =
+          0;
+
+        listenedRangesRef.current =
+          [];
+
+        pendingListenRangesRef.current =
+          [];
+
+        lastPlaybackPositionRef.current =
+          audio.paused
+            ? null
+            : 0;
+
+        /*
+         * A replay is a genuine new playback
+         * start.
+         *
+         * It should produce:
+         *
+         * song_play +1
+         * song_replay +1
+         *
+         * when playback actually resumes.
+         */
+        replayRequestedRef.current =
+          true;
+
+        /*
+         * We intentionally do not mark
+         * startedSongIdRef as null here.
+         * recordPlaybackStart() receives the
+         * replay flag and therefore allows the
+         * same song to create a new play event.
+         */
+
         if (
           !audio.paused
         ) {
-          replayRequestedRef.current =
-            false;
-
-          console.log(
-            "🔥 REPLAY BUTTON FIRED",
-            songToReplay.songId
-          );
-
-          await sendEvent(
-            "song_replay",
-            songToReplay
-          );
-        } else {
-          /*
-           * If paused, remember that the
-           * next actual playback is a replay.
-           */
-          replayRequestedRef.current =
+          shouldPlayRef.current =
             true;
+
+          try {
+            await recordPlaybackStart(
+              songToReplay,
+              true
+            );
+          } finally {
+            replayRequestedRef.current =
+              false;
+          }
         }
 
         return;
@@ -2416,3 +2475,4 @@ export function useMusic() {
 
   return ctx;
 }
+ 
