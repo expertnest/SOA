@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as _adminReset from "../_adminReset.js";
 import type * as _seed_seedSingle from "../_seed/seedSingle.js";
 import type * as addTotalReplays from "../addTotalReplays.js";
 import type * as admin from "../admin.js";
@@ -37,6 +38,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  _adminReset: typeof _adminReset;
   "_seed/seedSingle": typeof _seed_seedSingle;
   addTotalReplays: typeof addTotalReplays;
   admin: typeof admin;

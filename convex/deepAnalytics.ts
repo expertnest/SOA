@@ -1,4 +1,3 @@
- 
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -38,29 +37,39 @@ export const getDeepSongAnalytics = query({
         ? song.duration
         : 100;
 
+    const songDurationMs =
+      songDuration * 1000;
+
+    const completionThresholdMs =
+      songDurationMs * 0.9;
+
     // ======================
     // EMPTY GUARD
     // ======================
 
     if (
-      (!events || events.length === 0) &&
-      (!listenSessions ||
-        listenSessions.length === 0)
+      events.length === 0 &&
+      listenSessions.length === 0
     ) {
       return {
         songId,
+
         plays: 0,
         uniqueListeners: 0,
         skips: 0,
         replays: 0,
+
         skipRate: 0,
         replayRate: 0,
         completionRate: 0,
+
         avgDuration: 0,
         avgSessionDepth: 0,
+
         fullPlays: 0,
         shortPlays: 0,
         listenerQuality: 0,
+
         retention: {
           start: 0,
           tenPercent: 0,
@@ -69,8 +78,10 @@ export const getDeepSongAnalytics = query({
           seventyFivePercent: 0,
           ninetyPercent: 0,
         },
+
         engagementScore: 0,
         retentionStrength: 0,
+
         isDropOff: false,
         isSticky: false,
         isHit: false,
@@ -83,22 +94,26 @@ export const getDeepSongAnalytics = query({
 
     const playEvents =
       events.filter(
-        (e) => e.type === "song_play"
+        (e) =>
+          e.type === "song_play"
       );
 
     const skipEvents =
       events.filter(
-        (e) => e.type === "song_skip"
+        (e) =>
+          e.type === "song_skip"
       );
 
     const replayEvents =
       events.filter(
-        (e) => e.type === "song_replay"
+        (e) =>
+          e.type === "song_replay"
       );
 
     const progressEvents =
       events.filter(
-        (e) => e.type === "song_progress"
+        (e) =>
+          e.type === "song_progress"
       );
 
     // ======================
@@ -118,49 +133,36 @@ export const getDeepSongAnalytics = query({
     // UNIQUE LISTENERS
     // ======================
 
-    const uniqueListeners =
+    const uniqueListenerIds =
       new Set(
         playEvents
           .map((e) => e.userId)
           .filter(Boolean)
-          .map((id) => String(id))
-      ).size;
+          .map((id) =>
+            String(id)
+          )
+      );
+
+    const uniqueListeners =
+      uniqueListenerIds.size;
 
     // ======================
-    // FIXED DURATIONS
+    // UNIQUE SKIPPED LISTENERS
     // ======================
 
-    const durations =
-      playEvents
-        .map((e) => Number(e.duration))
-        .filter(
-          (d) =>
-            Number.isFinite(d) &&
-            d > 0
-        );
-
-    const avgDuration =
-      durations.length > 0
-        ? durations.reduce(
-            (a, b) => a + b,
-            0
-          ) / durations.length
-        : 0;
+    const uniqueSkippedListeners =
+      new Set(
+        skipEvents
+          .map((e) => e.userId)
+          .filter(Boolean)
+          .map((id) =>
+            String(id)
+          )
+      );
 
     // ======================
-    // PERSISTED LISTENING
+    // TYPES
     // ======================
-
-    /*
-     * listen_sessions contains the actual
-     * portions of the song that were played.
-     *
-     * Each record represents one playback
-     * lifecycle for one listener + song.
-     *
-     * mergedRanges is already merged by the
-     * saveListenRanges mutation.
-     */
 
     type ListenRange = {
       startMs: number;
@@ -173,64 +175,9 @@ export const getDeepSongAnalytics = query({
       ranges: ListenRange[];
     };
 
-    const persistedSessions:
-      ListenerSession[] = [];
-
-    for (
-      const session of listenSessions
-    ) {
-      if (
-        !session.userId ||
-        !session.sessionKey ||
-        !session.mergedRanges
-      ) {
-        continue;
-      }
-
-      const ranges =
-        session.mergedRanges.filter(
-          (range) =>
-            Number.isFinite(
-              range.startMs
-            ) &&
-            Number.isFinite(
-              range.endMs
-            ) &&
-            range.endMs >
-              range.startMs
-        );
-
-      if (
-        ranges.length === 0
-      ) {
-        continue;
-      }
-
-      persistedSessions.push({
-        userId:
-          String(
-            session.userId
-          ),
-
-        sessionKey:
-          session.sessionKey,
-
-        ranges,
-      });
-    }
-
     // ======================
     // MERGE SESSION RANGES
     // ======================
-
-    /*
-     * Build a session-level range map.
-     *
-     * The mutation already merges ranges,
-     * but doing this again here protects the
-     * analytics query from malformed or
-     * overlapping historical data.
-     */
 
     const mergeRanges =
       (
@@ -260,6 +207,12 @@ export const getDeepSongAnalytics = query({
                 a.startMs -
                 b.startMs
             );
+
+        if (
+          sorted.length === 0
+        ) {
+          return [];
+        }
 
         const merged:
           ListenRange[] = [];
@@ -314,28 +267,143 @@ export const getDeepSongAnalytics = query({
       };
 
     // ======================
-    // CHECK SESSION RETENTION
+    // PERSISTED LISTENING
+    // ======================
+
+    const persistedSessions:
+      ListenerSession[] = [];
+
+    for (
+      const session of listenSessions
+    ) {
+      if (
+        !session.userId ||
+        !session.sessionKey ||
+        !session.mergedRanges
+      ) {
+        continue;
+      }
+
+      const merged =
+        mergeRanges(
+          session.mergedRanges
+        );
+
+      if (
+        merged.length === 0
+      ) {
+        continue;
+      }
+
+      persistedSessions.push({
+        userId:
+          String(
+            session.userId
+          ),
+
+        sessionKey:
+          session.sessionKey,
+
+        ranges:
+          merged,
+      });
+    }
+
+    // ======================
+    // ACTUAL LISTENED TIME
     // ======================
 
     /*
-     * A checkpoint is counted when a listener
-     * actually listened across that point.
+     * Add together the merged portions of
+     * audio that were actually heard.
      *
-     * The listener does NOT have to listen
-     * continuously from the beginning.
+     * Seeking across a section does NOT
+     * count that skipped section.
+     */
+
+    const getSessionListenedMs =
+      (
+        ranges: ListenRange[]
+      ) => {
+        return ranges.reduce(
+          (
+            total,
+            range
+          ) =>
+            total +
+            (
+              range.endMs -
+              range.startMs
+            ),
+          0
+        );
+      };
+
+    const sessionListenDurations =
+      persistedSessions.map(
+        (session) =>
+          getSessionListenedMs(
+            session.ranges
+          ) / 1000
+      );
+
+    // ======================
+    // LEGACY DURATIONS
+    // ======================
+
+    /*
+     * Fallback for historical records created
+     * before listen_sessions existed.
+     */
+
+    const legacyDurations =
+      playEvents
+        .map((event) =>
+          Number(
+            event.duration
+          )
+        )
+        .filter(
+          (duration) =>
+            Number.isFinite(
+              duration
+            ) &&
+            duration > 0
+        );
+
+    // ======================
+    // AVERAGE LISTEN DURATION
+    // ======================
+
+    const durationsForAnalytics =
+      sessionListenDurations.length >
+      0
+        ? sessionListenDurations
+        : legacyDurations;
+
+    const avgDuration =
+      durationsForAnalytics.length >
+      0
+        ? durationsForAnalytics.reduce(
+            (total, duration) =>
+              total +
+              duration,
+            0
+          ) /
+          durationsForAnalytics.length
+        : 0;
+
+    // ======================
+    // SESSION CHECKPOINT
+    // ======================
+
+    /*
+     * Retention checkpoints are positional.
      *
-     * Example:
+     * A listener counts at 90% if they actually
+     * heard audio crossing the 90% position.
      *
-     * 0–25% listened
-     * seek to 90%
-     * 90–95% listened
-     *
-     * Results can therefore be:
-     *
-     * 25% = 1
-     * 50% = 0
-     * 75% = 0
-     * 90% = 1
+     * This is NOT the same as completion.
      */
 
     const getSessionReachedPoint =
@@ -345,10 +413,10 @@ export const getDeepSongAnalytics = query({
       ) => {
         const targetMs =
           (
-            percent / 100
+            percent /
+            100
           ) *
-          songDuration *
-          1000;
+          songDurationMs;
 
         return ranges.some(
           (range) =>
@@ -363,30 +431,19 @@ export const getDeepSongAnalytics = query({
     // LEGACY RETENTION
     // ======================
 
-    /*
-     * Existing events may contain retention
-     * data from before listen_sessions existed.
-     *
-     * Keep those listeners and combine them
-     * with the new persisted listening data.
-     *
-     * Sets automatically deduplicate a listener
-     * when they exist in both systems.
-     */
-
     const getLegacyMilestoneListeners =
-      (percent: number) => {
+      (
+        percent: number
+      ) => {
         const listeners =
           new Set<string>();
 
         for (
           const event of progressEvents
         ) {
-          const position =
-            event.position;
-
           if (
-            position !== percent
+            event.position !==
+            percent
           ) {
             continue;
           }
@@ -433,17 +490,8 @@ export const getDeepSongAnalytics = query({
       );
 
     // ======================
-    // RETENTION
+    // LISTENER RETENTION
     // ======================
-
-    /*
-     * Start with historical event-based
-     * listeners, then add listeners from
-     * persisted actual-listening ranges.
-     *
-     * Because each checkpoint uses a Set,
-     * the same listener is only counted once.
-     */
 
     const reached10 =
       new Set<string>(
@@ -470,17 +518,44 @@ export const getDeepSongAnalytics = query({
         legacy90
       );
 
+    // ======================
+    // TRUE COMPLETION
+    // ======================
+
+    /*
+     * Completion is based on ACTUAL LISTENED
+     * COVERAGE, not position.
+     *
+     * Example:
+     *
+     * 0–10% listened
+     * seek to 90%
+     * 90–95% listened
+     *
+     * 90% retention checkpoint = YES
+     * completed play = NO
+     *
+     * because only ~15% of the song was
+     * actually consumed.
+     */
+
+    let persistedCompletedPlays =
+      0;
+
+    const persistedCompletedListeners =
+      new Set<string>();
+
     for (
       const session of persistedSessions
     ) {
-      const merged =
-        mergeRanges(
-          session.ranges
-        );
+      const ranges =
+        session.ranges;
+
+      // RETENTION CHECKPOINTS
 
       if (
         getSessionReachedPoint(
-          merged,
+          ranges,
           10
         )
       ) {
@@ -491,7 +566,7 @@ export const getDeepSongAnalytics = query({
 
       if (
         getSessionReachedPoint(
-          merged,
+          ranges,
           25
         )
       ) {
@@ -502,7 +577,7 @@ export const getDeepSongAnalytics = query({
 
       if (
         getSessionReachedPoint(
-          merged,
+          ranges,
           50
         )
       ) {
@@ -513,7 +588,7 @@ export const getDeepSongAnalytics = query({
 
       if (
         getSessionReachedPoint(
-          merged,
+          ranges,
           75
         )
       ) {
@@ -524,11 +599,29 @@ export const getDeepSongAnalytics = query({
 
       if (
         getSessionReachedPoint(
-          merged,
+          ranges,
           90
         )
       ) {
         reached90.add(
+          session.userId
+        );
+      }
+
+      // TRUE COMPLETION
+
+      const listenedMs =
+        getSessionListenedMs(
+          ranges
+        );
+
+      if (
+        listenedMs >=
+        completionThresholdMs
+      ) {
+        persistedCompletedPlays++;
+
+        persistedCompletedListeners.add(
           session.userId
         );
       }
@@ -559,32 +652,72 @@ export const getDeepSongAnalytics = query({
     };
 
     // ======================
-    // FULL PLAYS
+    // LEGACY COMPLETION
     // ======================
 
     /*
-     * A full play currently means a play
-     * that reached the 90% checkpoint.
+     * Older data cannot prove true listened
+     * coverage because listen_sessions did
+     * not exist yet.
      *
-     * Retention is listener-based while
-     * completionRate is play-based, so the
-     * result is capped at the total number
-     * of plays.
+     * We preserve historical 90% milestones
+     * as a legacy fallback.
      */
+
+    let legacyCompletedPlays =
+      0;
+
+    const legacyCompletedListeners =
+      new Set<string>();
+
+    for (
+      const userId of legacy90
+    ) {
+      if (
+        !persistedCompletedListeners.has(
+          userId
+        )
+      ) {
+        legacyCompletedPlays++;
+
+        legacyCompletedListeners.add(
+          userId
+        );
+      }
+    }
+
+    // ======================
+    // FULL PLAYS
+    // ======================
 
     const fullPlays =
       Math.min(
-        reached90.size,
+        persistedCompletedPlays +
+          legacyCompletedPlays,
         plays
       );
+
+    // ======================
+    // COMPLETED LISTENERS
+    // ======================
+
+    const completedListenerIds =
+      new Set<string>([
+        ...persistedCompletedListeners,
+        ...legacyCompletedListeners,
+      ]);
+
+    const completedListeners =
+      completedListenerIds.size;
 
     // ======================
     // SHORT PLAYS
     // ======================
 
     const shortPlays =
-      durations.filter(
-        (d) => d < 5
+      durationsForAnalytics.filter(
+        (duration) =>
+          duration < 5
       ).length;
 
     // ======================
@@ -592,20 +725,30 @@ export const getDeepSongAnalytics = query({
     // ======================
 
     const sessionCounts =
-      new Map<string, number>();
+      new Map<
+        string,
+        number
+      >();
 
     for (
       const event of playEvents
     ) {
-      if (!event.sessionId) {
+      if (
+        !event.sessionId
+      ) {
         continue;
       }
 
+      const key =
+        String(
+          event.sessionId
+        );
+
       sessionCounts.set(
-        event.sessionId,
+        key,
         (
           sessionCounts.get(
-            event.sessionId
+            key
           ) ?? 0
         ) + 1
       );
@@ -616,7 +759,8 @@ export const getDeepSongAnalytics = query({
         ? Array.from(
             sessionCounts.values()
           ).reduce(
-            (a, b) => a + b,
+            (a, b) =>
+              a + b,
             0
           ) /
           sessionCounts.size
@@ -628,17 +772,30 @@ export const getDeepSongAnalytics = query({
 
     const skipRate =
       plays > 0
-        ? skips / plays
+        ? skips /
+          plays
         : 0;
 
     const replayRate =
       plays > 0
-        ? replays / plays
+        ? replays /
+          plays
         : 0;
 
     const completionRate =
       plays > 0
-        ? fullPlays / plays
+        ? fullPlays /
+          plays
+        : 0;
+
+    // ======================
+    // LISTENER QUALITY
+    // ======================
+
+    const listenerQuality =
+      uniqueListeners > 0
+        ? completedListeners /
+          uniqueListeners
         : 0;
 
     // ======================
@@ -651,12 +808,8 @@ export const getDeepSongAnalytics = query({
       skips * 2;
 
     const retentionStrength =
-      fullPlays - skips;
-
-    const listenerQuality =
-      plays > 0
-        ? fullPlays / plays
-        : 0;
+      completedListeners -
+      uniqueSkippedListeners.size;
 
     // ======================
     // FLAGS
@@ -679,31 +832,37 @@ export const getDeepSongAnalytics = query({
     return {
       songId,
 
+      // CORE
       plays,
       uniqueListeners,
       skips,
       replays,
 
+      // RATES
       skipRate,
       replayRate,
       completionRate,
 
+      // LISTENING
       avgDuration,
       avgSessionDepth,
 
+      // COMPLETION
       fullPlays,
       shortPlays,
       listenerQuality,
 
+      // RETENTION
       retention,
 
+      // INTELLIGENCE
       engagementScore,
       retentionStrength,
 
+      // FLAGS
       isDropOff,
       isSticky,
       isHit,
     };
   },
 });
- 

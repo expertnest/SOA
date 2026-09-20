@@ -52,6 +52,9 @@ export type Song = {
 };
 
 type MusicContextType = {
+ 
+  songs: Song[];
+
   isPlaying: boolean;
 
   togglePlay: () => void;
@@ -2425,6 +2428,8 @@ export function MusicProvider({
   return (
     <MusicContext.Provider
       value={{
+
+        songs,
         isPlaying,
 
         togglePlay,

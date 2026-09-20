@@ -1,4 +1,3 @@
- 
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
@@ -142,8 +141,7 @@ export const trackEvent = mutation({
     }
 
     if (
-      args.playedDuration !==
-        undefined &&
+      args.playedDuration !== undefined &&
       !Number.isFinite(
         args.playedDuration
       )
@@ -318,34 +316,34 @@ export const trackEvent = mutation({
     }
 
     // ======================
-// 4. WRITE EVENT
-// ======================
+    // 4. WRITE EVENT
+    // ======================
 
-/*
- * isReplay is an internal control flag used
- * by this mutation to identify a legitimate
- * replay play. It is NOT stored in events.
- */
-const {
-  isReplay: _isReplay,
-  ...eventArgs
-} = args;
+    /*
+     * isReplay is an internal control flag used
+     * by this mutation to identify a legitimate
+     * replay play. It is NOT stored in events.
+     */
+    const {
+      isReplay: _isReplay,
+      ...eventArgs
+    } = args;
 
-await ctx.db.insert(
-  "events",
-  {
-    ...eventArgs,
+    await ctx.db.insert(
+      "events",
+      {
+        ...eventArgs,
 
-    userId:
-      eventUserId,
+        userId:
+          eventUserId,
 
-    isAnonymous:
-      args.isAnonymous,
+        isAnonymous:
+          args.isAnonymous,
 
-    createdAt:
-      now,
-  }
-);
+        createdAt:
+          now,
+      }
+    );
 
     // ======================
     // 5. USER STATS
@@ -436,6 +434,9 @@ await ctx.db.insert(
               totalSkips: 0,
               totalReplays: 0,
 
+              // NEW
+              totalLikes: 0,
+
               uniqueListeners: 0,
 
               completionRate: 0,
@@ -468,6 +469,12 @@ await ctx.db.insert(
       let totalReplays =
         stat.totalReplays;
 
+      // NEW:
+      // Existing song_stats documents may not
+      // have totalLikes yet, so safely use 0.
+      let totalLikes =
+        stat.totalLikes ?? 0;
+
       if (
         args.type ===
         "song_play"
@@ -487,6 +494,17 @@ await ctx.db.insert(
         "song_replay"
       ) {
         totalReplays++;
+      }
+
+      // ======================
+      // LIKES
+      // ======================
+
+      if (
+        args.type ===
+        "song_like"
+      ) {
+        totalLikes++;
       }
 
       // ======================
@@ -533,6 +551,9 @@ await ctx.db.insert(
           totalPlays,
           totalSkips,
           totalReplays,
+
+          // NEW
+          totalLikes,
 
           skipRate:
             totalPlays > 0
@@ -642,5 +663,5 @@ await ctx.db.insert(
       success: true,
     };
   },
+  
 });
- 

@@ -44,7 +44,6 @@ export const createSong = mutation({
     coverImage: v.optional(v.string()),
     duration: v.number(),
 
-    // 🔥 ADD THESE
     projectId: v.optional(v.id("projects")),
     trackNumber: v.optional(v.number()),
   },
@@ -67,12 +66,15 @@ export const createSong = mutation({
       replayRate: 0,
     });
 
-    // 🔥 CREATE SONG STATS (UNCHANGED)
+    // ==============================
+    // 📊 CREATE SONG STATS
+    // ==============================
     await ctx.db.insert("song_stats", {
       songId,
       totalPlays: 0,
       totalSkips: 0,
       totalReplays: 0,
+      totalLikes: 0,
       uniqueListeners: 0,
       completionRate: 0,
       skipRate: 0,
@@ -81,12 +83,12 @@ export const createSong = mutation({
     });
 
     // ==============================
-    // 🔗 LINK TO PROJECT (NEW)
+    // 🔗 LINK TO PROJECT
     // ==============================
     if (args.projectId) {
       await ctx.db.insert("projectSongs", {
         projectId: args.projectId,
-        songId: songId,
+        songId,
         trackNumber: args.trackNumber ?? 1,
       });
     }

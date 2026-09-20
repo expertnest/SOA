@@ -1,4 +1,3 @@
- 
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -59,7 +58,7 @@ export default defineSchema({
     favoriteArtistIds: v.optional(v.array(v.id("artists"))),
     mostListenedSongIds: v.optional(v.array(v.id("songs"))),
   })
-    .index("by_clerkId", ["clerkId"])  
+    .index("by_clerkId", ["clerkId"])
     .index("by_username", ["username"]),
 
   // ======================
@@ -69,13 +68,13 @@ export default defineSchema({
     name: v.string(),
     image: v.optional(v.string()),
     bio: v.optional(v.string()),
-  
+
     isActive: v.boolean(),
-  
+
     followerCount: v.number(),
     totalStreams: v.number(),
     superfanCount: v.number(),
-  
+
     totalRevenue: v.optional(v.number()),
     monthlyListeners: v.optional(v.number()),
   }),
@@ -86,12 +85,20 @@ export default defineSchema({
   projects: defineTable({
     name: v.string(),
     artistId: v.id("artists"),
-  
+
     isActive: v.optional(v.boolean()),
-  
+
     description: v.optional(v.string()),
     coverImage: v.optional(v.string()),
-  
+
+    // SOA internal release ID
+    // Example:
+    // SOA-S-001
+    // SOA-EP-001
+    // SOA-ALB-001
+    // SOA-MIX-001
+    catalogNumber: v.optional(v.string()),
+
     type: v.optional(
       v.union(
         v.literal("single"),
@@ -101,13 +108,31 @@ export default defineSchema({
         v.literal("draft")
       )
     ),
-  
+
     releaseDate: v.optional(v.number()),
     createdAt: v.number(),
-  
+
     totalPlays: v.optional(v.number()),
   })
     .index("by_artistId", ["artistId"])
+    .index("by_type", ["type"])
+    .index("by_catalogNumber", ["catalogNumber"]),
+
+  // ======================
+  // 🏷️ CATALOG COUNTERS
+  // ======================
+  catalogCounters: defineTable({
+    type: v.union(
+      v.literal("single"),
+      v.literal("album"),
+      v.literal("ep"),
+      v.literal("mixtape")
+    ),
+
+    currentNumber: v.number(),
+
+    updatedAt: v.number(),
+  })
     .index("by_type", ["type"]),
 
   // ======================
@@ -116,23 +141,23 @@ export default defineSchema({
   songs: defineTable({
     title: v.string(),
     artistId: v.id("artists"),
-  
+
     audioUrl: v.string(),
-  
+
     isActive: v.optional(v.boolean()),
-  
+
     duration: v.number(),
     genre: v.optional(v.string()),
     coverImage: v.optional(v.string()),
-  
+
     totalPlays: v.number(),
     skipRate: v.number(),
     completionRate: v.number(),
-  
+
     uniqueListeners: v.optional(v.number()),
     replayRate: v.optional(v.number()),
   })
-.index("by_artistId", ["artistId"]),
+    .index("by_artistId", ["artistId"]),
 
   // ======================
   // 🔗 PROJECT SONGS
@@ -169,7 +194,7 @@ export default defineSchema({
   events: defineTable({
     userId: v.union(v.id("users"), v.string()),
 
-    isAnonymous: v.optional(v.boolean()), // 👈 ADD THIS
+    isAnonymous: v.optional(v.boolean()),
 
     type: v.union(
       v.literal("song_play"),
@@ -177,7 +202,7 @@ export default defineSchema({
       v.literal("song_replay"),
       v.literal("song_like"),
       v.literal("song_end"),
-      v.literal("song_progress"), // ADD
+      v.literal("song_progress"),
       v.literal("project_view"),
       v.literal("artist_follow"),
       v.literal("playlist_create"),
@@ -206,9 +231,14 @@ export default defineSchema({
     .index("by_artistId", ["artistId"])
     .index("by_userId", ["userId"])
     .index("by_sessionId", ["sessionId"])
-
-    // 🔥 ADDED
-    .index("by_user_song_type", ["userId", "songId", "type"]),
+    .index(
+      "by_user_song_type",
+      [
+        "userId",
+        "songId",
+        "type",
+      ]
+    ),
 
   // ======================
   // ⚡ SESSIONS
@@ -323,19 +353,24 @@ export default defineSchema({
   // ======================
   song_stats: defineTable({
     songId: v.id("songs"),
-  
+
     totalPlays: v.number(),
     totalSkips: v.number(),
-    totalReplays:v.number(),
+    totalReplays: v.number(),
+
+    // Optional temporarily because existing
+    // song_stats documents do not have this yet.
+    totalLikes: v.optional(v.number()),
+
     uniqueListeners: v.number(),
-  
+
     completionRate: v.number(),
     skipRate: v.number(),
     replayRate: v.number(),
-  
+
     updatedAt: v.number(),
   })
-  .index("by_songId", ["songId"]),
+    .index("by_songId", ["songId"]),
 
   // ======================
   // 📊 ARTIST STATS
@@ -354,7 +389,7 @@ export default defineSchema({
     .index("by_artistId", ["artistId"]),
 
   // ======================
-  // 👤 LISTENING HISTORY (AUTH USERS)
+  // 👤 LISTENING HISTORY
   // ======================
   listening_history: defineTable({
     userId: v.id("users"),
@@ -365,7 +400,10 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_songId", ["songId"])
-    .index("by_user_song", ["userId", "songId"]),
+    .index(
+      "by_user_song",
+      ["userId", "songId"]
+    ),
 
   // ======================
   // 👤 ANONYMOUS LISTENING HISTORY
@@ -377,7 +415,10 @@ export default defineSchema({
     lastPlayedAt: v.number(),
     playCount: v.number(),
   })
-    .index("by_anon_song", ["anonId", "songId"]),
+    .index(
+      "by_anon_song",
+      ["anonId", "songId"]
+    ),
 
   // ======================
   // 🎧 LISTENING RANGES
@@ -392,19 +433,27 @@ export default defineSchema({
    */
   listen_sessions: defineTable({
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    userId: v.optional(v.union(
-      v.id("users"),
+    userId: v.optional(
+      v.union(
+        v.id("users"),
+        v.string()
+      )
+    ),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    isAnonymous: v.optional(
+      v.boolean()
+    ),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    songId: v.optional(
+      v.id("songs")
+    ),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    sessionKey: v.optional(
       v.string()
-    )),
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
-    isAnonymous: v.optional(v.boolean()),
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
-    songId: v.optional(v.id("songs")),
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
-    sessionKey: v.optional(v.string()),
+    ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
     mergedRanges: v.optional(
@@ -417,21 +466,30 @@ export default defineSchema({
     ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    totalListenedMs: v.optional(v.number()),
+    totalListenedMs: v.optional(
+      v.number()
+    ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    uniqueListenedMs: v.optional(v.number()),
+    uniqueListenedMs: v.optional(
+      v.number()
+    ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    lastPosition: v.optional(v.number()),
+    lastPosition: v.optional(
+      v.number()
+    ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    updatedAt: v.optional(v.number()),
+    updatedAt: v.optional(
+      v.number()
+    ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    createdAt: v.optional(v.number()),
+    createdAt: v.optional(
+      v.number()
+    ),
   })
-    // 🔥 NEW — REMOVE OPTIONAL LATER
     .index(
       "by_user_song_session",
       [
@@ -440,11 +498,8 @@ export default defineSchema({
         "sessionKey",
       ]
     )
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
     .index(
       "by_songId",
       ["songId"]
     ),
 });
- 
