@@ -66,18 +66,69 @@ export default defineSchema({
   // ======================
   artists: defineTable({
     name: v.string(),
+    slug: v.string(),
+  
     image: v.optional(v.string()),
     bio: v.optional(v.string()),
-
+  
     isActive: v.boolean(),
-
+  
     followerCount: v.number(),
     totalStreams: v.number(),
     superfanCount: v.number(),
-
+  
     totalRevenue: v.optional(v.number()),
     monthlyListeners: v.optional(v.number()),
-  }),
+  })
+    .index("by_slug", ["slug"]),
+
+    // ======================
+// 🎤 ARTIST MEMBERS
+// ======================
+artistMembers: defineTable({
+  artistId: v.id("artists"),
+  userId: v.id("users"),
+
+  role: v.union(
+    v.literal("owner"),
+    v.literal("admin"),
+    v.literal("manager"),
+    v.literal("analyst")
+  ),
+
+  isActive: v.boolean(),
+  createdAt: v.number(),
+})
+  .index("by_artistId", ["artistId"])
+  .index("by_userId", ["userId"])
+  .index("by_artist_user", ["artistId", "userId"]),
+
+// ======================
+// ✉️ ARTIST INVITES
+// ======================
+artistInvites: defineTable({
+  artistId: v.id("artists"),
+  email: v.string(),
+
+  role: v.union(
+    v.literal("owner"),
+    v.literal("admin"),
+    v.literal("manager"),
+    v.literal("analyst")
+  ),
+
+  status: v.union(
+    v.literal("pending"),
+    v.literal("accepted"),
+    v.literal("revoked")
+  ),
+
+  createdAt: v.number(),
+  acceptedAt: v.optional(v.number()),
+})
+  .index("by_artistId", ["artistId"])
+  .index("by_email", ["email"])
+  .index("by_artist_email", ["artistId", "email"]),
 
   // ======================
   // 📦 PROJECTS

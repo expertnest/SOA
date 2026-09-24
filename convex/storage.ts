@@ -1,6 +1,7 @@
 "use node";
 
 import { action } from "./_generated/server";
+import { api } from "./_generated/api";
 import { v } from "convex/values";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -71,7 +72,7 @@ function getReleaseTypeFolder(type: ReleaseType) {
 
 function buildReleasePath(args: {
   artistId: string;
-  artistName: string;
+  artistSlug: string;
   projectId: string;
   projectName: string;
   releaseType: ReleaseType;
@@ -79,7 +80,7 @@ function buildReleasePath(args: {
   catalogNumber: string;
 }) {
   const artistFolder =
-    `${sanitizeFolderName(args.artistName)}--${args.artistId}`;
+    `${args.artistSlug}--${args.artistId}`;
 
   const releaseTypeFolder =
     getReleaseTypeFolder(args.releaseType);
@@ -90,6 +91,7 @@ function buildReleasePath(args: {
   return [
     "artists",
     artistFolder,
+    "releases",
     releaseTypeFolder,
     String(args.releaseYear),
     projectFolder,
@@ -103,7 +105,6 @@ function buildReleasePath(args: {
 export const getAudioUploadUrl = action({
   args: {
     artistId: v.id("artists"),
-    artistName: v.string(),
 
     projectId: v.id("projects"),
     projectName: v.string(),
@@ -122,12 +123,20 @@ export const getAudioUploadUrl = action({
     contentType: v.string(),
   },
 
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
+    const artist = await ctx.runQuery(api.artists.getArtist, {
+      id: args.artistId,
+    });
+
+    if (!artist) {
+      throw new Error("Artist not found");
+    }
+
     const safeName = sanitizeFileName(args.fileName);
 
     const releasePath = buildReleasePath({
       artistId: args.artistId,
-      artistName: args.artistName,
+      artistSlug: artist.slug,
       projectId: args.projectId,
       projectName: args.projectName,
       releaseType: args.releaseType,
@@ -166,7 +175,6 @@ export const getAudioUploadUrl = action({
 export const getImageUploadUrl = action({
   args: {
     artistId: v.id("artists"),
-    artistName: v.string(),
 
     projectId: v.id("projects"),
     projectName: v.string(),
@@ -185,12 +193,20 @@ export const getImageUploadUrl = action({
     contentType: v.string(),
   },
 
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
+    const artist = await ctx.runQuery(api.artists.getArtist, {
+      id: args.artistId,
+    });
+
+    if (!artist) {
+      throw new Error("Artist not found");
+    }
+
     const safeName = sanitizeFileName(args.fileName);
 
     const releasePath = buildReleasePath({
       artistId: args.artistId,
-      artistName: args.artistName,
+      artistSlug: artist.slug,
       projectId: args.projectId,
       projectName: args.projectName,
       releaseType: args.releaseType,

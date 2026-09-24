@@ -845,61 +845,55 @@ export default function ReleasesPage() {
 // ======================================================
 
 const uploadFileToR2 = async (
-    file: File,
-    type: "audio" | "image",
-    selectedArtistId: Id<"artists">,
-    projectId: Id<"projects">,
-    catalogNumber: string,
-    releaseYear: number
-  ) => {
-    const artistName = selectedArtist?.name;
-    const projectName = title.trim();
+  file: File,
+  type: "audio" | "image",
+  selectedArtistId: Id<"artists">,
+  projectId: Id<"projects">,
+  catalogNumber: string,
+  releaseYear: number
+) => {
+  const projectName = title.trim();
 
-    if (!artistName) {
-      throw new Error("Could not determine artist name.");
-    }
+  if (!projectName) {
+    throw new Error("Could not determine project name.");
+  }
 
-    if (!projectName) {
-      throw new Error("Could not determine project name.");
-    }
+  const contentType =
+    file.type || (type === "audio" ? "audio/mpeg" : "image/jpeg");
 
-    const contentType =
-      file.type || (type === "audio" ? "audio/mpeg" : "image/jpeg");
-
-    const uploadArgs = {
-      artistId: selectedArtistId,
-      artistName,
-      projectId,
-      projectName,
-      releaseType,
-      releaseYear,
-      catalogNumber,
-      fileName: file.name,
-      contentType,
-    };
-
-    const signed =
-      type === "audio"
-        ? await getAudioUploadUrl(uploadArgs)
-        : await getImageUploadUrl(uploadArgs);
-
-    const response = await fetch(signed.uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": contentType,
-      },
-      body: file,
-    });
-
-    if (!response.ok) {
-      throw new Error(`R2 upload failed for ${file.name}`);
-    }
-
-    return {
-      url: signed.publicUrl,
-      key: signed.key,
-    };
+  const uploadArgs = {
+    artistId: selectedArtistId,
+    projectId,
+    projectName,
+    releaseType,
+    releaseYear,
+    catalogNumber,
+    fileName: file.name,
+    contentType,
   };
+
+  const signed =
+    type === "audio"
+      ? await getAudioUploadUrl(uploadArgs)
+      : await getImageUploadUrl(uploadArgs);
+
+  const response = await fetch(signed.uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": contentType,
+    },
+    body: file,
+  });
+
+  if (!response.ok) {
+    throw new Error(`R2 upload failed for ${file.name}`);
+  }
+
+  return {
+    url: signed.publicUrl,
+    key: signed.key,
+  };
+};
 
 
   // ======================================================
