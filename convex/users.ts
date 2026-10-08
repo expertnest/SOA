@@ -5,6 +5,7 @@ import type { UserJSON } from "@clerk/backend";
 // ==============================
 // UPSERT USER (Clerk Webhook - INTERNAL ONLY)
 // ==============================
+
 export const upsertFromClerk = internalMutation({
   args: {
     data: v.any(),
@@ -15,12 +16,16 @@ export const upsertFromClerk = internalMutation({
 
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_clerkId", (q) =>
-        q.eq("clerkId", data.id)
-      )
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", data.id))
       .unique();
 
-    const email = data.email_addresses?.[0]?.email_address ?? "";
+    // Use Clerk's actual primary email
+    const primaryEmail = data.email_addresses?.find(
+      (email) => email.id === data.primary_email_address_id
+    );
+
+    const email =
+      primaryEmail?.email_address?.trim().toLowerCase() ?? "";
 
     const userData = {
       clerkId: data.id,
@@ -37,6 +42,7 @@ export const upsertFromClerk = internalMutation({
       countryCode: "US",
 
       plan: "free" as const,
+      platformRole: "user" as const,
 
       totalListeningTime: 0,
       totalPlays: 0,
@@ -48,9 +54,9 @@ export const upsertFromClerk = internalMutation({
 
       skipRate: 0,
       replayRate: 0,
+
       superfanScore: 0,
       engagementLevel: "casual" as const,
-
       lifetimeValue: 0,
 
       affinityTags: [],
@@ -59,7 +65,8 @@ export const upsertFromClerk = internalMutation({
 
       isOnline: false,
       isBanned: false,
-      isVerified: false,
+      isVerified:
+      primaryEmail?.verification?.status === "verified",
 
       lastActiveAt: now,
       createdAt: now,
@@ -84,8 +91,9 @@ export const upsertFromClerk = internalMutation({
 });
 
 // ==============================
-// GET USER (FRONTEND SAFE)
+// GET USER BY CLERK ID
 // ==============================
+
 export const getByClerkId = query({
   args: {
     clerkId: v.string(),
@@ -94,22 +102,20 @@ export const getByClerkId = query({
   handler: async (ctx, { clerkId }) => {
     return await ctx.db
       .query("users")
-      .withIndex("by_clerkId", (q) =>
-        q.eq("clerkId", clerkId)
-      )
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkId))
       .unique();
   },
 });
 
 // ==============================
-// UPDATE PROFILE (FRONTEND SAFE FIX)
+// UPDATE PROFILE
 // ==============================
+
 export const updateProfile = mutation({
   args: {
     clerkId: v.string(),
     displayName: v.string(),
     username: v.string(),
-    email: v.string(),
     avatar: v.string(),
     countryCode: v.string(),
   },
@@ -117,9 +123,7 @@ export const updateProfile = mutation({
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerkId", (q) =>
-        q.eq("clerkId", args.clerkId)
-      )
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
       .unique();
 
     if (!user) {
@@ -129,7 +133,6 @@ export const updateProfile = mutation({
     await ctx.db.patch(user._id, {
       displayName: args.displayName,
       username: args.username,
-      email: args.email,
       avatar: args.avatar,
       countryCode: args.countryCode,
       lastActiveAt: Date.now(),
@@ -140,8 +143,9 @@ export const updateProfile = mutation({
 });
 
 // ==============================
-// DELETE USER (Clerk webhook - INTERNAL)
+// DELETE USER (Clerk Webhook - INTERNAL)
 // ==============================
+
 export const deleteFromClerk = internalMutation({
   args: {
     clerkUserId: v.string(),
@@ -150,9 +154,7 @@ export const deleteFromClerk = internalMutation({
   handler: async (ctx, { clerkUserId }) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerkId", (q) =>
-        q.eq("clerkId", clerkUserId)
-      )
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkUserId))
       .unique();
 
     if (!user) return;
@@ -162,13 +164,16 @@ export const deleteFromClerk = internalMutation({
 });
 
 // ==============================
-// GET CURRENT USER (Clerk → Convex _id)
+// GET CURRENT USER
+// Clerk → Convex _id
 // ==============================
+
 export const getCurrentUser = query({
+  args: {},
+
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    // not logged in
     if (!identity) return null;
 
     const user = await ctx.db

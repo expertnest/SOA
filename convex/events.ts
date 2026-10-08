@@ -1,4 +1,3 @@
- 
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
@@ -24,6 +23,17 @@ export const trackEvent = mutation({
       v.literal("post_view")
     ),
 
+    /*
+     * TRUE only when a song_play event is
+     * being created because of a genuine replay.
+     *
+     * This allows legitimate replay plays to
+     * bypass the normal 30-second duplicate
+     * protection while keeping the protection
+     * for ordinary accidental duplicate calls.
+     */
+    isReplay: v.optional(v.boolean()),
+
     songId: v.optional(v.id("songs")),
     projectId: v.optional(v.id("projects")),
     artistId: v.optional(v.id("artists")),
@@ -47,24 +57,34 @@ export const trackEvent = mutation({
     // ======================
 
     let realUserId: Id<"users"> | null = null;
-    let eventUserId: Id<"users"> | string = args.userId;
+    let eventUserId: Id<"users"> | string =
+      args.userId;
 
     if (!args.isAnonymous) {
-      const identity = await ctx.auth.getUserIdentity();
+      const identity =
+        await ctx.auth.getUserIdentity();
 
       if (!identity) {
-        throw new Error("Not authenticated");
+        throw new Error(
+          "Not authenticated"
+        );
       }
 
-      const user = await ctx.db
-        .query("users")
-        .withIndex("by_clerkId", (q) =>
-          q.eq("clerkId", identity.subject)
-        )
-        .unique();
+      const user =
+        await ctx.db
+          .query("users")
+          .withIndex("by_clerkId", (q) =>
+            q.eq(
+              "clerkId",
+              identity.subject
+            )
+          )
+          .unique();
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error(
+          "User not found"
+        );
       }
 
       realUserId = user._id;
@@ -84,15 +104,62 @@ export const trackEvent = mutation({
       "song_progress",
     ]);
 
-    if (songEvents.has(args.type) && !args.songId) {
-      throw new Error(`${args.type} requires songId`);
+    if (
+      songEvents.has(args.type) &&
+      !args.songId
+    ) {
+      throw new Error(
+        `${args.type} requires songId`
+      );
     }
 
     if (
       args.type === "song_progress" &&
       args.position === undefined
     ) {
-      throw new Error("song_progress requires position");
+      throw new Error(
+        "song_progress requires position"
+      );
+    }
+
+    /*
+     * Never allow invalid numeric analytics
+     * values into the database.
+     *
+     * JavaScript can produce NaN or Infinity
+     * from failed duration calculations.
+     */
+    if (
+      args.duration !== undefined &&
+      !Number.isFinite(
+        args.duration
+      )
+    ) {
+      throw new Error(
+        "duration must be a finite number"
+      );
+    }
+
+    if (
+      args.playedDuration !== undefined &&
+      !Number.isFinite(
+        args.playedDuration
+      )
+    ) {
+      throw new Error(
+        "playedDuration must be a finite number"
+      );
+    }
+
+    if (
+      args.position !== undefined &&
+      !Number.isFinite(
+        args.position
+      )
+    ) {
+      throw new Error(
+        "position must be a finite number"
+      );
     }
 
     // ======================
@@ -105,17 +172,30 @@ export const trackEvent = mutation({
       args.songId &&
       args.type === "song_play"
     ) {
-      const previousPlay = await ctx.db
-        .query("events")
-        .withIndex("by_user_song_type", (q) =>
-          q
-            .eq("userId", eventUserId)
-            .eq("songId", args.songId!)
-            .eq("type", "song_play")
-        )
-        .first();
+      const previousPlay =
+        await ctx.db
+          .query("events")
+          .withIndex(
+            "by_user_song_type",
+            (q) =>
+              q
+                .eq(
+                  "userId",
+                  eventUserId
+                )
+                .eq(
+                  "songId",
+                  args.songId!
+                )
+                .eq(
+                  "type",
+                  "song_play"
+                )
+          )
+          .first();
 
-      alreadyListener = !!previousPlay;
+      alreadyListener =
+        !!previousPlay;
     }
 
     // ======================
@@ -123,7 +203,8 @@ export const trackEvent = mutation({
     // ======================
 
     let history: any = null;
-    let anonymousHistory: any = null;
+    let anonymousHistory: any =
+      null;
 
     if (
       args.songId &&
@@ -134,22 +215,44 @@ export const trackEvent = mutation({
       // ----------------------
 
       if (realUserId) {
-        history = await ctx.db
-          .query("listening_history")
-          .withIndex("by_user_song", (q) =>
-            q
-              .eq("userId", realUserId!)
-              .eq("songId", args.songId!)
-          )
-          .first();
+        history =
+          await ctx.db
+            .query(
+              "listening_history"
+            )
+            .withIndex(
+              "by_user_song",
+              (q) =>
+                q
+                  .eq(
+                    "userId",
+                    realUserId!
+                  )
+                  .eq(
+                    "songId",
+                    args.songId!
+                  )
+            )
+            .first();
 
+        /*
+         * The normal cooldown protects
+         * ordinary duplicate song_play calls.
+         *
+         * A genuine replay explicitly bypasses
+         * this check.
+         */
         if (
           history &&
-          now - history.lastPlayedAt < PLAY_COOLDOWN
+          !args.isReplay &&
+          now -
+            history.lastPlayedAt <
+            PLAY_COOLDOWN
         ) {
           return {
             ignored: true,
-            reason: "play_cooldown",
+            reason:
+              "play_cooldown",
           };
         }
       }
@@ -160,7 +263,8 @@ export const trackEvent = mutation({
 
       if (
         args.isAnonymous &&
-        typeof args.userId === "string"
+        typeof args.userId ===
+          "string"
       ) {
         /*
          * IMPORTANT:
@@ -175,22 +279,37 @@ export const trackEvent = mutation({
          * .first() safely selects one existing row.
          */
 
-        anonymousHistory = await ctx.db
-          .query("anonymous_listening_history")
-          .withIndex("by_anon_song", (q) =>
-            q
-              .eq("anonId", args.userId as string)
-              .eq("songId", args.songId!)
-          )
-          .first();
+        anonymousHistory =
+          await ctx.db
+            .query(
+              "anonymous_listening_history"
+            )
+            .withIndex(
+              "by_anon_song",
+              (q) =>
+                q
+                  .eq(
+                    "anonId",
+                    args.userId as string
+                  )
+                  .eq(
+                    "songId",
+                    args.songId!
+                  )
+            )
+            .first();
 
         if (
           anonymousHistory &&
-          now - anonymousHistory.lastPlayedAt < PLAY_COOLDOWN
+          !args.isReplay &&
+          now -
+            anonymousHistory.lastPlayedAt <
+            PLAY_COOLDOWN
         ) {
           return {
             ignored: true,
-            reason: "play_cooldown",
+            reason:
+              "play_cooldown",
           };
         }
       }
@@ -200,42 +319,80 @@ export const trackEvent = mutation({
     // 4. WRITE EVENT
     // ======================
 
-    await ctx.db.insert("events", {
-      ...args,
-      userId: eventUserId,
-      isAnonymous: args.isAnonymous,
-      createdAt: now,
-    });
+    /*
+     * isReplay is an internal control flag used
+     * by this mutation to identify a legitimate
+     * replay play. It is NOT stored in events.
+     */
+    const {
+      isReplay: _isReplay,
+      ...eventArgs
+    } = args;
+
+    await ctx.db.insert(
+      "events",
+      {
+        ...eventArgs,
+
+        userId:
+          eventUserId,
+
+        isAnonymous:
+          args.isAnonymous,
+
+        createdAt:
+          now,
+      }
+    );
 
     // ======================
     // 5. USER STATS
     // ======================
 
     if (realUserId) {
-      const user = await ctx.db.get(realUserId);
+      const user =
+        await ctx.db.get(
+          realUserId
+        );
 
       if (user) {
-        const userUpdate: any = {
-          lastActiveAt: now,
-        };
+        const userUpdate: any =
+          {
+            lastActiveAt:
+              now,
+          };
 
-        if (args.type === "song_play") {
+        if (
+          args.type ===
+          "song_play"
+        ) {
           userUpdate.totalPlays =
-            (user.totalPlays ?? 0) + 1;
+            (user.totalPlays ??
+              0) + 1;
 
           userUpdate.totalListeningTime =
-            (user.totalListeningTime ?? 0) +
-            (args.playedDuration ?? 0);
+            (user.totalListeningTime ??
+              0) +
+            (args.playedDuration ??
+              0);
         }
 
-        if (args.type === "song_skip") {
+        if (
+          args.type ===
+          "song_skip"
+        ) {
           userUpdate.totalSkips =
-            (user.totalSkips ?? 0) + 1;
+            (user.totalSkips ??
+              0) + 1;
         }
 
-        if (args.type === "song_replay") {
+        if (
+          args.type ===
+          "song_replay"
+        ) {
           userUpdate.totalReplays =
-            (user.totalReplays ?? 0) + 1;
+            (user.totalReplays ??
+              0) + 1;
         }
 
         await ctx.db.patch(
@@ -250,36 +407,51 @@ export const trackEvent = mutation({
     // ======================
 
     if (args.songId) {
-      const songId = args.songId;
+      const songId =
+        args.songId;
 
-      let stat = await ctx.db
-        .query("song_stats")
-        .withIndex("by_songId", (q) =>
-          q.eq("songId", songId)
-        )
-        .first();
+      let stat =
+        await ctx.db
+          .query("song_stats")
+          .withIndex(
+            "by_songId",
+            (q) =>
+              q.eq(
+                "songId",
+                songId
+              )
+          )
+          .first();
 
       if (!stat) {
-        const id = await ctx.db.insert(
-          "song_stats",
-          {
-            songId,
+        const id =
+          await ctx.db.insert(
+            "song_stats",
+            {
+              songId,
 
-            totalPlays: 0,
-            totalSkips: 0,
-            totalReplays: 0,
+              totalPlays: 0,
+              totalSkips: 0,
+              totalReplays: 0,
 
-            uniqueListeners: 0,
+              // NEW
+              totalLikes: 0,
 
-            completionRate: 0,
-            skipRate: 0,
-            replayRate: 0,
+              uniqueListeners: 0,
 
-            updatedAt: now,
-          }
-        );
+              completionRate: 0,
+              skipRate: 0,
+              replayRate: 0,
 
-        stat = await ctx.db.get(id);
+              updatedAt:
+                now,
+            }
+          );
+
+        stat =
+          await ctx.db.get(
+            id
+          );
       }
 
       if (!stat) {
@@ -297,16 +469,42 @@ export const trackEvent = mutation({
       let totalReplays =
         stat.totalReplays;
 
-      if (args.type === "song_play") {
+      // NEW:
+      // Existing song_stats documents may not
+      // have totalLikes yet, so safely use 0.
+      let totalLikes =
+        stat.totalLikes ?? 0;
+
+      if (
+        args.type ===
+        "song_play"
+      ) {
         totalPlays++;
       }
 
-      if (args.type === "song_skip") {
+      if (
+        args.type ===
+        "song_skip"
+      ) {
         totalSkips++;
       }
 
-      if (args.type === "song_replay") {
+      if (
+        args.type ===
+        "song_replay"
+      ) {
         totalReplays++;
+      }
+
+      // ======================
+      // LIKES
+      // ======================
+
+      if (
+        args.type ===
+        "song_like"
+      ) {
+        totalLikes++;
       }
 
       // ======================
@@ -319,44 +517,66 @@ export const trackEvent = mutation({
       let replayRate =
         stat.replayRate;
 
-      if (args.type === "song_end") {
+      if (
+        args.type ===
+        "song_end"
+      ) {
         completionRate =
           totalPlays > 0
             ? (
                 stat.completionRate *
-                  Math.max(totalPlays - 1, 0) +
+                  Math.max(
+                    totalPlays - 1,
+                    0
+                  ) +
                 1
-              ) / totalPlays
+              ) /
+              totalPlays
             : 0;
       }
 
-      if (args.type === "song_replay") {
+      if (
+        args.type ===
+        "song_replay"
+      ) {
         replayRate =
           totalPlays > 0
-            ? totalReplays / totalPlays
+            ? totalReplays /
+              totalPlays
             : 0;
       }
 
-      const updates: any = {
-        totalPlays,
-        totalSkips,
-        totalReplays,
+      const updates: any =
+        {
+          totalPlays,
+          totalSkips,
+          totalReplays,
 
-        skipRate:
-          totalPlays > 0
-            ? totalSkips / totalPlays
-            : 0,
+          // NEW
+          totalLikes,
 
-        replayRate,
-        completionRate,
+          skipRate:
+            totalPlays > 0
+              ? totalSkips /
+                totalPlays
+              : 0,
 
-        updatedAt: now,
-      };
+          replayRate,
+          completionRate,
 
-      if (args.type === "song_play") {
+          updatedAt:
+            now,
+        };
+
+      if (
+        args.type ===
+        "song_play"
+      ) {
         updates.uniqueListeners =
           stat.uniqueListeners +
-          (alreadyListener ? 0 : 1);
+          (alreadyListener
+            ? 0
+            : 1);
       }
 
       await ctx.db.patch(
@@ -374,20 +594,25 @@ export const trackEvent = mutation({
             history._id,
             {
               playCount:
-                history.playCount + 1,
+                history.playCount +
+                1,
 
-              lastPlayedAt: now,
+              lastPlayedAt:
+                now,
             }
           );
         } else {
           await ctx.db.insert(
             "listening_history",
             {
-              userId: realUserId,
+              userId:
+                realUserId,
+
               songId,
 
               playCount: 1,
-              lastPlayedAt: now,
+              lastPlayedAt:
+                now,
             }
           );
         }
@@ -399,16 +624,21 @@ export const trackEvent = mutation({
 
       if (
         args.isAnonymous &&
-        typeof args.userId === "string"
+        typeof args.userId ===
+          "string"
       ) {
-        if (anonymousHistory) {
+        if (
+          anonymousHistory
+        ) {
           await ctx.db.patch(
             anonymousHistory._id,
             {
               playCount:
-                anonymousHistory.playCount + 1,
+                anonymousHistory.playCount +
+                1,
 
-              lastPlayedAt: now,
+              lastPlayedAt:
+                now,
             }
           );
         } else {
@@ -421,7 +651,8 @@ export const trackEvent = mutation({
               songId,
 
               playCount: 1,
-              lastPlayedAt: now,
+              lastPlayedAt:
+                now,
             }
           );
         }
@@ -432,5 +663,5 @@ export const trackEvent = mutation({
       success: true,
     };
   },
+  
 });
- 

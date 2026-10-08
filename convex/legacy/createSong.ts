@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 
 export const createSong = mutation({
@@ -16,17 +16,21 @@ export const createSong = mutation({
     const songId = await ctx.db.insert("songs", {
       title: args.title,
       artistId: args.artistId,
-
+    
       duration: args.duration,
       genre: args.genre ?? undefined,
-
+    
       // required by songs schema
       audioUrl:
         "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-
+    
+      isActive: false,
+    
       totalPlays: 0,
       skipRate: 0,
       completionRate: 0,
+      uniqueListeners: 0,
+      replayRate: 0,
     });
 
     return songId;

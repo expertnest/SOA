@@ -2,6 +2,57 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // ======================
+// 🧹 CREATE ARTIST SLUG
+// ======================
+
+function createSlug(name: string) {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .replace(/['"]/g, "")
+    .replace(/&/g, "and")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  if (!slug) {
+    throw new Error("Artist name cannot generate a valid slug");
+  }
+
+  return slug;
+}
+
+// ======================
+// 🔐 REQUIRE PLATFORM ADMIN
+// ======================
+
+async function requirePlatformAdmin(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) =>
+      q.eq("clerkId", identity.subject)
+    )
+    .unique();
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.platformRole !== "admin") {
+    throw new Error("Platform admin access required");
+  }
+
+  return user;
+}
+
+// ======================
 // 🎤 GET ALL ACTIVE ARTISTS
 // ======================
 
@@ -31,7 +82,25 @@ export const getArtist = query({
 });
 
 // ======================
+// 🎤 GET ARTIST BY SLUG
+// ======================
+
+export const getArtistBySlug = query({
+  args: {
+    slug: v.string(),
+  },
+
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("artists")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+  },
+});
+
+// ======================
 // 🎤 CREATE ARTIST
+// PLATFORM ADMIN ONLY
 // ======================
 
 export const createArtist = mutation({
@@ -42,26 +111,48 @@ export const createArtist = mutation({
   },
 
   handler: async (ctx, args) => {
+    await requirePlatformAdmin(ctx);
+
+    const name = args.name.trim();
+
+    if (!name) {
+      throw new Error("Artist name is required");
+    }
+
+    const slug = createSlug(name);
+
     // Prevent duplicate artist names
-    const existing = await ctx.db
+    const existingName = await ctx.db
       .query("artists")
-      .filter((q) => q.eq(q.field("name"), args.name))
+      .filter((q) => q.eq(q.field("name"), name))
       .first();
 
-    if (existing) {
+    if (existingName) {
       throw new Error("An artist with this name already exists");
     }
 
-    // Create artist
+    // Slugs must remain globally unique
+    const existingSlug = await ctx.db
+      .query("artists")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+
+    if (existingSlug) {
+      throw new Error(
+        `Artist slug "${slug}" is already in use`
+      );
+    }
+
+    // Create canonical artist
     const artistId = await ctx.db.insert("artists", {
-      name: args.name,
+      name,
+      slug,
+
       image: args.image,
       bio: args.bio,
 
-      // Active by default
       isActive: true,
 
-      // Initial analytics
       followerCount: 0,
       totalStreams: 0,
       superfanCount: 0,
@@ -69,7 +160,7 @@ export const createArtist = mutation({
       monthlyListeners: 0,
     });
 
-    // Initialize artist stats
+    // Initialize artist analytics
     await ctx.db.insert("artist_stats", {
       artistId,
       totalStreams: 0,
@@ -84,6 +175,7 @@ export const createArtist = mutation({
 
 // ======================
 // 🎤 ARCHIVE ARTIST
+// PLATFORM ADMIN ONLY
 // ======================
 
 export const archiveArtist = mutation({
@@ -92,6 +184,8 @@ export const archiveArtist = mutation({
   },
 
   handler: async (ctx, args) => {
+    await requirePlatformAdmin(ctx);
+
     const artist = await ctx.db.get(args.id);
 
     if (!artist) {

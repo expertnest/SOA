@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 
 export const createProjectWithSongs = mutation({
@@ -40,8 +40,12 @@ export const createProjectWithSongs = mutation({
       description: args.project.description,
       coverImage: args.project.coverImage,
       releaseDate: args.project.releaseDate,
-
+    
       type: args.project.type,
+    
+      isActive: false,
+      totalPlays: 0,
+    
       createdAt: now,
     });
 
@@ -52,26 +56,28 @@ export const createProjectWithSongs = mutation({
 
     for (const song of args.songs) {
       const songId = await ctx.db.insert("songs", {
-        title: song.title,
-        artistId: args.project.artistId,
+  title: song.title,
+  artistId: args.project.artistId,
 
-        duration: song.duration,
+  duration: song.duration,
 
-        // ✅ REQUIRED BY SONG SCHEMA
-        audioUrl:
-          "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  // ✅ REQUIRED BY SONG SCHEMA
+  audioUrl:
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 
-        genre: song.genre ?? undefined,
+  genre: song.genre ?? undefined,
 
-        totalPlays: 0,
-        skipRate: 0,
-        completionRate: 0,
+  isActive: false,
 
-        replayRate: 0,
-        uniqueListeners: 0,
+  totalPlays: 0,
+  skipRate: 0,
+  completionRate: 0,
 
-        coverImage: args.project.coverImage,
-      });
+  replayRate: 0,
+  uniqueListeners: 0,
+
+  coverImage: args.project.coverImage,
+});
 
       songIds.push(songId);
     }

@@ -1,322 +1,1034 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+
 import {
-  User,
-  Image as ImageIcon,
-  Loader2,
-  UploadCloud,
-  Sparkles,
+  AlertCircle,
+  BarChart3,
+  BriefcaseBusiness,
+  CheckCircle2,
+  Crown,
+  Mail,
+  MailPlus,
+  Music2,
+  ShieldCheck,
+  UserCog,
+  Users,
 } from "lucide-react";
 
-import { motion } from "framer-motion";
+// ==============================
+// TYPES
+// ==============================
 
-import { useAction, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+type ArtistRole =
+  | "owner"
+  | "admin"
+  | "manager"
+  | "analyst";
 
-export default function CreateArtistPage() {
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
+// ==============================
+// ROLE DATA
+// ==============================
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState("");
+const roles: {
+  value: ArtistRole;
+  label: string;
+  description: string;
+  icon: typeof Crown;
+}[] = [
+  {
+    value: "owner",
+    label: "Owner",
+    description: "Primary controller with full artist access.",
+    icon: Crown,
+  },
+  {
+    value: "admin",
+    label: "Admin",
+    description: "Trusted team member with broad management access.",
+    icon: ShieldCheck,
+  },
+  {
+    value: "manager",
+    label: "Manager",
+    description: "Manage releases, campaigns, and artist operations.",
+    icon: BriefcaseBusiness,
+  },
+  {
+    value: "analyst",
+    label: "Analyst",
+    description: "Analytics-focused access with limited management.",
+    icon: BarChart3,
+  },
+];
 
-  const [loading, setLoading] = useState(false);
+// ==============================
+// PAGE
+// ==============================
 
-  // =========================
-  // CONVEX
-  // =========================
+export default function AdminArtistsPage() {
+  const currentUser = useQuery(api.users.getCurrentUser);
+  const artists = useQuery(api.artists.getArtists);
 
-  const createArtist = useMutation(
-    api.artists.createArtist
+  const createArtistInvite = useMutation(
+    api.artists.access.createArtistInvite
   );
 
-  const uploadImage = useAction(
-    api.storage.uploadImage
+  const [selectedArtistId, setSelectedArtistId] =
+    useState("");
+
+  const [email, setEmail] = useState("");
+
+  const [role, setRole] =
+    useState<ArtistRole>("owner");
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
+
+  const [successMessage, setSuccessMessage] =
+    useState("");
+
+  const [errorMessage, setErrorMessage] =
+    useState("");
+
+  // ==============================
+  // SELECTED ARTIST
+  // ==============================
+
+  const selectedArtist = useMemo(() => {
+    if (!artists || !selectedArtistId) {
+      return null;
+    }
+
+    return artists.find(
+      (artist) =>
+        artist._id === selectedArtistId
+    );
+  }, [artists, selectedArtistId]);
+
+  const selectedRole = roles.find(
+    (item) => item.value === role
   );
 
-  const inputClass = `
-    w-full rounded-2xl border border-white/10 bg-white/[0.04]
-    px-5 py-4 text-white placeholder:text-white/30 outline-none
-    transition-all focus:border-purple-500/50 focus:bg-white/[0.07]
-  `;
+  // ==============================
+  // SUBMIT INVITE
+  // ==============================
 
-  // =========================
-  // IMAGE PREVIEW
-  // =========================
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
 
-  const handleImage = (file: File) => {
-    setImageFile(file);
+    setSuccessMessage("");
+    setErrorMessage("");
 
-    const previewUrl =
-      URL.createObjectURL(file);
+    const normalizedEmail =
+      email.trim().toLowerCase();
 
-    setImagePreview(previewUrl);
-  };
+    if (!selectedArtistId) {
+      setErrorMessage(
+        "Choose an artist before creating the invite."
+      );
 
-  // =========================
-  // CREATE ARTIST
-  // =========================
-
-  const handleCreateArtist = async () => {
-    if (!name.trim()) {
-      alert("Enter an artist name.");
       return;
     }
 
-    setLoading(true);
+    if (!normalizedEmail) {
+      setErrorMessage(
+        "Enter the email address you want to invite."
+      );
+
+      return;
+    }
 
     try {
-      // =========================
-      // 1. UPLOAD IMAGE TO R2
-      // =========================
+      setIsSubmitting(true);
 
-      let imageUrl: string | undefined;
+      await createArtistInvite({
+        artistId:
+          selectedArtistId as Id<"artists">,
 
-      if (imageFile) {
-        console.log(
-          "📤 Uploading artist image to R2..."
-        );
+        email: normalizedEmail,
 
-        const buffer =
-          await imageFile.arrayBuffer();
+        role,
+      });
 
-        const uploaded =
-          await uploadImage({
-            file: buffer,
-            fileName: imageFile.name,
-            contentType: imageFile.type,
-          });
-
-        imageUrl = uploaded.url;
-
-        console.log(
-          "✅ Artist image uploaded:",
-          imageUrl
-        );
-      }
-
-      // =========================
-      // 2. CREATE ARTIST IN CONVEX
-      // =========================
-
-      console.log(
-        "🎤 Creating artist in Convex..."
+      setSuccessMessage(
+        `Invite created for ${normalizedEmail}.`
       );
 
-      const artistId =
-        await createArtist({
-          name: name.trim(),
-          bio: bio.trim() || undefined,
-          image: imageUrl,
-        });
-
-      console.log(
-        "✅ ARTIST CREATED:",
-        artistId
-      );
-
-      // =========================
-      // 3. RESET FORM
-      // =========================
-
-      setName("");
-      setBio("");
-      setImageFile(null);
-      setImagePreview("");
-
-      alert("Artist created successfully.");
-
-    } catch (err) {
-      console.error(
-        "❌ CREATE ARTIST FAILED:",
-        err
-      );
-
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to create artist."
+      setEmail("");
+      setRole("owner");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while creating the invite."
       );
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
-      {/* 🔥 Glow Background */}
+  // ==============================
+  // LOADING
+  // ==============================
 
-      <div className="pointer-events-none absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[160px]" />
+  if (
+    currentUser === undefined ||
+    artists === undefined
+  ) {
+    return (
+      <main className="min-h-screen bg-[#050505] px-5 py-10 text-white">
+        <div className="mx-auto max-w-6xl">
+          <div className="animate-pulse">
+            <div className="mb-3 h-4 w-32 rounded bg-white/10" />
 
-      <div className="pointer-events-none absolute bottom-0 right-1/4 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[160px]" />
+            <div className="mb-3 h-10 w-72 rounded-lg bg-white/10" />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-12">
+            <div className="mb-10 h-4 w-96 max-w-full rounded bg-white/5" />
 
-        {/* HEADER */}
+            <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+              <div className="h-[520px] rounded-3xl border border-white/10 bg-white/[0.03]" />
 
-        <div className="mb-10">
+              <div className="h-[360px] rounded-3xl border border-white/10 bg-white/[0.03]" />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
-          <div className="mb-3 flex items-center gap-2 text-sm text-purple-400">
-            <Sparkles size={16} />
-            Artist Management
+  // ==============================
+  // NOT SIGNED IN
+  // ==============================
+
+  if (!currentUser) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#050505] px-5 text-white">
+        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center backdrop-blur-xl">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05]">
+            <ShieldCheck className="h-6 w-6 text-white/80" />
           </div>
 
-          <h1 className="text-5xl font-bold tracking-tight">
-            Create Artist
+          <h1 className="text-2xl font-semibold">
+            Admin access required
           </h1>
 
-          <p className="mt-3 max-w-xl text-white/50">
-            Add a new artist to your label and start
-            building their catalog.
+          <p className="mt-3 text-sm leading-6 text-white/50">
+            Sign in with your SOA platform admin
+            account to manage artist access.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
+  // ==============================
+  // NOT PLATFORM ADMIN
+  // ==============================
+
+  if (
+    currentUser.platformRole !== "admin"
+  ) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#050505] px-5 text-white">
+        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center backdrop-blur-xl">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
+            <ShieldCheck className="h-6 w-6 text-red-300" />
+          </div>
+
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.22em] text-white/40">
+            SOA Music
           </p>
 
+          <h1 className="text-2xl font-semibold">
+            Restricted area
+          </h1>
+
+          <p className="mt-3 text-sm leading-6 text-white/50">
+            Your account is signed in, but it
+            does not have platform administrator
+            permission.
+          </p>
         </div>
+      </main>
+    );
+  }
 
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="grid gap-8 lg:grid-cols-[380px_1fr]"
-        >
+  // ==============================
+  // ADMIN UI
+  // ==============================
 
-          {/* =========================
-              LEFT SIDE
-          ========================= */}
+  return (
+    <main className="min-h-screen bg-[#050505] px-5 py-8 text-white md:px-8 md:py-10">
+      <div className="mx-auto max-w-6xl">
+        {/* ============================== */}
+        {/* HEADER */}
+        {/* ============================== */}
 
-          <div className="space-y-6">
+        <header className="mb-10">
+          <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.22em] text-white/40">
+            <ShieldCheck className="h-4 w-4" />
+            SOA Administration
+          </div>
 
-            <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+                Artist Access
+              </h1>
 
-              <h2 className="mb-4 text-sm text-white/50">
-                Artist Image
-              </h2>
-
-              <label className="relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-[28px] border border-dashed border-white/20 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 transition hover:border-purple-400/50">
-
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="artist"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="text-center">
-
-                    <ImageIcon
-                      size={45}
-                      className="mx-auto mb-4 text-white/40"
-                    />
-
-                    <p className="font-medium">
-                      Upload Image
-                    </p>
-
-                    <p className="mt-1 text-xs text-white/40">
-                      PNG, JPG, WEBP
-                    </p>
-
-                  </div>
-                )}
-
-                <input
-                  hidden
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file =
-                      e.target.files?.[0];
-
-                    if (file) {
-                      handleImage(file);
-                    }
-                  }}
-                />
-
-              </label>
-
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50 md:text-base">
+                Invite approved users into an
+                artist workspace and assign their
+                permissions before they enter the
+                Artist Dashboard.
+              </p>
             </div>
 
-          </div>
-
-          {/* =========================
-              RIGHT SIDE
-          ========================= */}
-
-          <div className="space-y-8 rounded-[32px] border border-white/10 bg-white/[0.04] p-8 backdrop-blur-xl">
-
-            {/* BASIC INFO */}
-
-            <section className="space-y-4">
-
-              <div className="relative">
-
-                <User
-                  size={18}
-                  className="absolute left-4 top-4 text-white/40"
-                />
-
-                <input
-                  className={`${inputClass} pl-12`}
-                  placeholder="Artist name"
-                  value={name}
-                  onChange={(e) =>
-                    setName(e.target.value)
-                  }
-                />
-
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06]">
+                <ShieldCheck className="h-4 w-4 text-emerald-300" />
               </div>
 
-              <textarea
-                className={`${inputClass} h-32 resize-none`}
-                placeholder="Artist bio"
-                value={bio}
-                onChange={(e) =>
-                  setBio(e.target.value)
-                }
-              />
+              <div>
+                <p className="text-xs text-white/40">
+                  Platform role
+                </p>
 
-            </section>
+                <p className="text-sm font-medium">
+                  Administrator
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
 
-            {/* SUBMIT */}
+        {/* ============================== */}
+        {/* CONTENT */}
+        {/* ============================== */}
 
-            <button
-              onClick={handleCreateArtist}
-              disabled={loading}
-              className="
-                flex w-full items-center justify-center gap-3
-                rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-500
-                py-4 font-semibold transition hover:scale-[1.01]
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
+        <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+          {/* ============================== */}
+          {/* INVITE FORM */}
+          {/* ============================== */}
+
+          <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025] backdrop-blur-xl">
+            <div className="border-b border-white/10 px-6 py-5 md:px-7">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05]">
+                  <MailPlus className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <h2 className="font-semibold">
+                    Create artist invite
+                  </h2>
+
+                  <p className="mt-1 text-sm text-white/40">
+                    Grant access using the user's
+                    verified Clerk email.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-7 p-6 md:p-7"
             >
+              {/* ARTIST */}
 
-              {loading ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <UploadCloud size={18} />
-                  Create Artist
-                </>
+              <div>
+                <label className="mb-2 block text-sm font-medium text-white/80">
+                  Artist
+                </label>
+
+                <div className="relative">
+                  <select
+                    value={selectedArtistId}
+                    onChange={(event) => {
+                      setSelectedArtistId(
+                        event.target.value
+                      );
+
+                      setErrorMessage("");
+                      setSuccessMessage("");
+                    }}
+                    className="h-12 w-full appearance-none rounded-xl border border-white/10 bg-[#0b0b0b] px-4 pr-10 text-sm text-white outline-none transition focus:border-white/25 focus:ring-2 focus:ring-white/5"
+                  >
+                    <option value="">
+                      Select an artist
+                    </option>
+
+                    {artists.map((artist) => (
+                      <option
+                        key={artist._id}
+                        value={artist._id}
+                      >
+                        {artist.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  <Music2 className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+                </div>
+
+                {artists.length === 0 && (
+                  <p className="mt-2 text-xs text-amber-300/80">
+                    No active artists are available
+                    yet.
+                  </p>
+                )}
+              </div>
+
+              {/* EMAIL */}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-white/80">
+                  Invite email
+                </label>
+
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+
+                      setErrorMessage("");
+                      setSuccessMessage("");
+                    }}
+                    placeholder="artist@example.com"
+                    autoComplete="email"
+                    className="h-12 w-full rounded-xl border border-white/10 bg-[#0b0b0b] pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-white/20 focus:border-white/25 focus:ring-2 focus:ring-white/5"
+                  />
+                </div>
+
+                <p className="mt-2 text-xs leading-5 text-white/35">
+                  This must match the verified email
+                  on the user's Clerk account.
+                </p>
+              </div>
+
+              {/* ROLE */}
+
+              <div>
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-white/80">
+                    Artist role
+                  </p>
+
+                  <p className="mt-1 text-xs text-white/35">
+                    Permissions apply only to the
+                    selected artist.
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {roles.map((item) => {
+                    const Icon = item.icon;
+
+                    const active =
+                      role === item.value;
+
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => {
+                          setRole(item.value);
+
+                          setErrorMessage("");
+                          setSuccessMessage("");
+                        }}
+                        className={`group rounded-2xl border p-4 text-left transition ${
+                          active
+                            ? "border-cyan-400/40 bg-cyan-400/[0.08]"
+                            : "border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${
+                              active
+                                ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-200"
+                                : "border-white/10 bg-white/[0.04] text-white/50"
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                          </div>
+
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium">
+                              {item.label}
+                            </p>
+
+                            <p className="mt-1 text-xs leading-5 text-white/40">
+                              {item.description}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* STATUS */}
+
+              {errorMessage && (
+                <div className="flex gap-3 rounded-2xl border border-red-500/20 bg-red-500/[0.07] p-4">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-300" />
+
+                  <p className="text-sm leading-5 text-red-200">
+                    {errorMessage}
+                  </p>
+                </div>
               )}
 
-            </button>
+              {successMessage && (
+                <div className="flex gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-4">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
 
-          </div>
+                  <p className="text-sm leading-5 text-emerald-200">
+                    {successMessage}
+                  </p>
+                </div>
+              )}
 
-        </motion.div>
+              {/* SUBMIT */}
 
+              <button
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  !selectedArtistId ||
+                  !email.trim()
+                }
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-black/20 border-t-black" />
+                    Creating invite
+                  </>
+                ) : (
+                  <>
+                    <MailPlus className="h-4 w-4" />
+                    Create Invite
+                  </>
+                )}
+              </button>
+            </form>
+          </section>
+
+          {/* ============================== */}
+          {/* SIDEBAR */}
+          {/* ============================== */}
+
+          <aside className="space-y-6">
+            {/* SELECTED ARTIST */}
+
+            <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 backdrop-blur-xl">
+              <div className="mb-5 flex items-center gap-2">
+                <Music2 className="h-4 w-4 text-white/50" />
+
+                <p className="text-sm font-medium">
+                  Selected Artist
+                </p>
+              </div>
+
+              {selectedArtist ? (
+                <div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05]">
+                      {selectedArtist.image ? (
+                        <img
+                          src={selectedArtist.image}
+                          alt={selectedArtist.name}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Music2 className="h-5 w-5 text-white/30" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold">
+                        {selectedArtist.name}
+                      </h3>
+
+                      <p className="mt-1 truncate text-xs text-white/35">
+                        /{selectedArtist.slug}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <p className="text-xs text-white/35">
+                        Streams
+                      </p>
+
+                      <p className="mt-1 text-lg font-semibold">
+                        {selectedArtist.totalStreams.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                      <p className="text-xs text-white/35">
+                        Followers
+                      </p>
+
+                      <p className="mt-1 text-lg font-semibold">
+                        {selectedArtist.followerCount.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 px-5 py-10 text-center">
+                  <Music2 className="mx-auto h-6 w-6 text-white/20" />
+
+                  <p className="mt-3 text-sm text-white/40">
+                    Choose an artist to view their
+                    access context.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            {/* ACCESS SUMMARY */}
+
+            <section className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 backdrop-blur-xl">
+              <div className="mb-5 flex items-center gap-2">
+                <Users className="h-4 w-4 text-white/50" />
+
+                <p className="text-sm font-medium">
+                  Access Summary
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+                    <UserCog className="h-4 w-4 text-white/50" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium">
+                      {selectedRole?.label}
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-white/40">
+                      {selectedRole?.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="h-px bg-white/10" />
+
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/[0.04]">
+                    <ShieldCheck className="h-4 w-4 text-white/50" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium">
+                      Invite protected
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-white/40">
+                      Access is attached to the
+                      invited email and cannot be
+                      accepted by another account.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* FLOW */}
+
+            <section className="rounded-3xl border border-cyan-400/10 bg-cyan-400/[0.035] p-6">
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-cyan-200/60">
+                Access Flow
+              </p>
+
+              <div className="mt-5 space-y-3 text-sm">
+                <div className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px]">
+                    1
+                  </span>
+
+                  <p className="text-white/55">
+                    SOA creates the invite.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px]">
+                    2
+                  </span>
+
+                  <p className="text-white/55">
+                    Artist signs in with Clerk.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px]">
+                    3
+                  </span>
+
+                  <p className="text-white/55">
+                    Verified email accepts access.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px]">
+                    4
+                  </span>
+
+                  <p className="text-white/55">
+                    Artist Dashboard unlocks.
+                  </p>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
       </div>
-
-    </div>
+    </main>
   );
 }
+// "use client";
+
+// import { useState } from "react";
+// import {
+//   User,
+//   Image as ImageIcon,
+//   Loader2,
+//   UploadCloud,
+//   Sparkles,
+// } from "lucide-react";
+
+// import { motion } from "framer-motion";
+
+// import { useAction, useMutation } from "convex/react";
+// import { api } from "@/convex/_generated/api";
+
+// export default function CreateArtistPage() {
+//   const [name, setName] = useState("");
+//   const [bio, setBio] = useState("");
+
+//   const [imageFile, setImageFile] = useState<File | null>(null);
+//   const [imagePreview, setImagePreview] = useState("");
+
+//   const [loading, setLoading] = useState(false);
+
+//   // =========================
+//   // CONVEX
+//   // =========================
+
+//   const createArtist = useMutation(
+//     api.artists.createArtist
+//   );
+
+//   const uploadImage = useAction(
+//     api.storage.uploadImage
+//   );
+
+//   const inputClass = `
+//     w-full rounded-2xl border border-white/10 bg-white/[0.04]
+//     px-5 py-4 text-white placeholder:text-white/30 outline-none
+//     transition-all focus:border-purple-500/50 focus:bg-white/[0.07]
+//   `;
+
+//   // =========================
+//   // IMAGE PREVIEW
+//   // =========================
+
+//   const handleImage = (file: File) => {
+//     setImageFile(file);
+
+//     const previewUrl =
+//       URL.createObjectURL(file);
+
+//     setImagePreview(previewUrl);
+//   };
+
+//   // =========================
+//   // CREATE ARTIST
+//   // =========================
+
+//   const handleCreateArtist = async () => {
+//     if (!name.trim()) {
+//       alert("Enter an artist name.");
+//       return;
+//     }
+
+//     setLoading(true);
+
+//     try {
+//       // =========================
+//       // 1. UPLOAD IMAGE TO R2
+//       // =========================
+
+//       let imageUrl: string | undefined;
+
+//       if (imageFile) {
+//         console.log(
+//           "📤 Uploading artist image to R2..."
+//         );
+
+//         const buffer =
+//           await imageFile.arrayBuffer();
+
+//         const uploaded =
+//           await uploadImage({
+//             file: buffer,
+//             fileName: imageFile.name,
+//             contentType: imageFile.type,
+//           });
+
+//         imageUrl = uploaded.url;
+
+//         console.log(
+//           "✅ Artist image uploaded:",
+//           imageUrl
+//         );
+//       }
+
+//       // =========================
+//       // 2. CREATE ARTIST IN CONVEX
+//       // =========================
+
+//       console.log(
+//         "🎤 Creating artist in Convex..."
+//       );
+
+//       const artistId =
+//         await createArtist({
+//           name: name.trim(),
+//           bio: bio.trim() || undefined,
+//           image: imageUrl,
+//         });
+
+//       console.log(
+//         "✅ ARTIST CREATED:",
+//         artistId
+//       );
+
+//       // =========================
+//       // 3. RESET FORM
+//       // =========================
+
+//       setName("");
+//       setBio("");
+//       setImageFile(null);
+//       setImagePreview("");
+
+//       alert("Artist created successfully.");
+
+//     } catch (err) {
+//       console.error(
+//         "❌ CREATE ARTIST FAILED:",
+//         err
+//       );
+
+//       alert(
+//         err instanceof Error
+//           ? err.message
+//           : "Failed to create artist."
+//       );
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
+//       {/* 🔥 Glow Background */}
+
+//       <div className="pointer-events-none absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[160px]" />
+
+//       <div className="pointer-events-none absolute bottom-0 right-1/4 h-[450px] w-[450px] rounded-full bg-cyan-500/10 blur-[160px]" />
+
+//       <div className="relative mx-auto max-w-6xl px-6 py-12">
+
+//         {/* HEADER */}
+
+//         <div className="mb-10">
+
+//           <div className="mb-3 flex items-center gap-2 text-sm text-purple-400">
+//             <Sparkles size={16} />
+//             Artist Management
+//           </div>
+
+//           <h1 className="text-5xl font-bold tracking-tight">
+//             Create Artist
+//           </h1>
+
+//           <p className="mt-3 max-w-xl text-white/50">
+//             Add a new artist to your label and start
+//             building their catalog.
+//           </p>
+
+//         </div>
+
+//         <motion.div
+//           initial={{
+//             opacity: 0,
+//             y: 20,
+//           }}
+//           animate={{
+//             opacity: 1,
+//             y: 0,
+//           }}
+//           className="grid gap-8 lg:grid-cols-[380px_1fr]"
+//         >
+
+//           {/* =========================
+//               LEFT SIDE
+//           ========================= */}
+
+//           <div className="space-y-6">
+
+//             <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
+
+//               <h2 className="mb-4 text-sm text-white/50">
+//                 Artist Image
+//               </h2>
+
+//               <label className="relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-[28px] border border-dashed border-white/20 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 transition hover:border-purple-400/50">
+
+//                 {imagePreview ? (
+//                   <img
+//                     src={imagePreview}
+//                     alt="artist"
+//                     className="h-full w-full object-cover"
+//                   />
+//                 ) : (
+//                   <div className="text-center">
+
+//                     <ImageIcon
+//                       size={45}
+//                       className="mx-auto mb-4 text-white/40"
+//                     />
+
+//                     <p className="font-medium">
+//                       Upload Image
+//                     </p>
+
+//                     <p className="mt-1 text-xs text-white/40">
+//                       PNG, JPG, WEBP
+//                     </p>
+
+//                   </div>
+//                 )}
+
+//                 <input
+//                   hidden
+//                   type="file"
+//                   accept="image/*"
+//                   onChange={(e) => {
+//                     const file =
+//                       e.target.files?.[0];
+
+//                     if (file) {
+//                       handleImage(file);
+//                     }
+//                   }}
+//                 />
+
+//               </label>
+
+//             </div>
+
+//           </div>
+
+//           {/* =========================
+//               RIGHT SIDE
+//           ========================= */}
+
+//           <div className="space-y-8 rounded-[32px] border border-white/10 bg-white/[0.04] p-8 backdrop-blur-xl">
+
+//             {/* BASIC INFO */}
+
+//             <section className="space-y-4">
+
+//               <div className="relative">
+
+//                 <User
+//                   size={18}
+//                   className="absolute left-4 top-4 text-white/40"
+//                 />
+
+//                 <input
+//                   className={`${inputClass} pl-12`}
+//                   placeholder="Artist name"
+//                   value={name}
+//                   onChange={(e) =>
+//                     setName(e.target.value)
+//                   }
+//                 />
+
+//               </div>
+
+//               <textarea
+//                 className={`${inputClass} h-32 resize-none`}
+//                 placeholder="Artist bio"
+//                 value={bio}
+//                 onChange={(e) =>
+//                   setBio(e.target.value)
+//                 }
+//               />
+
+//             </section>
+
+//             {/* SUBMIT */}
+
+//             <button
+//               onClick={handleCreateArtist}
+//               disabled={loading}
+//               className="
+//                 flex w-full items-center justify-center gap-3
+//                 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-500
+//                 py-4 font-semibold transition hover:scale-[1.01]
+//                 disabled:cursor-not-allowed
+//                 disabled:opacity-50
+//               "
+//             >
+
+//               {loading ? (
+//                 <>
+//                   <Loader2 className="animate-spin" />
+//                   Creating...
+//                 </>
+//               ) : (
+//                 <>
+//                   <UploadCloud size={18} />
+//                   Create Artist
+//                 </>
+//               )}
+
+//             </button>
+
+//           </div>
+
+//         </motion.div>
+
+//       </div>
+
+//     </div>
+//   );
+// }
