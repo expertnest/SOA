@@ -30,7 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black`}
       >
-        <ClerkProvider>
+        <ClerkProvider
+          signInForceRedirectUrl="/post-sign-in"
+          signUpForceRedirectUrl="/post-sign-in"
+        >
           <ConvexClientProvider>
             <ClientLayout>{children}</ClientLayout>   ``
           </ConvexClientProvider>

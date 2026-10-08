@@ -42,6 +42,7 @@ export const upsertFromClerk = internalMutation({
       countryCode: "US",
 
       plan: "free" as const,
+      platformRole: "user" as const,
 
       totalListeningTime: 0,
       totalPlays: 0,
@@ -64,7 +65,8 @@ export const upsertFromClerk = internalMutation({
 
       isOnline: false,
       isBanned: false,
-      isVerified: false,
+      isVerified:
+      primaryEmail?.verification?.status === "verified",
 
       lastActiveAt: now,
       createdAt: now,

@@ -11,13 +11,15 @@
 import type * as artistAnalytics from "../artistAnalytics.js";
 import type * as artistComparison from "../artistComparison.js";
 import type * as artists from "../artists.js";
-import type * as createProjectWithSongs from "../createProjectWithSongs.js";
+import type * as artists_access from "../artists/access.js";
+import type * as artists_profile from "../artists/profile.js";
 import type * as deepAnalytics from "../deepAnalytics.js";
 import type * as events from "../events.js";
 import type * as feed from "../feed.js";
 import type * as http from "../http.js";
 import type * as legacy_addTotalReplays from "../legacy/addTotalReplays.js";
 import type * as legacy_admin from "../legacy/admin.js";
+import type * as legacy_createProjectWithSongs from "../legacy/createProjectWithSongs.js";
 import type * as legacy_createSong from "../legacy/createSong.js";
 import type * as legacy_fixSongs from "../legacy/fixSongs.js";
 import type * as legacy_seedSingle from "../legacy/seedSingle.js";
@@ -28,6 +30,7 @@ import type * as songAnalytics from "../songAnalytics.js";
 import type * as songStats from "../songStats.js";
 import type * as songs from "../songs.js";
 import type * as storage from "../storage.js";
+import type * as storageAccess from "../storageAccess.js";
 import type * as users from "../users.js";
 
 import type {
@@ -40,13 +43,15 @@ declare const fullApi: ApiFromModules<{
   artistAnalytics: typeof artistAnalytics;
   artistComparison: typeof artistComparison;
   artists: typeof artists;
-  createProjectWithSongs: typeof createProjectWithSongs;
+  "artists/access": typeof artists_access;
+  "artists/profile": typeof artists_profile;
   deepAnalytics: typeof deepAnalytics;
   events: typeof events;
   feed: typeof feed;
   http: typeof http;
   "legacy/addTotalReplays": typeof legacy_addTotalReplays;
   "legacy/admin": typeof legacy_admin;
+  "legacy/createProjectWithSongs": typeof legacy_createProjectWithSongs;
   "legacy/createSong": typeof legacy_createSong;
   "legacy/fixSongs": typeof legacy_fixSongs;
   "legacy/seedSingle": typeof legacy_seedSingle;
@@ -57,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   songStats: typeof songStats;
   songs: typeof songs;
   storage: typeof storage;
+  storageAccess: typeof storageAccess;
   users: typeof users;
 }>;
 

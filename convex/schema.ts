@@ -21,6 +21,11 @@ export default defineSchema({
       v.literal("premium")
     ),
 
+    platformRole: v.union(
+      v.literal("user"),
+      v.literal("admin")
+    ),
+    
     isOnline: v.boolean(),
     isBanned: v.boolean(),
     isVerified: v.boolean(),
@@ -50,13 +55,13 @@ export default defineSchema({
     superfanScore: v.number(),
     lifetimeValue: v.number(),
 
-    loyaltyIndex: v.optional(v.number()),
+    loyaltyIndex: v.number(),
     revenueGenerated: v.optional(v.number()),
-    streakDays: v.optional(v.number()),
+    streakDays: v.number(),
 
-    affinityTags: v.optional(v.array(v.string())),
-    favoriteArtistIds: v.optional(v.array(v.id("artists"))),
-    mostListenedSongIds: v.optional(v.array(v.id("songs"))),
+    affinityTags: v.array(v.string()),
+    favoriteArtistIds: v.array(v.id("artists")),
+    mostListenedSongIds: v.array(v.id("songs")),
   })
     .index("by_clerkId", ["clerkId"])
     .index("by_username", ["username"]),
@@ -77,58 +82,58 @@ export default defineSchema({
     totalStreams: v.number(),
     superfanCount: v.number(),
   
-    totalRevenue: v.optional(v.number()),
-    monthlyListeners: v.optional(v.number()),
+    totalRevenue: v.number(),
+    monthlyListeners: v.number(),
   })
     .index("by_slug", ["slug"]),
 
     // ======================
-// 🎤 ARTIST MEMBERS
-// ======================
-artistMembers: defineTable({
-  artistId: v.id("artists"),
-  userId: v.id("users"),
+  // 🎤 ARTIST MEMBERS
+  // ======================
+  artistMembers: defineTable({
+    artistId: v.id("artists"),
+    userId: v.id("users"),
 
-  role: v.union(
-    v.literal("owner"),
-    v.literal("admin"),
-    v.literal("manager"),
-    v.literal("analyst")
-  ),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("admin"),
+      v.literal("manager"),
+      v.literal("analyst")
+    ),
 
-  isActive: v.boolean(),
-  createdAt: v.number(),
-})
-  .index("by_artistId", ["artistId"])
-  .index("by_userId", ["userId"])
-  .index("by_artist_user", ["artistId", "userId"]),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_artistId", ["artistId"])
+    .index("by_userId", ["userId"])
+    .index("by_artist_user", ["artistId", "userId"]),
 
-// ======================
-// ✉️ ARTIST INVITES
-// ======================
-artistInvites: defineTable({
-  artistId: v.id("artists"),
-  email: v.string(),
+  // ======================
+  // ✉️ ARTIST INVITES
+  // ======================
+  artistInvites: defineTable({
+    artistId: v.id("artists"),
+    email: v.string(),
 
-  role: v.union(
-    v.literal("owner"),
-    v.literal("admin"),
-    v.literal("manager"),
-    v.literal("analyst")
-  ),
+    role: v.union(
+      v.literal("owner"),
+      v.literal("admin"),
+      v.literal("manager"),
+      v.literal("analyst")
+    ),
 
-  status: v.union(
-    v.literal("pending"),
-    v.literal("accepted"),
-    v.literal("revoked")
-  ),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("accepted"),
+      v.literal("revoked")
+    ),
 
-  createdAt: v.number(),
-  acceptedAt: v.optional(v.number()),
-})
-  .index("by_artistId", ["artistId"])
-  .index("by_email", ["email"])
-  .index("by_artist_email", ["artistId", "email"]),
+    createdAt: v.number(),
+    acceptedAt: v.optional(v.number()),
+  })
+    .index("by_artistId", ["artistId"])
+    .index("by_email", ["email"])
+    .index("by_artist_email", ["artistId", "email"]),
 
   // ======================
   // 📦 PROJECTS
@@ -137,7 +142,7 @@ artistInvites: defineTable({
     name: v.string(),
     artistId: v.id("artists"),
 
-    isActive: v.optional(v.boolean()),
+    isActive: v.boolean(),
 
     description: v.optional(v.string()),
     coverImage: v.optional(v.string()),
@@ -150,20 +155,18 @@ artistInvites: defineTable({
     // SOA-MIX-001
     catalogNumber: v.optional(v.string()),
 
-    type: v.optional(
-      v.union(
-        v.literal("single"),
-        v.literal("album"),
-        v.literal("ep"),
-        v.literal("mixtape"),
-        v.literal("draft")
-      )
+    type: v.union(
+      v.literal("single"),
+      v.literal("album"),
+      v.literal("ep"),
+      v.literal("mixtape"),
+      v.literal("draft")
     ),
 
     releaseDate: v.optional(v.number()),
     createdAt: v.number(),
 
-    totalPlays: v.optional(v.number()),
+    totalPlays: v.number(),
   })
     .index("by_artistId", ["artistId"])
     .index("by_type", ["type"])
@@ -195,7 +198,7 @@ artistInvites: defineTable({
 
     audioUrl: v.string(),
 
-    isActive: v.optional(v.boolean()),
+    isActive: v.boolean(),
 
     duration: v.number(),
     genre: v.optional(v.string()),
@@ -205,8 +208,8 @@ artistInvites: defineTable({
     skipRate: v.number(),
     completionRate: v.number(),
 
-    uniqueListeners: v.optional(v.number()),
-    replayRate: v.optional(v.number()),
+    uniqueListeners: v.number(),
+    replayRate: v.number(),
   })
     .index("by_artistId", ["artistId"]),
 
@@ -245,7 +248,7 @@ artistInvites: defineTable({
   events: defineTable({
     userId: v.union(v.id("users"), v.string()),
 
-    isAnonymous: v.optional(v.boolean()),
+    isAnonymous: v.boolean(),
 
     type: v.union(
       v.literal("song_play"),
@@ -411,7 +414,7 @@ artistInvites: defineTable({
 
     // Optional temporarily because existing
     // song_stats documents do not have this yet.
-    totalLikes: v.optional(v.number()),
+    totalLikes: v.number(),
 
     uniqueListeners: v.number(),
 
@@ -484,62 +487,42 @@ artistInvites: defineTable({
    */
   listen_sessions: defineTable({
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    userId: v.optional(
-      v.union(
-        v.id("users"),
-        v.string()
-      )
-    ),
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
-    isAnonymous: v.optional(
-      v.boolean()
-    ),
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
-    songId: v.optional(
-      v.id("songs")
-    ),
-
-    // 🔥 NEW — REMOVE OPTIONAL LATER
-    sessionKey: v.optional(
+    userId: v.union(
+      v.id("users"),
       v.string()
     ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    mergedRanges: v.optional(
-      v.array(
-        v.object({
-          startMs: v.number(),
-          endMs: v.number(),
-        })
-      )
+    isAnonymous: v.boolean(),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    songId: v.id("songs"),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    sessionKey: v.string(),
+
+    // 🔥 NEW — REMOVE OPTIONAL LATER
+    mergedRanges: v.array(
+      v.object({
+        startMs: v.number(),
+        endMs: v.number(),
+      })
     ),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    totalListenedMs: v.optional(
-      v.number()
-    ),
+    totalListenedMs: v.number(),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    uniqueListenedMs: v.optional(
-      v.number()
-    ),
+    uniqueListenedMs: v.number(),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    lastPosition: v.optional(
-      v.number()
-    ),
+    lastPosition: v.number(),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    updatedAt: v.optional(
-      v.number()
-    ),
+    updatedAt: v.number(),
 
     // 🔥 NEW — REMOVE OPTIONAL LATER
-    createdAt: v.optional(
-      v.number()
-    ),
+    createdAt: v.number(),
   })
     .index(
       "by_user_song_session",

@@ -1,6 +1,6 @@
- 
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 export const saveListenRanges = mutation({
   args: {
@@ -39,34 +39,88 @@ export const saveListenRanges = mutation({
     }
   ) => {
     // ======================
+    // RESOLVE REAL USER
+    // ======================
+
+    let resolvedUserId:
+      | Id<"users">
+      | string = userId;
+
+    if (!isAnonymous) {
+      const identity =
+        await ctx.auth.getUserIdentity();
+
+      if (!identity) {
+        throw new Error(
+          "Not authenticated"
+        );
+      }
+
+      const user =
+        await ctx.db
+          .query("users")
+          .withIndex(
+            "by_clerkId",
+            (q) =>
+              q.eq(
+                "clerkId",
+                identity.subject
+              )
+          )
+          .unique();
+
+      if (!user) {
+        throw new Error(
+          "User not found"
+        );
+      }
+
+      resolvedUserId =
+        user._id;
+    } else {
+      if (
+        typeof userId !== "string"
+      ) {
+        throw new Error(
+          "Anonymous listens require a string anonymous userId"
+        );
+      }
+
+      resolvedUserId =
+        userId;
+    }
+
+    // ======================
     // VALIDATE RANGES
     // ======================
 
-    const validRanges = ranges
-      .filter(
-        (range) =>
-          Number.isFinite(
-            range.startMs
-          ) &&
-          Number.isFinite(
-            range.endMs
-          ) &&
-          range.startMs >= 0 &&
-          range.endMs > range.startMs
-      )
-      .map((range) => ({
-        startMs:
-          Math.max(
-            0,
-            range.startMs
-          ),
+    const validRanges =
+      ranges
+        .filter(
+          (range) =>
+            Number.isFinite(
+              range.startMs
+            ) &&
+            Number.isFinite(
+              range.endMs
+            ) &&
+            range.startMs >= 0 &&
+            range.endMs >
+              range.startMs
+        )
+        .map((range) => ({
+          startMs:
+            Math.max(
+              0,
+              range.startMs
+            ),
 
-        endMs:
-          Math.max(
-            0,
-            range.endMs
-          ),
-      }));
+          endMs:
+            Math.max(
+              0,
+              range.endMs
+            ),
+        }));
 
     if (
       validRanges.length === 0
@@ -84,14 +138,16 @@ export const saveListenRanges = mutation({
 
     const existing =
       await ctx.db
-        .query("listen_sessions")
+        .query(
+          "listen_sessions"
+        )
         .withIndex(
           "by_user_song_session",
           (q) =>
             q
               .eq(
                 "userId",
-                userId
+                resolvedUserId
               )
               .eq(
                 "songId",
@@ -165,11 +221,6 @@ export const saveListenRanges = mutation({
         continue;
       }
 
-      /*
-       * Merge overlapping ranges
-       * and tiny gaps caused by
-       * browser timing differences.
-       */
       if (
         range.startMs <=
         last.endMs +
@@ -213,18 +264,6 @@ export const saveListenRanges = mutation({
     // TOTAL LISTENED TIME
     // ======================
 
-    /*
-     * This represents the raw playback
-     * time represented by the incoming
-     * ranges, including repeated listening.
-     *
-     * For now we add incoming range
-     * lengths to the previous total.
-     *
-     * The client is responsible for only
-     * sending newly observed playback
-     * ranges.
-     */
     const incomingTotalMs =
       validRanges.reduce(
         (total, range) =>
@@ -286,7 +325,8 @@ export const saveListenRanges = mutation({
       await ctx.db.insert(
         "listen_sessions",
         {
-          userId,
+          userId:
+            resolvedUserId,
 
           isAnonymous,
 
@@ -300,12 +340,8 @@ export const saveListenRanges = mutation({
 
           uniqueListenedMs,
 
-          ...(lastPosition !==
-          undefined
-            ? {
-                lastPosition,
-              }
-            : {}),
+          lastPosition:
+            lastPosition ?? 0,
 
           createdAt:
             now,
@@ -329,4 +365,3 @@ export const saveListenRanges = mutation({
     };
   },
 });
- 

@@ -24,6 +24,35 @@ function createSlug(name: string) {
 }
 
 // ======================
+// 🔐 REQUIRE PLATFORM ADMIN
+// ======================
+
+async function requirePlatformAdmin(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) =>
+      q.eq("clerkId", identity.subject)
+    )
+    .unique();
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.platformRole !== "admin") {
+    throw new Error("Platform admin access required");
+  }
+
+  return user;
+}
+
+// ======================
 // 🎤 GET ALL ACTIVE ARTISTS
 // ======================
 
@@ -71,6 +100,7 @@ export const getArtistBySlug = query({
 
 // ======================
 // 🎤 CREATE ARTIST
+// PLATFORM ADMIN ONLY
 // ======================
 
 export const createArtist = mutation({
@@ -81,6 +111,8 @@ export const createArtist = mutation({
   },
 
   handler: async (ctx, args) => {
+    await requirePlatformAdmin(ctx);
+
     const name = args.name.trim();
 
     if (!name) {
@@ -143,6 +175,7 @@ export const createArtist = mutation({
 
 // ======================
 // 🎤 ARCHIVE ARTIST
+// PLATFORM ADMIN ONLY
 // ======================
 
 export const archiveArtist = mutation({
@@ -151,6 +184,8 @@ export const archiveArtist = mutation({
   },
 
   handler: async (ctx, args) => {
+    await requirePlatformAdmin(ctx);
+
     const artist = await ctx.db.get(args.id);
 
     if (!artist) {

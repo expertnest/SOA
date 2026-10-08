@@ -10,39 +10,44 @@ export const createSingleSeed = mutation({
   handler: async (ctx, args) => {
     const songTitle = args.title ?? "Test Single";
 
-    // 1. Create project (single)
-    const projectId = await ctx.db.insert("projects", {
-      name: `${songTitle} (Single)`,
-      artistId: args.artistId,
-      type: "single",
-      description: "Seed single upload",
-      coverImage: undefined,
-      createdAt: Date.now(),
-      totalPlays: 0,
-    });
+   // 1. Create project (single)
+const projectId = await ctx.db.insert("projects", {
+  name: `${songTitle} (Single)`,
+  artistId: args.artistId,
+  type: "single",
+  description: "Seed single upload",
+  coverImage: undefined,
 
-    // 2. Create song
-    const songId = await ctx.db.insert("songs", {
-      title: songTitle,
-      artistId: args.artistId,
+  isActive: false,
 
-      duration: 200,
+  createdAt: Date.now(),
+  totalPlays: 0,
+});
 
-      // required by schema
-      audioUrl:
-        "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+// 2. Create song
+const songId = await ctx.db.insert("songs", {
+  title: songTitle,
+  artistId: args.artistId,
 
-      genre: "test",
+  duration: 200,
 
-      totalPlays: 0,
-      skipRate: 0,
-      completionRate: 0,
+  // required by schema
+  audioUrl:
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
 
-      uniqueListeners: 0,
-      replayRate: 0,
+  genre: "test",
 
-      coverImage: undefined,
-    });
+  isActive: false,
+
+  totalPlays: 0,
+  skipRate: 0,
+  completionRate: 0,
+
+  uniqueListeners: 0,
+  replayRate: 0,
+
+  coverImage: undefined,
+});
 
     // 3. Link to project
     await ctx.db.insert("projectSongs", {

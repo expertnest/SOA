@@ -1,46 +1,112 @@
 "use client";
 
 import {
-  ChevronDown,
-  Play,
+
   Pause,
+  Play,
   SkipBack,
   SkipForward,
   Volume2,
-  Instagram,
-  Twitter,
-  Youtube,
   Shuffle,
   Repeat,
   ChevronsLeft,
+  ListMusic,
+  User,
+  LayoutDashboard,
 } from "lucide-react";
 
-import { useState, useEffect } from "react";
+import {
+
+  useEffect,
+  useState,
+} from "react";
+
 import Image from "next/image";
+
+import Link from "next/link";
+
+import { usePathname } from "next/navigation";
+
+import {
+
+  SignInButton,
+  UserButton,
+  useUser,
+} from "@clerk/nextjs";
+
 import { useMusic } from "@/hooks/MusicContext";
 
-export default function LeftSidebar() {
-  const [leftCollapsed, setLeftCollapsed] =
-    useState(false);
+import SidebarLibrary from "@/components/SidebarLibrary";
 
-  const [selectedCategory, setSelectedCategory] =
-    useState("All");
+// =========================================================
 
-  const [artistDropdownOpen, setArtistDropdownOpen] =
-    useState(false);
+// LEFT SIDEBAR
+// =========================================================
 
-  const [mounted, setMounted] =
-    useState(false);
+export default function LeftSidebar({
+  isSignedIn,
+  dashboardHref,
+}: {
+  isSignedIn: boolean;
 
-  const [shuffle, setShuffle] =
-    useState(false);
+  dashboardHref: string | null;
 
-  const [repeat, setRepeat] =
-    useState(false);
+}) {
+  const pathname = usePathname();
 
-  // ======================
+  const { user } = useUser();
+
+  const accountName =
+    user?.fullName ||
+    user?.firstName ||
+    user?.username ||
+    user?.primaryEmailAddress?.emailAddress ||
+    "SOA Listener";
+
+  const accountRole =
+    dashboardHref === "/admin"
+      ? "Platform Admin"
+      : dashboardHref === "/artist-dashboard"
+        ? "Artist"
+        : "Listener";
+
+  const isWorkspaceRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/artist-dashboard");
+
+  // ======================================================
+
+  // LOCAL UI STATE
+  // ======================================================
+
+  const [
+    leftCollapsed,
+    setLeftCollapsed,
+  ] = useState(false);
+
+  useEffect(() => {
+    setLeftCollapsed(isWorkspaceRoute);
+
+  }, [pathname, isWorkspaceRoute]);
+const [
+    mounted,
+    setMounted,
+  ] = useState(false);
+
+  const [
+    shuffle,
+    setShuffle,
+  ] = useState(false);
+
+  const [
+    repeat,
+    setRepeat,
+  ] = useState(false);
+
+  // ======================================================
+
   // MUSIC CONTEXT
-  // ======================
+  // ======================================================
 
   const {
     songs,
@@ -57,9 +123,10 @@ export default function LeftSidebar() {
     duration,
   } = useMusic();
 
-  // ======================
+  // ======================================================
+
   // MOUNT
-  // ======================
+  // ======================================================
 
   useEffect(() => {
     setMounted(true);
@@ -68,399 +135,978 @@ export default function LeftSidebar() {
       !currentSong &&
       songs.length > 0
     ) {
-      playSong(songs[0]);
+      playSong(
+        songs[0]
+      );
+
     }
+
   }, [
     songs,
     currentSong,
     playSong,
   ]);
 
-  // ======================
-  // ARTISTS
-  // ======================
+  // ======================================================
 
-  const artists = [
-    "All",
-    "MacPhantom",
-    "Qmilly",
-  ];
-
-  // ======================
-  // FILTERED SONGS
-  // ======================
-
-  const filteredSongs =
-    selectedCategory === "All"
-      ? songs
-      : songs.filter(
-          (song: any) =>
-            song.artistName?.toLowerCase() ===
-            selectedCategory.toLowerCase()
-        );
-
-  // ======================
-  // GROUP SONGS
-  // ======================
-
-  const grouped =
-    filteredSongs.reduce(
-      (
-        acc: any,
-        song: any
-      ) => {
-        const key =
-          song.projectName ||
-          "Singles";
-
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-
-        acc[key].push(song);
-
-        return acc;
-      },
-      {}
-    );
-
-  // ======================
   // DISPLAY SONG
-  // ======================
+  // ======================================================
 
   const displaySong =
     currentSong || {
       coverImage:
         "/assets/soalogo.png",
-
-      title: "",
-
-      artistName: "",
+      title:
+        "Nothing playing",
+      artistName:
+        "SOA Music",
     };
 
-  // ======================
+  // ======================================================
+
+  // SAFE PROGRESS
+  // ======================================================
+
+  const safeProgress =
+    Math.min(
+      Math.max(
+        progress || 0,
+        0
+      ),
+      100
+    );
+
+  // ======================================================
+
   // CURRENT TIME
-  // ======================
+  // ======================================================
 
   const currentTime =
     duration
       ? Math.floor(
-          (progress / 100) *
+          (
+            safeProgress /
+            100
+          ) *
             duration
         )
       : 0;
 
-  // ======================
+  // ======================================================
+
   // FORMAT TIME
-  // ======================
+  // ======================================================
 
   const formatTime = (
-    t: number
+    time: number
   ) => {
     if (
-      isNaN(t) ||
-      t < 0 ||
-      !isFinite(t)
+      isNaN(time) ||
+      time < 0 ||
+      !isFinite(time)
     ) {
       return "0:00";
+
     }
 
-    const m =
+    const minutes =
       Math.floor(
-        t / 60
+        time /
+          60
       );
 
-    const s = String(
-      Math.floor(
-        t % 60
-      )
-    ).padStart(
-      2,
-      "0"
-    );
+    const seconds =
+      String(
+        Math.floor(
+          time %
+            60
+        )
+      ).padStart(
+        2,
+        "0"
+      );
 
-    return `${m}:${s}`;
+    return `${minutes}:${seconds}`;
+
   };
 
-  // ======================
+  // ======================================================
+
   // MOUNT GUARD
-  // ======================
+  // ======================================================
 
   if (!mounted) {
     return null;
+
   }
+
+  // ======================================================
+
+  // UI
+  // ======================================================
 
   return (
     <aside
       className={`
         relative
-
         flex
-        flex-col
+        h-full
+        min-h-0
         flex-shrink-0
-
-        bg-[#080808]
-        text-white
-
+        flex-col
+        overflow-hidden
         border-r
-        border-white/[0.07]
-
-        p-3
-        md:p-4
-
-        transition-all
+        border-white/[0.09]
+        bg-[#12141a]
+        text-white
+        transition-[width]
         duration-300
-
         ${
           leftCollapsed
-            ? "w-12 md:w-12"
-            : "w-64 md:w-[350px]"
+            ? "w-[64px]"
+            : "w-[280px] xl:w-[310px] 2xl:w-[350px]"
         }
 
-        backdrop-blur-xl
-
-        shadow-[
-          0_0_0_1px_rgba(255,255,255,0.025),
-          0_20px_40px_rgba(0,0,0,0.6)
-        ]
-
-        before:absolute
-        before:inset-0
-        before:pointer-events-none
-        before:bg-gradient-to-b
-        before:from-white/[0.035]
-        before:via-transparent
-        before:to-black/20
       `}
     >
-      {/* ======================
-          COLLAPSE BUTTON
-      ====================== */}
+      {/* ==================================================
+          AMBIENT BACKGROUND
+      \\\\\\\\================================================== */}
 
-      <button
-        type="button"
-        onClick={() =>
-          setLeftCollapsed(
-            !leftCollapsed
-          )
-        }
+      <div
         className="
-          mb-1
-          self-end
-
-          rounded-lg
-          p-1.5
-
-          text-white/40
-
-          transition-all
-
-          hover:bg-white/[0.05]
-          hover:text-white
+          pointer-events-none
+          absolute
+          inset-0
+          overflow-hidden
         "
-        aria-label={
-          leftCollapsed
-            ? "Expand music player"
-            : "Collapse music player"
-        }
       >
-        <ChevronsLeft
-          size={20}
-          className={`
-            transition-transform
-            duration-200
-
-            ${
-              leftCollapsed
-                ? "rotate-180"
-                : ""
-            }
-          `}
+        <div
+          className="
+            absolute
+            -left-24
+            top-20
+            h-64
+            w-64
+            rounded-full
+            bg-blue-600/[0.045]
+            blur-[100px]
+          "
         />
-      </button>
+        <div
+          className="
+            absolute
+            -right-28
+            top-[38%]
+            h-72
+            w-72
+            rounded-full
+            bg-violet-600/[0.045]
+            blur-[110px]
+          "
+        />
+      </div>
+      {/* ==================================================
+          COLLAPSED MODE
+      \\\\\\\\================================================== */}
 
-      {!leftCollapsed && (
+      {leftCollapsed ? (
         <div
           className="
             relative
             z-10
-
             flex
+            h-full
             min-h-0
-            flex-1
             flex-col
+            items-center
+            px-2
+            py-3
           "
         >
-          {/* ======================
-              LOGO / HEADER
-          ====================== */}
+          {/* EXPAND */}
+
+          <button
+            type="button"
+            onClick={() =>
+              setLeftCollapsed(
+                false
+              )
+            }
+
+            className="
+              flex
+              h-9
+              w-9
+              items-center
+              justify-center
+              rounded-xl
+              text-white/45
+              transition
+              hover:bg-white/[0.065]
+              hover:text-white
+            "
+            aria-label="Expand music player"
+          >
+            <ChevronsLeft
+              size={18}
+              className="rotate-180"
+            />
+          </button>
+          {/* LOGO */}
 
           <div
             className="
-              mb-3
+              mt-4
               flex
+              h-10
+              w-10
               items-center
-              justify-between
+              justify-center
+              overflow-hidden
+              rounded-xl
+              border
+              border-white/[0.09]
+              bg-white/[0.035]
             "
           >
             <Image
               src="/assets/soalogo.png"
-              alt="SOA Logo"
-              width={72}
-              height={72}
+              alt="SOA"
+              width={34}
+              height={34}
               className="object-contain"
             />
-
-            <span
-              className="
-                text-[10px]
-                uppercase
-                tracking-[0.22em]
-                text-white/25
-              "
-            >
-              Player
-            </span>
           </div>
+          {/* LINE */}
 
           <div
             className="
-              mb-4
+              my-4
               h-px
-              w-full
-              bg-white/[0.08]
+              w-7
+              bg-white/[0.085]
             "
           />
+          {/* CURRENT COVER */}
 
-          {/* ======================
+          <div
+            className="
+              relative
+              h-10
+              w-10
+              overflow-hidden
+              rounded-xl
+              border
+              border-violet-400/15
+              bg-[#181b22]
+              shadow-[0_0_16px_rgba(124,58,237,0.08)]
+            "
+          >
+            <Image
+              src={
+                displaySong.coverImage ||
+                "/assets/soalogo.png"
+              }
+
+              alt={
+                displaySong.title ||
+                "Current track"
+              }
+
+              fill
+              sizes="40px"
+              className={
+                displaySong.coverImage
+                  ? "object-cover"
+                  : "object-contain"
+              }
+
+              unoptimized
+            />
+          </div>
+          {/* PLAY */}
+
+          <button
+            type="button"
+            onClick={
+              togglePlay
+            }
+
+            disabled={
+              !currentSong
+            }
+
+            className="
+              mt-4
+              flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-full
+              bg-white
+              text-black
+              shadow-[0_0_18px_rgba(255,255,255,0.10)]
+              transition
+              hover:scale-105
+              active:scale-95
+              disabled:cursor-not-allowed
+              disabled:opacity-30
+            "
+            aria-label={
+              isPlaying
+                ? "Pause"
+                : "Play"
+            }
+
+          >
+            {isPlaying ? (
+              <Pause
+                size={16}
+                fill="currentColor"
+              />
+            ) : (
+              <Play
+                size={16}
+                fill="currentColor"
+                className="ml-0.5"
+              />
+            )}
+          </button>
+          {/* MINI PROGRESS */}
+
+          <div
+            className="
+              relative
+              mt-5
+              h-24
+              w-1
+              overflow-hidden
+              rounded-full
+              bg-white/[0.085]
+            "
+          >
+            <div
+              className="
+                absolute
+                bottom-0
+                left-0
+                w-full
+                rounded-full
+                bg-gradient-to-t
+                from-blue-400
+                via-violet-400
+                to-purple-400
+                shadow-[0_0_8px_rgba(124,58,237,0.45)]
+              "
+              style={{
+                height:
+                  `${safeProgress}%`,
+              }}
+            />
+          </div>
+          {/* ACCOUNT */}
+
+        <div
+          className="
+            mt-auto
+            flex
+            flex-col
+            items-center
+            gap-2
+          "
+        >
+          {!isSignedIn ? (
+            <SignInButton mode="modal">
+              <button
+                type="button"
+                aria-label="Login"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-white/[0.08]
+                  bg-white/[0.035]
+                  text-white/45
+                  transition
+                  hover:border-violet-400/20
+                  hover:bg-violet-500/[0.07]
+                  hover:text-white
+                "
+              >
+                <User size={15} />
+              </button>
+            </SignInButton>
+          ) : (
+            <>
+              {dashboardHref && (
+                <Link
+                  href={dashboardHref}
+                  aria-label="Dashboard"
+                  className="
+                    flex
+                    h-9
+                    w-9
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-violet-400/15
+                    bg-violet-500/[0.055]
+                    text-violet-200/70
+                    transition
+                    hover:border-violet-400/25
+                    hover:bg-violet-500/[0.09]
+                    hover:text-violet-100
+                  "
+                >
+                  <LayoutDashboard size={15} />
+                </Link>
+              )}
+              <Link
+                href="/profile"
+                aria-label="Profile"
+                className="
+                  flex
+                  h-9
+                  w-9
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                  border-white/[0.08]
+                  bg-white/[0.035]
+                  text-white/45
+                  transition
+                  hover:border-violet-400/20
+                  hover:bg-violet-500/[0.07]
+                  hover:text-white
+                "
+              >
+                <User size={15} />
+              </Link>
+              <div className="flex h-9 w-9 items-center justify-center">
+                <UserButton />
+              </div>
+            </>
+          )}
+        </div>
+        {/* LIBRARY ICON */}
+
+          <div
+            className="
+              mt-auto
+              flex
+              h-9
+              w-9
+              items-center
+              justify-center
+              rounded-xl
+              text-white/34
+            "
+          >
+            <ListMusic
+              size={17}
+            />
+          </div>
+        </div>
+      ) : (
+        // ==================================================
+
+        // EXPANDED MODE
+        // ==================================================
+
+        <div
+          className="
+            relative
+            z-10
+            flex
+            h-full
+            min-h-0
+            flex-col
+            px-3
+            pb-3
+            pt-3
+            xl:px-4
+            xl:pb-4
+            [@media(max-height:820px)]:pb-2
+            [@media(max-height:820px)]:pt-2
+          "
+        >
+          {/* ==================================================
+              ACCOUNT HEADER
+          \\================================================== */}
+
+          <header
+            className="
+              flex
+              shrink-0
+              items-center
+              justify-between
+              gap-2
+              pb-2
+              xl:pb-3
+              [@media(max-height:820px)]:pb-1.5
+            "
+          >
+            <div className="min-w-0 flex-1">
+              {isSignedIn ? (
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <div
+                    className="
+                      flex
+                      h-9
+                      w-9
+                      shrink-0
+                      items-center
+                      justify-center
+                      rounded-full
+                      border
+                      border-white/[0.09]
+                      bg-white/[0.035]
+                    "
+                  >
+                    <UserButton />
+                  </div>
+                  <Link
+                    href="/profile"
+                    className="
+                      group
+                      min-w-0
+                      flex-1
+                      rounded-lg
+                      px-1
+                      py-0.5
+                      transition
+                      hover:bg-white/[0.035]
+                    "
+                  >
+                    <p
+                      className="
+                        truncate
+                        text-[11px]
+                        font-semibold
+                        tracking-[0.01em]
+                        text-white/85
+                        transition
+                        group-hover:text-white
+                      "
+                    >
+                      {accountName}
+                    </p>
+                    <p
+                      className="
+                        mt-0.5
+                        truncate
+                        text-[8px]
+                        uppercase
+                        tracking-[0.14em]
+                        text-white/34
+                      "
+                    >
+                      {accountRole}
+                    </p>
+                  </Link>
+                </div>
+              ) : (
+                <SignInButton mode="modal">
+                  <button
+                    type="button"
+                    className="
+                      flex
+                      w-full
+                      min-w-0
+                      items-center
+                      gap-2.5
+                      rounded-xl
+                      border
+                      border-white/[0.07]
+                      bg-white/[0.025]
+                      p-1.5
+                      text-left
+                      transition
+                      hover:border-violet-400/15
+                      hover:bg-violet-500/[0.045]
+                    "
+                  >
+                    <span
+                      className="
+                        flex
+                        h-8
+                        w-8
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-white/[0.055]
+                        text-white/45
+                      "
+                    >
+                      <User size={14} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-medium text-white/70">
+                        Sign in
+                      </span>
+                      <span className="mt-0.5 block text-[8px] uppercase tracking-[0.13em] text-white/30">
+                        SOA account
+                      </span>
+                    </span>
+                  </button>
+                </SignInButton>
+              )}
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              {isSignedIn && dashboardHref && (
+                <Link
+                  href={dashboardHref}
+                  aria-label="Dashboard"
+                  title="Dashboard"
+                  className="
+                    flex
+                    h-8
+                    w-8
+                    items-center
+                    justify-center
+                    rounded-lg
+                    text-violet-200/55
+                    transition
+                    hover:bg-violet-500/[0.075]
+                    hover:text-violet-100
+                  "
+                >
+                  <LayoutDashboard size={14} />
+                </Link>
+              )}
+              <button
+                type="button"
+                onClick={() => setLeftCollapsed(true)}
+                className="
+                  flex
+                  h-8
+                  w-8
+                  items-center
+                  justify-center
+                  rounded-lg
+                  text-white/45
+                  transition
+                  hover:bg-white/[0.055]
+                  hover:text-white
+                "
+                aria-label="Collapse music player"
+              >
+                <ChevronsLeft size={17} />
+              </button>
+            </div>
+          </header>
+          <div
+            className="
+              h-px
+              shrink-0
+              bg-white/[0.075]
+            "
+          />
+          {/* ==================================================
               NOW PLAYING
-          ====================== */}
+          \\\\\\\\================================================== */}
 
-          <section>
+          <section
+            className="
+              shrink-0
+              pt-3
+              xl:pt-4
+              [@media(max-height:820px)]:pt-2
+            "
+          >
+            {/* ARTWORK */}
+
             <div
               className="
                 relative
-                mb-4
+                mx-auto
                 aspect-square
-                overflow-hidden
-                rounded-2xl
-
-                border
-                border-white/[0.08]
-
-                bg-[#101010]
-
-                shadow-[0_18px_45px_rgba(0,0,0,0.45)]
+                w-full
+                max-w-[175px]
+                xl:max-w-[205px]
+                2xl:max-w-[235px]
+                [@media(max-height:900px)]:max-w-[160px]
+                [@media(max-height:820px)]:max-w-[140px]
+                [@media(max-height:740px)]:max-w-[120px]
               "
             >
-              <Image
-                src={
-                  displaySong.coverImage ||
-                  "/assets/soalogo.png"
-                }
-                alt={
-                  displaySong.title ||
-                  "Now Playing"
-                }
-                fill
-                sizes="300px"
-                className="object-contain"
-                unoptimized
-              />
+              {/* GLOW */}
+
+              {currentSong && (
+                <div
+                  className="
+                    absolute
+                    inset-4
+                    rounded-[28px]
+                    bg-gradient-to-br
+                    from-blue-500/25
+                    via-violet-500/20
+                    to-purple-500/25
+                    blur-[32px]
+                  "
+                />
+              )}
+              {/* COVER FRAME */}
 
               <div
                 className="
-                  absolute
-                  inset-x-3
-                  top-3
-
-                  flex
-                  items-center
-                  justify-between
+                  relative
+                  h-full
+                  w-full
+                  overflow-hidden
+                  rounded-[24px]
+                  border
+                  border-white/[0.10]
+                  bg-[#171a21]
+                  shadow-[0_20px_55px_rgba(0,0,0,0.50)]
                 "
               >
-                <span
-                  className="
-                    rounded-full
+                <Image
+                  src={
+                    displaySong.coverImage ||
+                    "/assets/soalogo.png"
+                  }
 
-                    border
-                    border-white/10
+                  alt={
+                    displaySong.title ||
+                    "Now Playing"
+                  }
 
-                    bg-black/60
-                    px-2.5
-                    py-1
+                  fill
+                  sizes="300px"
+                  className={
+                    displaySong.coverImage
+                      ? "object-cover"
+                      : "object-contain p-7"
+                  }
 
-                    text-[9px]
-                    font-medium
-                    uppercase
-                    tracking-[0.15em]
-
-                    text-white/75
-
-                    backdrop-blur-md
-                  "
-                >
-                  Now Playing
-                </span>
-
-                <span
-                  className="
-                    rounded-full
-
-                    border
-                    border-white/10
-
-                    bg-black/60
-                    px-2
-                    py-1
-
-                    text-[9px]
-                    text-white/45
-
-                    backdrop-blur-md
-                  "
-                >
-                  SOA
-                </span>
-              </div>
-            </div>
-
-            {currentSong && (
-              <div className="mb-5">
-                {/* TRACK INFO */}
-
-                <div className="mb-3">
-                  <p
-                    className="
-                      truncate
-                      text-sm
-                      font-semibold
-                      text-white
-                    "
-                  >
-                    {currentSong.title}
-                  </p>
-
-                  <p
-                    className="
-                      mt-1
-                      truncate
-                      text-xs
-                      text-white/40
-                    "
-                  >
-                    {currentSong.artistName}
-                  </p>
-                </div>
-
-                {/* ======================
-                    CONTROLS
-                ====================== */}
+                  unoptimized
+                />
+                {/* COVER OVERLAY */}
 
                 <div
                   className="
-                    mb-3
+                    pointer-events-none
+                    absolute
+                    inset-0
+                    bg-gradient-to-t
+                    from-black/35
+                    via-transparent
+                    to-transparent
+                  "
+                />
+                {/* NOW PLAYING BADGE */}
+
+                <div
+                  className="
+                    absolute
+                    left-3
+                    top-3
+                  "
+                >
+                  <span
+                    className="
+                      inline-flex
+                      items-center
+                      gap-1.5
+                      rounded-full
+                      border
+                      border-white/[0.10]
+                      bg-black/55
+                      px-2.5
+                      py-1
+                      text-[9px]
+                      font-medium
+                      uppercase
+                      tracking-[0.13em]
+                      text-white/65
+                      backdrop-blur-xl
+                    "
+                  >
+                    {isPlaying && (
+                      <span
+                        className="
+                          h-1.5
+                          w-1.5
+                          rounded-full
+                          bg-violet-300
+                          shadow-[0_0_8px_rgba(196,181,253,0.75)]
+                        "
+                      />
+                    )}
+                    Now Playing
+                  </span>
+                </div>
+                {/* SOA BADGE */}
+
+                <div
+                  className="
+                    absolute
+                    right-3
+                    top-3
+                  "
+                >
+                  <span
+                    className="
+                      rounded-full
+                      border
+                      border-white/[0.10]
+                      bg-black/55
+                      px-2
+                      py-1
+                      text-[8px]
+                      font-medium
+                      tracking-[0.14em]
+                      text-white/45
+                      backdrop-blur-xl
+                    "
+                  >
+                    SOA
+                  </span>
+                </div>
+              </div>
+            </div>
+            {/* ==================================================
+                TRACK INFO
+            \\\\\\\\================================================== */}
+
+            <div
+              className="
+                mt-2.5
+                xl:mt-3
+                [@media(max-height:820px)]:mt-1.5
+                flex
+                items-start
+                justify-between
+                gap-4
+              "
+            >
+              <div
+                className="
+                  min-w-0
+                  flex-1
+                "
+              >
+                <p
+                  className="
+                    truncate
+                    text-[13px]
+                    xl:text-[15px]
+                    [@media(max-height:820px)]:text-[12px]
+                    font-semibold
+                    tracking-tight
+                    text-white
+                  "
+                >
+                  {
+                    displaySong.title
+                  }
+
+                </p>
+                <p
+                  className="
+                    mt-1
+                    truncate
+                    text-[11px]
+                    text-white/45
+                  "
+                >
+                  {
+                    displaySong.artistName
+                  }
+
+                </p>
+              </div>
+              {currentSong && (
+                <div
+                  className="
+                    mt-1
                     flex
+                    shrink-0
+                    items-center
+                    gap-1
+                  "
+                >
+                  <span
+                    className={`
+                      h-1
+                      w-1
+                      rounded-full
+                      transition
+                      ${
+                        isPlaying
+                          ? "bg-blue-300"
+                          : "bg-white/15"
+                      }
+
+                    `}
+                  />
+                  <span
+                    className={`
+                      h-2
+                      w-1
+                      rounded-full
+                      transition
+                      ${
+                        isPlaying
+                          ? "bg-violet-300"
+                          : "bg-white/15"
+                      }
+
+                    `}
+                  />
+                  <span
+                    className={`
+                      h-3
+                      w-1
+                      rounded-full
+                      transition
+                      ${
+                        isPlaying
+                          ? "bg-purple-300"
+                          : "bg-white/15"
+                      }
+
+                    `}
+                  />
+                  <span
+                    className={`
+                      h-2
+                      w-1
+                      rounded-full
+                      transition
+                      ${
+                        isPlaying
+                          ? "bg-violet-300"
+                          : "bg-white/15"
+                      }
+
+                    `}
+                  />
+                </div>
+              )}
+            </div>
+            {/* ==================================================
+                CONTROLS
+            \\\\\\\\================================================== */}
+
+            {currentSong && (
+              <>
+                <div
+                  className="
+                    mt-3
+                    flex
+                    xl:mt-4
+                    [@media(max-height:820px)]:mt-2
                     items-center
                     justify-between
                   "
@@ -474,34 +1120,46 @@ export default function LeftSidebar() {
                         !shuffle
                       )
                     }
+
                     className={`
-                      rounded-lg
-                      p-2
-
+                      flex
+                      h-8
+                      w-8
+                      items-center
+                      justify-center
+                      rounded-xl
                       transition
-
                       ${
                         shuffle
-                          ? "bg-emerald-400/10 text-emerald-300"
-                          : "text-white/35 hover:bg-white/[0.05] hover:text-white"
+                          ? `
+                            bg-violet-500/[0.10]
+                            text-violet-200
+                          `
+                          : `
+                            text-white/38
+                            hover:bg-white/[0.055]
+                            hover:text-white/70
+                          `
                       }
+
                     `}
                     title={
                       shuffle
                         ? "Shuffle ON"
                         : "Shuffle OFF"
                     }
+
                     aria-label={
                       shuffle
                         ? "Shuffle on"
                         : "Shuffle off"
                     }
+
                   >
                     <Shuffle
-                      size={16}
+                      size={15}
                     />
                   </button>
-
                   {/* PREVIOUS */}
 
                   <button
@@ -509,51 +1167,54 @@ export default function LeftSidebar() {
                     onClick={
                       handlePrev
                     }
+
                     className="
-                      rounded-lg
-                      p-2
-
+                      flex
+                      h-9
+                      w-9
+                      items-center
+                      justify-center
+                      rounded-full
                       text-white/55
-
                       transition
-
-                      hover:bg-white/[0.05]
+                      hover:bg-white/[0.055]
                       hover:text-white
+                      active:scale-95
                     "
                     aria-label="Previous track"
                   >
                     <SkipBack
-                      size={18}
+                      size={17}
+                      fill="currentColor"
                     />
                   </button>
-
-                  {/* PLAY / PAUSE */}
+                  {/* PLAY */}
 
                   <button
                     type="button"
                     onClick={
                       togglePlay
                     }
+
                     className="
+                      relative
                       flex
                       h-11
                       w-11
+                      xl:h-11
+                      xl:w-11
+                      [@media(max-height:820px)]:h-10
+                      [@media(max-height:820px)]:w-10
                       items-center
                       justify-center
-
                       rounded-full
-
                       bg-white
-
                       text-black
-
-                      shadow-[0_8px_25px_rgba(255,255,255,0.12)]
-
+                      shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.4)]
                       transition
-
+                      duration-200
                       hover:scale-105
-                      hover:bg-zinc-100
-
+                      hover:bg-violet-50
                       active:scale-95
                     "
                     aria-label={
@@ -561,21 +1222,21 @@ export default function LeftSidebar() {
                         ? "Pause"
                         : "Play"
                     }
+
                   >
                     {isPlaying ? (
                       <Pause
-                        size={18}
+                        size={17}
                         fill="currentColor"
                       />
                     ) : (
                       <Play
-                        size={18}
+                        size={17}
                         fill="currentColor"
                         className="ml-0.5"
                       />
                     )}
                   </button>
-
                   {/* NEXT */}
 
                   <button
@@ -583,24 +1244,27 @@ export default function LeftSidebar() {
                     onClick={
                       handleNext
                     }
+
                     className="
-                      rounded-lg
-                      p-2
-
+                      flex
+                      h-10
+                      w-10
+                      items-center
+                      justify-center
+                      rounded-full
                       text-white/55
-
                       transition
-
-                      hover:bg-white/[0.05]
+                      hover:bg-white/[0.055]
                       hover:text-white
+                      active:scale-95
                     "
                     aria-label="Next track"
                   >
                     <SkipForward
-                      size={18}
+                      size={17}
+                      fill="currentColor"
                     />
                   </button>
-
                   {/* REPEAT */}
 
                   <button
@@ -610,40 +1274,58 @@ export default function LeftSidebar() {
                         !repeat
                       )
                     }
+
                     className={`
-                      rounded-lg
-                      p-2
-
+                      flex
+                      h-9
+                      w-9
+                      items-center
+                      justify-center
+                      rounded-xl
                       transition
-
                       ${
                         repeat
-                          ? "bg-emerald-400/10 text-emerald-300"
-                          : "text-white/35 hover:bg-white/[0.05] hover:text-white"
+                          ? `
+                            bg-violet-500/[0.10]
+                            text-violet-200
+                          `
+                          : `
+                            text-white/38
+                            hover:bg-white/[0.055]
+                            hover:text-white/70
+                          `
                       }
+
                     `}
                     title={
                       repeat
                         ? "Repeat ON"
                         : "Repeat OFF"
                     }
+
                     aria-label={
                       repeat
                         ? "Repeat on"
                         : "Repeat off"
                     }
+
                   >
                     <Repeat
-                      size={16}
+                      size={15}
                     />
                   </button>
                 </div>
-
-                {/* ======================
+                {/* ==================================================
                     PROGRESS
-                ====================== */}
+                \\\\\\\\================================================== */}
 
-                <div className="mt-4">
+                <div
+                  className="
+                    mt-2.5
+                    xl:mt-3.5
+                    [@media(max-height:820px)]:mt-1.5
+                  "
+                >
                   <button
                     type="button"
                     className="
@@ -654,53 +1336,62 @@ export default function LeftSidebar() {
                       w-full
                       cursor-pointer
                       rounded-full
-                      bg-white/10
+                      bg-white/[0.095]
                     "
-                    onClick={(e) => {
-                      const rect =
-                        e.currentTarget.getBoundingClientRect();
+                    onClick={
+                      event => {
+                        const rect =
+                          event.currentTarget.getBoundingClientRect();
 
-                      const percent =
-                        ((e.clientX -
-                          rect.left) /
-                          rect.width) *
-                        100;
+                        const percent =
+                          (
+                            (
+                              event.clientX -
+                              rect.left
+                            ) /
+                            rect.width
+                          ) *
+                          100;
 
-                      seek(
-                        Math.min(
-                          Math.max(
-                            percent,
-                            0
-                          ),
-                          100
-                        )
-                      );
-                    }}
+                        seek(
+                          Math.min(
+                            Math.max(
+                              percent,
+                              0
+                            ),
+                            100
+                          )
+                        );
+
+                      }
+
+                    }
+
                     aria-label="Seek through track"
                   >
+                    {/* FILLED PROGRESS */}
+
                     <span
                       className="
                         absolute
+                        bottom-0
                         left-0
                         top-0
-                        h-full
                         rounded-full
-
-                        bg-white
-
+                        bg-gradient-to-r
+                        from-blue-400
+                        via-violet-400
+                        to-purple-400
+                        shadow-[0_0_10px_rgba(124,58,237,0.45)]
                         transition-[width]
                         duration-150
                       "
                       style={{
-                        width: `${Math.min(
-                          Math.max(
-                            progress,
-                            0
-                          ),
-                          100
-                        )}%`,
+                        width:
+                          `${safeProgress}%`,
                       }}
                     />
+                    {/* HOVER THUMB */}
 
                     <span
                       className="
@@ -709,41 +1400,31 @@ export default function LeftSidebar() {
                         h-3
                         w-3
                         -translate-y-1/2
-
                         rounded-full
-
+                        border
+                        border-white/50
                         bg-white
-
                         opacity-0
-
+                        shadow-[0_0_10px_rgba(196,181,253,0.55)]
                         transition
-
                         group-hover:opacity-100
                       "
                       style={{
-                        left: `calc(${Math.min(
-                          Math.max(
-                            progress,
-                            0
-                          ),
-                          100
-                        )}% - 6px)`,
+                        left:
+                          `calc(${safeProgress}% - 6px)`,
                       }}
                     />
                   </button>
-
                   {/* TIME */}
 
                   <div
                     className="
-                      mt-1.5
+                      mt-2
                       flex
                       justify-between
-
-                      text-[10px]
+                      text-[9px]
                       tabular-nums
-
-                      text-white/30
+                      text-white/34
                     "
                   >
                     <span>
@@ -751,7 +1432,6 @@ export default function LeftSidebar() {
                         currentTime
                       )}
                     </span>
-
                     <span>
                       {formatTime(
                         duration
@@ -759,356 +1439,29 @@ export default function LeftSidebar() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </section>
-
-          {/* ======================
-              ARTIST FILTER
-          ====================== */}
-
-          <section className="mb-4">
-            <p
-              className="
-                mb-2
-                px-1
-
-                text-[9px]
-                font-semibold
-                uppercase
-                tracking-[0.22em]
-
-                text-white/25
-              "
-            >
-              Artist
-            </p>
-
-            <button
-              type="button"
-              onClick={() =>
-                setArtistDropdownOpen(
-                  !artistDropdownOpen
-                )
-              }
-              className="
-                flex
-                w-full
-                items-center
-                justify-between
-
-                rounded-xl
-
-                border
-                border-white/[0.08]
-
-                bg-white/[0.035]
-
-                px-3
-                py-2.5
-
-                transition
-
-                hover:border-white/[0.14]
-                hover:bg-white/[0.06]
-              "
-              aria-label="Choose artist"
-            >
-              <span
-                className="
-                  text-xs
-                  font-semibold
-                  text-white/75
-                "
-              >
-                {selectedCategory}
-              </span>
-
-              <ChevronDown
-                size={15}
-                className={`
-                  text-white/30
-
-                  transition-transform
-                  duration-300
-
-                  ${
-                    artistDropdownOpen
-                      ? "rotate-180"
-                      : ""
-                  }
-                `}
-              />
-            </button>
-
-            <div
-              className={`
-                overflow-hidden
-
-                transition-all
-                duration-300
-
-                ${
-                  artistDropdownOpen
-                    ? "mt-2 max-h-48 opacity-100"
-                    : "max-h-0 opacity-0"
-                }
-              `}
-            >
-              <div
-                className="
-                  rounded-xl
-
-                  border
-                  border-white/[0.08]
-
-                  bg-[#111111]
-
-                  p-1
-
-                  shadow-[0_20px_40px_rgba(0,0,0,0.45)]
-                "
-              >
-                {artists.map(
-                  (artist) => (
-                    <button
-                      type="button"
-                      key={artist}
-                      onClick={() => {
-                        setSelectedCategory(
-                          artist
-                        );
-
-                        setArtistDropdownOpen(
-                          false
-                        );
-                      }}
-                      className={`
-                        w-full
-
-                        rounded-lg
-
-                        px-3
-                        py-2
-
-                        text-left
-                        text-xs
-
-                        transition
-
-                        ${
-                          selectedCategory ===
-                          artist
-                            ? "bg-white text-black"
-                            : "text-white/55 hover:bg-white/[0.05] hover:text-white"
-                        }
-                      `}
-                    >
-                      {artist}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* ======================
-              TRACKLIST
-          ====================== */}
+          {/* ==================================================
+            SIDEBAR LIBRARY
+        ================================================== */}
+        <SidebarLibrary />
+        {/* ==================================================
+              BOTTOM PLAYER UTILITIES
+          \\\\\\\\================================================== */}
 
           <div
             className="
-              mb-4
-              min-h-0
-              flex-1
-              space-y-5
-              overflow-y-auto
-              pr-1
-              scrollbar-thin
-              scrollbar-thumb-white/10
-            "
-          >
-            {Object.entries(
-              grouped
-            ).map(
-              ([
-                project,
-                projectSongs,
-              ]: any) => (
-                <div
-                  key={project}
-                >
-                  {/* PROJECT NAME */}
-
-                  <div
-                    className="
-                      mb-2
-                      flex
-                      items-center
-                      gap-2
-                      px-1
-                    "
-                  >
-                    <span
-                      className="
-                        text-[9px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.18em]
-                        text-white/25
-                      "
-                    >
-                      {project}
-                    </span>
-
-                    <div
-                      className="
-                        h-px
-                        flex-1
-                        bg-white/[0.06]
-                      "
-                    />
-                  </div>
-
-                  {/* SONGS */}
-
-                  <div className="space-y-1">
-                    {projectSongs.map(
-                      (
-                        song: any
-                      ) => {
-                        const isCurrent =
-                          currentSong?.songId ===
-                          song.songId;
-
-                        return (
-                          <button
-                            key={
-                              song.songId
-                            }
-                            type="button"
-                            onClick={() =>
-                              playSong(
-                                song
-                              )
-                            }
-                            className={`
-                              group
-                              flex
-                              w-full
-                              items-center
-                              justify-between
-
-                              rounded-xl
-
-                              px-2.5
-                              py-2.5
-
-                              text-left
-
-                              transition
-
-                              ${
-                                isCurrent
-                                  ? "bg-white/[0.08] ring-1 ring-white/[0.08]"
-                                  : "hover:bg-white/[0.045]"
-                              }
-                            `}
-                          >
-                            <div
-                              className="
-                                min-w-0
-                                flex-1
-                              "
-                            >
-                              <p
-                                className={`
-                                  truncate
-                                  text-[11px]
-                                  font-medium
-
-                                  ${
-                                    isCurrent
-                                      ? "text-white"
-                                      : "text-white/75 group-hover:text-white"
-                                  }
-                                `}
-                              >
-                                {
-                                  song.title
-                                }
-                              </p>
-
-                              <p
-                                className="
-                                  mt-0.5
-                                  truncate
-                                  text-[9px]
-                                  text-white/30
-                                "
-                              >
-                                {
-                                  song.artistName
-                                }
-                              </p>
-                            </div>
-
-                            <span
-                              className={`
-                                ml-3
-                                flex
-                                h-7
-                                w-7
-                                shrink-0
-                                items-center
-                                justify-center
-
-                                rounded-full
-
-                                transition
-
-                                ${
-                                  isCurrent
-                                    ? "bg-white text-black"
-                                    : "bg-white/[0.04] text-white/25 group-hover:bg-white/[0.09] group-hover:text-white"
-                                }
-                              `}
-                            >
-                              {isCurrent &&
-                              isPlaying ? (
-                                <Pause
-                                  size={11}
-                                  fill="currentColor"
-                                />
-                              ) : (
-                                <Play
-                                  size={11}
-                                  fill="currentColor"
-                                />
-                              )}
-                            </span>
-                          </button>
-                        );
-                      }
-                    )}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-
-          {/* ======================
-              VOLUME
-          ====================== */}
-
-          <section
-            className="
+              shrink-0
               border-t
-              border-white/[0.07]
-
-              pt-3
+              border-white/[0.10]
+              pt-2
+              xl:pt-3
+              [@media(max-height:820px)]:pt-1.5
             "
           >
+            {/* VOLUME */}
+
             <div
               className="
                 flex
@@ -1117,95 +1470,57 @@ export default function LeftSidebar() {
               "
             >
               <Volume2
-                size={15}
-                className="shrink-0 text-white/35"
+                size={14}
+                className="
+                  shrink-0
+                  text-white/50
+                "
               />
-
               <input
                 type="range"
                 min="0"
                 max="1"
                 step="0.01"
-                value={volume}
-                onChange={(e) =>
-                  setVolume(
-                    parseFloat(
-                      e.target.value
-                    )
-                  )
+                value={
+                  volume
                 }
+
+                onChange={
+                  event =>
+                    setVolume(
+                      parseFloat(
+                        event.target.value
+                      )
+                    )
+                }
+
                 className="
                   h-1
                   w-full
                   cursor-pointer
-                  accent-white
+                  accent-violet-400
                 "
                 aria-label="Volume"
               />
+              <span
+                className="
+                  w-7
+                  text-right
+                  text-[9px]
+                  tabular-nums
+                  text-white/50
+                "
+              >
+                {Math.round(
+                  volume *
+                    100
+                )}
+              </span>
             </div>
-          </section>
-
-          {/* ======================
-              SOCIALS
-          ====================== */}
-
-          <div
-            className="
-              mt-3
-              flex
-              items-center
-              justify-center
-              gap-5
-
-              border-t
-              border-white/[0.07]
-
-              pt-3
-
-              text-white/30
-            "
-          >
-            <button
-              type="button"
-              className="
-                transition
-                hover:text-white
-              "
-              aria-label="Instagram"
-            >
-              <Instagram
-                size={17}
-              />
-            </button>
-
-            <button
-              type="button"
-              className="
-                transition
-                hover:text-white
-              "
-              aria-label="Twitter"
-            >
-              <Twitter
-                size={17}
-              />
-            </button>
-
-            <button
-              type="button"
-              className="
-                transition
-                hover:text-white
-              "
-              aria-label="YouTube"
-            >
-              <Youtube
-                size={17}
-              />
-            </button>
           </div>
         </div>
       )}
     </aside>
   );
+
 }

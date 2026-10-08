@@ -250,9 +250,9 @@ export default function ReleasesPage() {
     );
 
 
-  const artists =
+    const memberships =
     useQuery(
-      api.artists.getArtists
+      api.artists.access.getMyArtistMemberships
     );
 
 
@@ -276,16 +276,6 @@ export default function ReleasesPage() {
     useState<PublishMode>(
       "now"
     );
-
-
-  const [
-    artistId,
-    setArtistId,
-  ] =
-    useState<
-      Id<"artists"> | null
-    >(null);
-
 
   const [
     title,
@@ -367,19 +357,19 @@ export default function ReleasesPage() {
   // DERIVED UI
   // ======================================================
 
-  const selectedArtist =
-    useMemo(
-      () =>
-        artists?.find(
-          artist =>
-            artist._id ===
-            artistId
-        ) ?? null,
-      [
-        artists,
-        artistId,
-      ]
-    );
+  const membership =
+  memberships?.[0] ?? null;
+
+const selectedArtist =
+  membership?.artist ?? null;
+
+const artistId =
+  selectedArtist?._id ?? null;
+
+const canManageReleases =
+  membership?.role === "owner" ||
+  membership?.role === "admin" ||
+  membership?.role === "manager";
 
 
   const readyTrackCount =
@@ -412,6 +402,52 @@ export default function ReleasesPage() {
         tracks.length
     );
 
+    if (
+        memberships !== undefined &&
+        membership &&
+        !canManageReleases
+      ) {
+        return (
+          <main
+            className="
+              flex
+              min-h-screen
+              items-center
+              justify-center
+              bg-[#070707]
+              px-5
+              text-white
+            "
+          >
+            <div
+              className="
+                w-full
+                max-w-md
+                rounded-2xl
+                border
+                border-white/[0.08]
+                bg-white/[0.025]
+                p-8
+                text-center
+              "
+            >
+              <AlertCircle
+                size={24}
+                className="mx-auto text-amber-300"
+              />
+      
+              <h1 className="mt-4 text-xl font-semibold">
+                Release access restricted
+              </h1>
+      
+              <p className="mt-2 text-sm leading-6 text-white/40">
+                Your artist role can view the workspace,
+                but cannot create or manage releases.
+              </p>
+            </div>
+          </main>
+        );
+      }
 
   const inputClass = `
     w-full
@@ -935,7 +971,6 @@ const uploadFileToR2 = async (
               `R2 upload failed for ${file.name}`
             );
       }
-
   return {
     url: signed.publicUrl,
     key: signed.key,
@@ -1302,10 +1337,7 @@ const uploadFileToR2 = async (
           "now"
         );
 
-        setArtistId(
-          null
-        );
-
+        
         setReleaseType(
           "single"
         );
@@ -1936,148 +1968,104 @@ const uploadFileToR2 = async (
                         sm:grid-cols-2
                       "
                     >
+                     <FieldLabel label="Artist">
+  {memberships === undefined ? (
+    <div
+      className="
+        flex
+        items-center
+        rounded-xl
+        border
+        border-white/[0.08]
+        bg-white/[0.025]
+        px-4
+        py-4
+        text-sm
+        text-white/35
+      "
+    >
+      Loading artist...
+    </div>
+  ) : selectedArtist ? (
+    <div
+      className="
+        flex
+        items-center
+        gap-3
+        rounded-xl
+        border
+        border-purple-400/25
+        bg-purple-500/[0.06]
+        px-4
+        py-3
+      "
+    >
+      {selectedArtist.image ? (
+        <img
+          src={selectedArtist.image}
+          alt={selectedArtist.name}
+          className="
+            h-9
+            w-9
+            rounded-full
+            object-cover
+          "
+        />
+      ) : (
+        <div
+          className="
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-full
+            bg-gradient-to-br
+            from-purple-500
+            to-cyan-400
+            text-xs
+            font-bold
+            text-white
+          "
+        >
+          {selectedArtist.name
+            .slice(0, 1)
+            .toUpperCase()}
+        </div>
+      )}
 
-                      {
-                        artists?.map(
-                          artist => {
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">
+          {selectedArtist.name}
+        </p>
 
-                            const active =
-                              artist._id ===
-                              artistId;
+        <p className="mt-0.5 text-xs capitalize text-white/35">
+          {membership?.role} access
+        </p>
+      </div>
 
-
-                            return (
-
-                              <button
-                                key={
-                                  artist._id
-                                }
-
-                                type="button"
-
-                                disabled={
-                                  loading
-                                }
-
-                                onClick={() =>
-                                  setArtistId(
-                                    artist._id
-                                  )
-                                }
-
-                                className={`
-                                  flex
-                                  items-center
-                                  gap-3
-                                  rounded-xl
-                                  border
-                                  px-4
-                                  py-3
-                                  text-left
-                                  transition-all
-
-                                  ${
-                                    active
-                                      ?
-                                      `
-                                        border-purple-400/40
-                                        bg-purple-500/[0.09]
-                                      `
-                                      :
-                                      `
-                                        border-white/[0.08]
-                                        bg-white/[0.025]
-                                        hover:border-white/[0.14]
-                                        hover:bg-white/[0.045]
-                                      `
-                                  }
-                                `}
-                              >
-
-                                <div
-                                  className="
-                                    relative
-                                    flex
-                                    h-9
-                                    w-9
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    rounded-full
-                                    bg-gradient-to-br
-                                    from-purple-500
-                                    to-cyan-400
-                                    text-xs
-                                    font-bold
-                                    text-white
-                                  "
-                                >
-                                  {
-                                    artist.name
-                                      .slice(
-                                        0,
-                                        1
-                                      )
-                                      .toUpperCase()
-                                  }
-                                </div>
-
-
-                                <div
-                                  className="
-                                    min-w-0
-                                    flex-1
-                                  "
-                                >
-
-                                  <p
-                                    className="
-                                      truncate
-                                      text-sm
-                                      font-medium
-                                    "
-                                  >
-                                    {
-                                      artist.name
-                                    }
-                                  </p>
-
-                                </div>
-
-
-                                {
-                                  active
-                                  &&
-                                  (
-                                    <div
-                                      className="
-                                        flex
-                                        h-5
-                                        w-5
-                                        items-center
-                                        justify-center
-                                        rounded-full
-                                        bg-white
-                                        text-black
-                                      "
-                                    >
-
-                                      <Check
-                                        size={12}
-                                        strokeWidth={3}
-                                      />
-
-                                    </div>
-                                  )
-                                }
-
-                              </button>
-
-                            );
-
-                          }
-                        )
-                      }
+      <Check
+        size={16}
+        className="text-purple-300"
+      />
+    </div>
+  ) : (
+    <div
+      className="
+        rounded-xl
+        border
+        border-red-400/20
+        bg-red-500/[0.05]
+        px-4
+        py-4
+        text-sm
+        text-red-300/70
+      "
+    >
+      No active artist access found.
+    </div>
+  )}
+</FieldLabel>
 
                     </div>
 
